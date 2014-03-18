@@ -22,7 +22,10 @@ package org.elasticsearch.index.analysis;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterIterator;
+import org.apache.lucene.analysis.miscellaneous.XWordDelimiterFilter;
 import org.apache.lucene.analysis.util.CharArraySet;
+import org.apache.lucene.util.Version;
+import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.inject.assistedinject.Assisted;
 import org.elasticsearch.common.lucene.Lucene;
@@ -42,6 +45,7 @@ public class WordDelimiterTokenFilterFactory extends AbstractTokenFilterFactory 
     private final byte[] charTypeTable;
     private final int flags;
     private final CharArraySet protoWords;
+    private final org.elasticsearch.Version esVersion;
 
     @Inject
     public WordDelimiterTokenFilterFactory(Index index, @IndexSettings Settings indexSettings, Environment env, @Assisted String name, @Assisted Settings settings) {
@@ -82,14 +86,24 @@ public class WordDelimiterTokenFilterFactory extends AbstractTokenFilterFactory 
         Set<?> protectedWords = Analysis.getWordSet(env, settings, "protected_words", version);
         this.protoWords = protectedWords == null ? null : CharArraySet.copy(Lucene.VERSION, protectedWords);
         this.flags = flags;
+        this.esVersion = indexSettings.getAsVersion(IndexMetaData.SETTING_VERSION_CREATED, org.elasticsearch.Version.CURRENT);
     }
 
     @Override
     public TokenStream create(TokenStream tokenStream) {
-        return new WordDelimiterFilter(tokenStream,
-                charTypeTable,
-                flags,
-                protoWords);
+        // previous versions of ES were already using 4.7, so let them keep existing behavior
+        // (similar to NGramTokenizerFactory logic...)
+        if (version.onOrAfter(Version.LUCENE_47) && esVersion.onOrAfter(org.elasticsearch.Version.V_2_0_0)) {
+            return new XWordDelimiterFilter(version, tokenStream,
+                    charTypeTable,
+                    flags,
+                    protoWords);
+        } else {
+            return new WordDelimiterFilter(tokenStream,
+                    charTypeTable,
+                    flags,
+                    protoWords);
+        }
     }
 
     public int getFlag(int flag, Settings settings, String key, boolean defaultValue) {

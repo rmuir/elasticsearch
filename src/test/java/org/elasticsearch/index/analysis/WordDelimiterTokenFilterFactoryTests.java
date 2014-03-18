@@ -21,6 +21,8 @@ package org.elasticsearch.index.analysis;
 
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
+import org.elasticsearch.Version;
+import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.test.ElasticsearchTokenStreamTestCase;
 import org.junit.Test;
 
@@ -123,6 +125,55 @@ public class WordDelimiterTokenFilterFactoryTests extends ElasticsearchTokenStre
         String[] expected = new String[]{"Power", "Shot", "500", "42", "wi", "fi", "wi", "fi", "4000", "j", "2", "se", "O", "Neil", "s"};
         Tokenizer tokenizer = new WhitespaceTokenizer(TEST_VERSION_CURRENT, new StringReader(source));
         assertTokenStreamContents(tokenFilter.create(tokenizer), expected);
+    }
+    
+    /** Correct offset order when doing both parts and concatenation: PowerShot is a synonym of Power */
+    @Test
+    public void testPartsAndCatenate() throws IOException {
+        AnalysisService analysisService = AnalysisTestsHelper.createAnalysisServiceFromSettings(settingsBuilder()
+                .put("index.analysis.filter.my_word_delimiter.type", "word_delimiter")
+                .put("index.analysis.filter.my_word_delimiter.catenate_words", "true")
+                .put("index.analysis.filter.my_word_delimiter.generate_word_parts", "true")
+                .build());
+        TokenFilterFactory tokenFilter = analysisService.tokenFilter("my_word_delimiter");
+        String source = "PowerShot";
+        String[] expected = new String[]{"Power", "PowerShot", "Shot" };
+        Tokenizer tokenizer = new WhitespaceTokenizer(TEST_VERSION_CURRENT, new StringReader(source));
+                    assertTokenStreamContents(tokenFilter.create(tokenizer), expected);
+    }
+    
+    /** Back compat (lucene version): 
+     * old offset order when doing both parts and concatenation: PowerShot is a synonym of Shot */
+    @Test
+    public void testDeprecatedPartsAndCatenate() throws IOException {
+        AnalysisService analysisService = AnalysisTestsHelper.createAnalysisServiceFromSettings(settingsBuilder()
+                .put("index.analysis.filter.my_word_delimiter.type", "word_delimiter")
+                .put("index.analysis.filter.my_word_delimiter.catenate_words", "true")
+                .put("index.analysis.filter.my_word_delimiter.generate_word_parts", "true")
+                .put("index.analysis.filter.my_word_delimiter.version", "4.6")
+                .build());
+        TokenFilterFactory tokenFilter = analysisService.tokenFilter("my_word_delimiter");
+        String source = "PowerShot";
+        String[] expected = new String[]{"Power", "Shot", "PowerShot" };
+        Tokenizer tokenizer = new WhitespaceTokenizer(TEST_VERSION_CURRENT, new StringReader(source));
+                    assertTokenStreamContents(tokenFilter.create(tokenizer), expected);
+    }
+    
+    /** Back compat (from es version): 
+     * old offset order when doing both parts and concatenation: PowerShot is a synonym of Shot */
+    @Test
+    public void testDeprecatedPartsAndCatenate2() throws IOException {
+        AnalysisService analysisService = AnalysisTestsHelper.createAnalysisServiceFromSettings(settingsBuilder()
+                .put("index.analysis.filter.my_word_delimiter.type", "word_delimiter")
+                .put("index.analysis.filter.my_word_delimiter.catenate_words", "true")
+                .put("index.analysis.filter.my_word_delimiter.generate_word_parts", "true")
+                .put(IndexMetaData.SETTING_VERSION_CREATED, Version.V_1_0_0.id)
+                .build());
+        TokenFilterFactory tokenFilter = analysisService.tokenFilter("my_word_delimiter");
+        String source = "PowerShot";
+        String[] expected = new String[]{"Power", "Shot", "PowerShot" };
+        Tokenizer tokenizer = new WhitespaceTokenizer(TEST_VERSION_CURRENT, new StringReader(source));
+                    assertTokenStreamContents(tokenFilter.create(tokenizer), expected);
     }
 
 }
