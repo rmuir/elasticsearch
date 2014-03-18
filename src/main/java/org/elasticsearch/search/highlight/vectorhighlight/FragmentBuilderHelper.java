@@ -90,9 +90,13 @@ public final class FragmentBuilderHelper {
             }
             TokenFilterFactory[] tokenFilters = a.tokenFilters();
             for (TokenFilterFactory tokenFilterFactory : tokenFilters) {
-                if (tokenFilterFactory instanceof WordDelimiterTokenFilterFactory 
-                        || tokenFilterFactory instanceof EdgeNGramTokenFilterFactory) {
-                    return true;
+                if ((tokenFilterFactory instanceof WordDelimiterTokenFilterFactory 
+                        && !((WordDelimiterTokenFilterFactory)tokenFilterFactory).version().onOrAfter(Version.LUCENE_47))) {
+                    // WDF is broken before 4.7
+                    return true; 
+                }
+                if (tokenFilterFactory instanceof EdgeNGramTokenFilterFactory) {
+                    return true; // TODO: isnt this one fixed...?
                 }
                 if (tokenFilterFactory instanceof NGramTokenFilterFactory 
                         && !((NGramTokenFilterFactory)tokenFilterFactory).version().onOrAfter(Version.LUCENE_42)) {
