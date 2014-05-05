@@ -52,8 +52,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.Adler32;
-import java.util.zip.Checksum;
 
 /**
  */
@@ -466,7 +464,7 @@ public class Store extends AbstractIndexShardComponent implements CloseableIndex
             return createOutput(name, context, false);
         }
 
-        public IndexOutput createOutput(String name, IOContext context, boolean raw) throws IOException {
+        private IndexOutput createOutput(String name, IOContext context, boolean raw) throws IOException {
             ensureOpen();
             Directory directory;
             // we want to write the segments gen file to the same directory *all* the time
@@ -483,16 +481,6 @@ public class Store extends AbstractIndexShardComponent implements CloseableIndex
                     StoreFileMetaData metaData = new StoreFileMetaData(name, -1, null, directory);
                     filesMetadata = ImmutableOpenMap.builder(filesMetadata).fPut(name, metaData).build();
                     files = filesMetadata.keys().toArray(String.class);
-                    boolean computeChecksum = !raw;
-                    if (computeChecksum) {
-                        // don't compute checksum for segment based files
-                        if (IndexFileNames.SEGMENTS_GEN.equals(name) || name.startsWith(IndexFileNames.SEGMENTS)) {
-                            computeChecksum = false;
-                        }
-                    }
-                    if (computeChecksum) {
-                        out = new BufferedChecksumIndexOutput(out, new Adler32());
-                    }
 
                     final StoreIndexOutput storeIndexOutput = new StoreIndexOutput(metaData, out, name);
                     success = true;
@@ -647,16 +635,12 @@ public class Store extends AbstractIndexShardComponent implements CloseableIndex
 
         @Override
         public void close() throws IOException {
-            out.close();
             String checksum = null;
-            IndexOutput underlying = out;
-            // TODO: cut over to lucene's CRC
-            // *WARNING*: lucene has classes in same o.a.l.store package with very similar names,
-            // but using CRC, not Adler!
-            if (underlying instanceof BufferedChecksumIndexOutput) {
-                Checksum digest = ((BufferedChecksumIndexOutput) underlying).digest();
-                assert digest instanceof Adler32;
-                checksum = Long.toString(digest.getValue(), Character.MAX_RADIX);
+            try {
+                // TODO: stop writing this metadata...
+                checksum = Long.toString(out.getChecksum(), Character.MAX_RADIX);
+            } finally {
+                out.close();
             }
             synchronized (mutex) {
                 StoreFileMetaData md = new StoreFileMetaData(name, metaData.directory().fileLength(name), checksum, metaData.directory());
