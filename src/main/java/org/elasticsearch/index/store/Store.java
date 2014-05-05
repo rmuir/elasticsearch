@@ -481,8 +481,14 @@ public class Store extends AbstractIndexShardComponent implements CloseableIndex
                     StoreFileMetaData metaData = new StoreFileMetaData(name, -1, null, directory);
                     filesMetadata = ImmutableOpenMap.builder(filesMetadata).fPut(name, metaData).build();
                     files = filesMetadata.keys().toArray(String.class);
-
-                    final StoreIndexOutput storeIndexOutput = new StoreIndexOutput(metaData, out, name);
+                    boolean computeChecksum = !raw;
+                    if (computeChecksum) {
+                        // don't compute checksum for segment based files
+                        if (IndexFileNames.SEGMENTS_GEN.equals(name) || name.startsWith(IndexFileNames.SEGMENTS)) {
+                            computeChecksum = false;
+                        }
+                    }
+                    final StoreIndexOutput storeIndexOutput = new StoreIndexOutput(metaData, out, name, computeChecksum);
                     success = true;
                     return storeIndexOutput;
                 }
@@ -626,11 +632,15 @@ public class Store extends AbstractIndexShardComponent implements CloseableIndex
         private final IndexOutput out;
 
         private final String name;
+        
+        private final boolean doChecksum;
 
-        StoreIndexOutput(StoreFileMetaData metaData, IndexOutput delegate, String name) {
+        StoreIndexOutput(StoreFileMetaData metaData, IndexOutput delegate, String name, boolean doChecksum) {
             this.metaData = metaData;
             this.out = delegate;
             this.name = name;
+            this.doChecksum = doChecksum;
+            
         }
 
         @Override
@@ -638,7 +648,9 @@ public class Store extends AbstractIndexShardComponent implements CloseableIndex
             String checksum = null;
             try {
                 // TODO: stop writing this metadata...
-                checksum = Long.toString(out.getChecksum(), Character.MAX_RADIX);
+                if (doChecksum) {
+                    checksum = Long.toString(out.getChecksum(), Character.MAX_RADIX);
+                }
             } finally {
                 out.close();
             }
