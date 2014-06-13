@@ -71,7 +71,7 @@ public class FSTBytesAtomicFieldData implements AtomicFieldData.WithOrdinals<Scr
         if (size == -1) {
             long size = ordinals.getMemorySizeInBytes();
             // FST
-            size += fst == null ? 0 : fst.sizeInBytes();
+            size += fst == null ? 0 : fst.ramBytesUsed();
             this.size = size;
         }
         return size;

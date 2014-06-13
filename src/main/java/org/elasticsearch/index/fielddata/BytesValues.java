@@ -46,7 +46,7 @@ public abstract class BytesValues {
 
     private boolean multiValued;
 
-    protected final BytesRef scratch = new BytesRef();
+    protected BytesRef scratch = new BytesRef();
 
     protected int docId = -1;
 

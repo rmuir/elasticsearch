@@ -79,13 +79,7 @@ abstract class SortedSetDVAtomicFieldData {
 
     private static SortedSetDocValues getValuesNoException(AtomicReader reader, String field) {
         try {
-            SortedSetDocValues values = reader.getSortedSetDocValues(field);
-            if (values == null) {
-                // This field has not been populated
-                assert reader.getFieldInfos().fieldInfo(field) == null;
-                values = DocValues.EMPTY_SORTED_SET;
-            }
-            return values;
+            return DocValues.getSortedSet(reader, field);
         } catch (IOException e) {
             throw new ElasticsearchIllegalStateException("Couldn't load doc values", e);
         }
@@ -103,14 +97,12 @@ abstract class SortedSetDVAtomicFieldData {
         @Override
         public BytesRef getValueByOrd(long ord) {
             assert ord != Ordinals.MISSING_ORDINAL;
-            values.lookupOrd(ord, scratch);
-            return scratch;
+            return scratch = values.lookupOrd(ord);
         }
 
         @Override
         public BytesRef nextValue() {
-            values.lookupOrd(ordinals.nextOrd(), scratch);
-            return scratch;
+            return scratch = values.lookupOrd(ordinals.nextOrd());
         }
     }
 

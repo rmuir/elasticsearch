@@ -18,7 +18,7 @@
  */
 package org.elasticsearch.index.fielddata.plain;
 
-import org.apache.lucene.codecs.BlockTreeTermsReader;
+import org.apache.lucene.codecs.blocktree.BlockTreeTermsReader;
 import org.apache.lucene.index.*;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.PagedBytes;
