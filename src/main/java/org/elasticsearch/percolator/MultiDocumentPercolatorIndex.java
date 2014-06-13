@@ -83,7 +83,8 @@ class MultiDocumentPercolatorIndex implements PercolatorIndex {
                 continue;
             }
             try {
-                TokenStream tokenStream = field.tokenStream(analyzer);
+                // nocommit can we reuse?
+                TokenStream tokenStream = field.tokenStream(analyzer, null);
                 if (tokenStream != null) {
                     memoryIndex.addField(field.name(), tokenStream, field.boost());
                 }

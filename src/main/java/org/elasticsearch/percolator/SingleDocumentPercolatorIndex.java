@@ -53,7 +53,8 @@ class SingleDocumentPercolatorIndex implements PercolatorIndex {
                 continue;
             }
             try {
-                TokenStream tokenStream = field.tokenStream(parsedDocument.analyzer());
+                // nocommit can we reuse?
+                TokenStream tokenStream = field.tokenStream(parsedDocument.analyzer(), null);
                 if (tokenStream != null) {
                     memoryIndex.addField(field.name(), tokenStream, field.boost());
                 }
