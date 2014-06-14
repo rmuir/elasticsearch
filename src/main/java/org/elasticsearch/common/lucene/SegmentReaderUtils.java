@@ -44,15 +44,9 @@ public class SegmentReaderUtils {
         return internalSegmentReader(reader, false);
     }
 
-    // nocommit: "Use AtomicReader.addCoreClosedListener instead of trying to unwrap the atomic reader: https://issues.apache.org/jira/browse/LUCENE-5701";
-
     public static boolean registerCoreListener(AtomicReader reader, SegmentReader.CoreClosedListener listener) {
-        SegmentReader segReader = SegmentReaderUtils.segmentReaderOrNull(reader);
-        if (segReader != null) {
-            segReader.addCoreClosedListener(listener);
-            return true;
-        }
-        return false;
+        reader.addCoreClosedListener(listener);
+        return true;
     }
 
     private static SegmentReader internalSegmentReader(AtomicReader reader, boolean fail) {
