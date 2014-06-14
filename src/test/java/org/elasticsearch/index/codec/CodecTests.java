@@ -82,6 +82,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         CodecService codecService = createCodecService();
         assertThat(codecService.codec("default"), instanceOf(PerFieldMappingPostingFormatCodec.class));
         assertThat(codecService.codec("default"), instanceOf(Lucene49Codec.class));
+        assertThat(codecService.codec("Lucene49"), instanceOf(Lucene49Codec.class));
         assertThat(codecService.codec("Lucene46"), instanceOf(Lucene46Codec.class));
         assertThat(codecService.codec("Lucene45"), instanceOf(Lucene45Codec.class));
         assertThat(codecService.codec("Lucene40"), instanceOf(Lucene40Codec.class));
