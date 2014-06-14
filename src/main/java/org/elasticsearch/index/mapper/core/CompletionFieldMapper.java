@@ -47,7 +47,6 @@ import org.elasticsearch.search.suggest.context.ContextMapping;
 import org.elasticsearch.search.suggest.context.ContextMapping.ContextConfig;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.util.*;
 
 import static org.elasticsearch.index.mapper.MapperBuilders.completionField;
@@ -401,8 +400,8 @@ public class CompletionFieldMapper extends AbstractFieldMapper<String> {
         }
 
         @Override
-        public TokenStream tokenStream(Analyzer analyzer) throws IOException {
-            TokenStream ts = ctx.wrapTokenStream(super.tokenStream(analyzer));
+        public TokenStream tokenStream(Analyzer analyzer, TokenStream previous) throws IOException {
+            TokenStream ts = ctx.wrapTokenStream(super.tokenStream(analyzer, previous));
             return new CompletionTokenStream(ts, payload, toFiniteStrings);
         }
     }

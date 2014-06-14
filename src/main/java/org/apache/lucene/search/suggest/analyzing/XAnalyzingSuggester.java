@@ -26,10 +26,7 @@ import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.store.*;
 import org.apache.lucene.util.*;
-import org.apache.lucene.util.automaton.Automaton;
-import org.apache.lucene.util.automaton.BasicOperations;
-import org.apache.lucene.util.automaton.State;
-import org.apache.lucene.util.automaton.Transition;
+import org.apache.lucene.util.automaton.*;
 import org.apache.lucene.util.fst.*;
 import org.apache.lucene.util.fst.FST.BytesReader;
 import org.apache.lucene.util.fst.PairOutputs.Pair;
@@ -253,8 +250,8 @@ public class XAnalyzingSuggester extends Lookup {
   }
 
   /** Returns byte size of the underlying FST. */
-  public long sizeInBytes() {
-    return fst == null ? 0 : fst.sizeInBytes();
+  public long ramBytesUsed() {
+    return fst == null ? 0 : fst.ramBytesUsed();
   }
 
   private static void copyDestTransitions(State from, State to, List<Transition> transitions) {
@@ -913,7 +910,7 @@ public class XAnalyzingSuggester extends Lookup {
       // TODO: we could walk & add simultaneously, so we
       // don't have to alloc [possibly biggish]
       // intermediate HashSet in RAM:
-      return XSpecialOperations.getFiniteStrings(automaton, maxGraphExpansions);
+      return SpecialOperations.getFiniteStrings(automaton, maxGraphExpansions);
   }
 
   final Automaton toLookupAutomaton(final CharSequence key) throws IOException {

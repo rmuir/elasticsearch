@@ -32,6 +32,7 @@ import java.io.IOException;
  * Not to be confused with Lucene StringField, this handles analyzed text as well, and relies on providing
  * the FieldType. Couldn't come up with a good name for this that is different from Text/String...
  */
+// nocommit: remove me and all other threadlocals
 public class XStringField extends Field {
 
     private static final CloseableThreadLocal<StringTokenStream> NOT_ANALYZED_TOKENSTREAM = new CloseableThreadLocal<StringTokenStream>() {
@@ -47,13 +48,13 @@ public class XStringField extends Field {
     }
 
     @Override
-    public TokenStream tokenStream(Analyzer analyzer) throws IOException {
+    public TokenStream tokenStream(Analyzer analyzer, TokenStream previous) throws IOException {
         if (!fieldType().indexed()) {
             return null;
         }
         // Only use the cached TokenStream if the value is indexed and not-tokenized
         if (fieldType().tokenized()) {
-            return super.tokenStream(analyzer);
+            return super.tokenStream(analyzer, previous);
         }
         StringTokenStream nonAnalyzedTokenStream = NOT_ANALYZED_TOKENSTREAM.get();
         nonAnalyzedTokenStream.setValue((String) fieldsData);
