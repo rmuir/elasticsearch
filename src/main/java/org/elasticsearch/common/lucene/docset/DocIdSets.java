@@ -24,6 +24,7 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.FixedBitSet;
+import org.apache.lucene.util.RamUsageEstimator;
 import org.elasticsearch.common.Nullable;
 
 import java.io.IOException;
@@ -32,12 +33,11 @@ import java.io.IOException;
  */
 public class DocIdSets {
 
+    /**
+     * Return the size of the doc id set, plus a reference to it.
+     */
     public static long sizeInBytes(DocIdSet docIdSet) {
-        if (docIdSet instanceof FixedBitSet) {
-            return ((FixedBitSet) docIdSet).getBits().length * 8 + 16;
-        }
-        // only for empty ones and unknowns...
-        return 1;
+        return RamUsageEstimator.NUM_BYTES_OBJECT_REF + docIdSet.ramBytesUsed();
     }
 
     /**
