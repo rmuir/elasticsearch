@@ -26,14 +26,16 @@ import org.apache.lucene.codecs.lucene40.Lucene40Codec;
 import org.apache.lucene.codecs.lucene41.Lucene41Codec;
 import org.apache.lucene.codecs.lucene42.Lucene42Codec;
 import org.apache.lucene.codecs.lucene45.Lucene45Codec;
-import org.apache.lucene.codecs.lucene45.Lucene45DocValuesFormat;
 import org.apache.lucene.codecs.lucene46.Lucene46Codec;
+import org.apache.lucene.codecs.lucene49.Lucene49Codec;
+import org.apache.lucene.codecs.lucene49.Lucene49DocValuesFormat;
 import org.apache.lucene.codecs.memory.DirectPostingsFormat;
 import org.apache.lucene.codecs.memory.MemoryDocValuesFormat;
 import org.apache.lucene.codecs.memory.MemoryPostingsFormat;
 import org.apache.lucene.codecs.perfield.PerFieldPostingsFormat;
 import org.apache.lucene.codecs.pulsing.Pulsing41PostingsFormat;
 import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
+import org.apache.lucene.util.LuceneTestCase;
 import org.elasticsearch.common.inject.AbstractModule;
 import org.elasticsearch.common.inject.Injector;
 import org.elasticsearch.common.inject.ModulesBuilder;
@@ -65,6 +67,7 @@ import java.util.Arrays;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 
+@LuceneTestCase.SuppressSysoutChecks(bugUrl="I am quite noisy")
 public class CodecTests extends ElasticsearchLuceneTestCase {
     
     @Override
@@ -78,7 +81,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
     public void testResolveDefaultCodecs() throws Exception {
         CodecService codecService = createCodecService();
         assertThat(codecService.codec("default"), instanceOf(PerFieldMappingPostingFormatCodec.class));
-        assertThat(codecService.codec("default"), instanceOf(Lucene46Codec.class));
+        assertThat(codecService.codec("default"), instanceOf(Lucene49Codec.class));
         assertThat(codecService.codec("Lucene46"), instanceOf(Lucene46Codec.class));
         assertThat(codecService.codec("Lucene45"), instanceOf(Lucene45Codec.class));
         assertThat(codecService.codec("Lucene40"), instanceOf(Lucene40Codec.class));
@@ -143,7 +146,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         assertThat(docValuesFormatService.get("memory").get(), instanceOf(MemoryDocValuesFormat.class));
         assertThat(docValuesFormatService.get("disk").get(), instanceOf(DiskDocValuesFormat.class));
         assertThat(docValuesFormatService.get("Disk").get(), instanceOf(DiskDocValuesFormat.class));
-        assertThat(docValuesFormatService.get("default").get(), instanceOf(Lucene45DocValuesFormat.class));
+        assertThat(docValuesFormatService.get("default").get(), instanceOf(Lucene49DocValuesFormat.class));
     }
 
     @Test
@@ -346,7 +349,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         CodecService codecService = createCodecService(indexSettings);
         DocumentMapper documentMapper = codecService.mapperService().documentMapperParser().parse(mapping);
         assertThat(documentMapper.mappers().name("field1").mapper().docValuesFormatProvider(), instanceOf(PreBuiltDocValuesFormatProvider.class));
-        assertThat(documentMapper.mappers().name("field1").mapper().docValuesFormatProvider().get(), instanceOf(Lucene45DocValuesFormat.class));
+        assertThat(documentMapper.mappers().name("field1").mapper().docValuesFormatProvider().get(), instanceOf(Lucene49DocValuesFormat.class));
 
         assertThat(documentMapper.mappers().name("field2").mapper().docValuesFormatProvider(), instanceOf(DefaultDocValuesFormatProvider.class));
     }
