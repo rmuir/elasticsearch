@@ -19,10 +19,7 @@
 
 package org.elasticsearch.index.fielddata.plain;
 
-import org.apache.lucene.index.AtomicReader;
-import org.apache.lucene.index.DocValues;
-import org.apache.lucene.index.SortedSetDocValues;
-import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.*;
 import org.apache.lucene.util.ArrayUtil;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.ElasticsearchIllegalStateException;
@@ -85,7 +82,7 @@ abstract class SortedSetDVAtomicFieldData {
         }
     }
 
-    static class SortedSetValues extends BytesValues.WithOrdinals {
+    private final static class SortedSetValues extends BytesValues.WithOrdinals {
 
         protected final SortedSetDocValues values;
 
@@ -106,7 +103,7 @@ abstract class SortedSetDVAtomicFieldData {
         }
     }
 
-    static final class SortedSetOrdinals implements Ordinals {
+    private final static class SortedSetOrdinals implements Ordinals {
 
         // We don't store SortedSetDocValues as a member because Ordinals must be thread-safe
         private final AtomicReader reader;
@@ -140,12 +137,16 @@ abstract class SortedSetDVAtomicFieldData {
         public Docs ordinals() {
             final SortedSetDocValues values = getValuesNoException(reader, field);
             assert values.getValueCount() == maxOrd;
-            return new SortedSetDocs(this, values);
+            if (values instanceof RandomAccessOrds) {
+                return new RandomAccessSortedSetDocs(this, (RandomAccessOrds) values);
+            } else {
+                return new SortedSetDocs(this, values);
+            }
         }
 
     }
 
-    static class SortedSetDocs extends Ordinals.AbstractDocs {
+    private final static class SortedSetDocs extends Ordinals.AbstractDocs {
 
         private final SortedSetDocValues values;
         private long[] ords;
@@ -188,5 +189,39 @@ abstract class SortedSetDVAtomicFieldData {
         public long currentOrd() {
             return currentOrdinal;
         }
+    }
+
+    private final static class RandomAccessSortedSetDocs extends Ordinals.AbstractDocs {
+
+        private final RandomAccessOrds values;
+        private long currentOrdinal = -1;
+
+        RandomAccessSortedSetDocs(SortedSetOrdinals ordinals, RandomAccessOrds values) {
+            super(ordinals);
+            this.values = values;
+        }
+
+        @Override
+        public long getOrd(int docId) {
+            values.setDocument(docId);
+            return currentOrdinal = values.nextOrd();
+        }
+
+        @Override
+        public long nextOrd() {
+            return currentOrdinal = values.nextOrd();
+        }
+
+        @Override
+        public int setDocument(int docId) {
+            values.setDocument(docId);
+            return values.cardinality();
+        }
+
+        @Override
+        public long currentOrd() {
+            return currentOrdinal;
+        }
+
     }
 }
