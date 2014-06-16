@@ -87,7 +87,9 @@ abstract class SortedSetDVAtomicFieldData {
         protected final SortedSetDocValues values;
 
         SortedSetValues(AtomicReader reader, String field, SortedSetDocValues values) {
-            super(new SortedSetDocs(new SortedSetOrdinals(reader, field, values.getValueCount()), values));
+            super(values instanceof RandomAccessOrds ? 
+                    new RandomAccessSortedSetDocs(new SortedSetOrdinals(reader, field, values.getValueCount()), (RandomAccessOrds) values) :
+                    new SortedSetDocs(new SortedSetOrdinals(reader, field, values.getValueCount()), values));
             this.values = values;
         }
 
@@ -195,6 +197,7 @@ abstract class SortedSetDVAtomicFieldData {
 
         private final RandomAccessOrds values;
         private long currentOrdinal = -1;
+        private int index;
 
         RandomAccessSortedSetDocs(SortedSetOrdinals ordinals, RandomAccessOrds values) {
             super(ordinals);
@@ -209,12 +212,13 @@ abstract class SortedSetDVAtomicFieldData {
 
         @Override
         public long nextOrd() {
-            return currentOrdinal = values.nextOrd();
+            return currentOrdinal = values.ordAt(index++);
         }
 
         @Override
         public int setDocument(int docId) {
             values.setDocument(docId);
+            index = 0;
             return values.cardinality();
         }
 

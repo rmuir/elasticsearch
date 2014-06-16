@@ -21,7 +21,6 @@ package org.elasticsearch.index.codec;
 
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.bloom.BloomFilteringPostingsFormat;
-import org.apache.lucene.codecs.diskdv.DiskDocValuesFormat;
 import org.apache.lucene.codecs.lucene40.Lucene40Codec;
 import org.apache.lucene.codecs.lucene41.Lucene41Codec;
 import org.apache.lucene.codecs.lucene42.Lucene42Codec;
@@ -145,8 +144,8 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
             assertThat(docValuesFormatService.get(dvf), instanceOf(PreBuiltDocValuesFormatProvider.class));
         }
         assertThat(docValuesFormatService.get("memory").get(), instanceOf(MemoryDocValuesFormat.class));
-        assertThat(docValuesFormatService.get("disk").get(), instanceOf(DiskDocValuesFormat.class));
-        assertThat(docValuesFormatService.get("Disk").get(), instanceOf(DiskDocValuesFormat.class));
+        assertThat(docValuesFormatService.get("disk").get(), instanceOf(Lucene49DocValuesFormat.class));
+        assertThat(docValuesFormatService.get("Disk").get(), instanceOf(Lucene49DocValuesFormat.class));
         assertThat(docValuesFormatService.get("default").get(), instanceOf(Lucene49DocValuesFormat.class));
     }
 
@@ -319,7 +318,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         DocumentMapper documentMapper = codecService.mapperService().documentMapperParser().parse(mapping);
         assertThat(documentMapper.rootMapper(UidFieldMapper.class).hasDocValues(), equalTo(true));
         assertThat(documentMapper.rootMapper(UidFieldMapper.class).docValuesFormatProvider(), instanceOf(PreBuiltDocValuesFormatProvider.class));
-        assertThat(documentMapper.rootMapper(UidFieldMapper.class).docValuesFormatProvider().get(), instanceOf(DiskDocValuesFormat.class));
+        assertThat(documentMapper.rootMapper(UidFieldMapper.class).docValuesFormatProvider().get(), instanceOf(Lucene49DocValuesFormat.class));
     }
 
     @Test
@@ -332,7 +331,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         DocumentMapper documentMapper = codecService.mapperService().documentMapperParser().parse(mapping);
         assertThat(documentMapper.rootMapper(IdFieldMapper.class).hasDocValues(), equalTo(true));
         assertThat(documentMapper.rootMapper(IdFieldMapper.class).docValuesFormatProvider(), instanceOf(PreBuiltDocValuesFormatProvider.class));
-        assertThat(documentMapper.rootMapper(IdFieldMapper.class).docValuesFormatProvider().get(), instanceOf(DiskDocValuesFormat.class));
+        assertThat(documentMapper.rootMapper(IdFieldMapper.class).docValuesFormatProvider().get(), instanceOf(Lucene49DocValuesFormat.class));
     }
 
     @Test
@@ -390,7 +389,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         CodecService codecService = createCodecService(indexSettings);
         DocumentMapper documentMapper = codecService.mapperService().documentMapperParser().parse(mapping);
         assertThat(documentMapper.mappers().name("field1").mapper().docValuesFormatProvider(), instanceOf(PreBuiltDocValuesFormatProvider.class));
-        assertThat(documentMapper.mappers().name("field1").mapper().docValuesFormatProvider().get(), instanceOf(DiskDocValuesFormat.class));
+        assertThat(documentMapper.mappers().name("field1").mapper().docValuesFormatProvider().get(), instanceOf(Lucene49DocValuesFormat.class));
 
         assertThat(documentMapper.mappers().name("field2").mapper().docValuesFormatProvider(), instanceOf(DiskDocValuesFormatProvider.class));
     }
@@ -404,7 +403,7 @@ public class CodecTests extends ElasticsearchLuceneTestCase {
         CodecService codecService = createCodecService();
         DocumentMapper documentMapper = codecService.mapperService().documentMapperParser().parse(mapping);
         assertThat(documentMapper.rootMapper(VersionFieldMapper.class).docValuesFormatProvider(), instanceOf(PreBuiltDocValuesFormatProvider.class));
-        assertThat(documentMapper.rootMapper(VersionFieldMapper.class).docValuesFormatProvider().get(), instanceOf(DiskDocValuesFormat.class));
+        assertThat(documentMapper.rootMapper(VersionFieldMapper.class).docValuesFormatProvider().get(), instanceOf(Lucene49DocValuesFormat.class));
     }
 
     private static CodecService createCodecService() {
