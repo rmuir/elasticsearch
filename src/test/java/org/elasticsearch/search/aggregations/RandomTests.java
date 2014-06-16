@@ -153,7 +153,7 @@ public class RandomTests extends ElasticsearchIntegrationTest {
         final int maxNumTerms = randomIntBetween(10, 5000);
 
         final IntOpenHashSet valuesSet = new IntOpenHashSet();
-        immutableCluster().wipeIndices("idx");
+        cluster().wipeIndices("idx");
         prepareCreate("idx")
                 .setSettings(ImmutableSettings.builder().put(InternalGlobalOrdinalsBuilder.ORDINAL_MAPPING_THRESHOLD_INDEX_SETTING_KEY, randomIntBetween(1, maxNumTerms)))
                 .addMapping("type", jsonBuilder().startObject()
@@ -320,7 +320,7 @@ public class RandomTests extends ElasticsearchIntegrationTest {
         createIndex("idx");
         final int value = randomIntBetween(0, 10);
         indexRandom(true, client().prepareIndex("idx", "type").setSource("f", value));
-
+        ensureYellow("idx"); // only one document let's make sure all shards have an active primary
         SearchResponse response = client().prepareSearch("idx")
                 .addAggregation(filter("filter").filter(FilterBuilders.matchAllFilter())
                 .subAggregation(range("range")
@@ -330,7 +330,7 @@ public class RandomTests extends ElasticsearchIntegrationTest {
                 .subAggregation(sum("sum").field("f"))))
                 .execute().actionGet();
 
-        assertSearchResponse(response);System.out.println(response);
+        assertSearchResponse(response);
 
         Filter filter = response.getAggregations().get("filter");
         assertNotNull(filter);
