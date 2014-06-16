@@ -60,7 +60,7 @@ public class NumericDVAtomicFieldData extends AbstractAtomicNumericFieldData {
     }
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         // TODO: cannot be computed from Lucene
         return -1;
     }

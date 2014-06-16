@@ -39,7 +39,7 @@ public class DocIdOrdinals implements Ordinals {
     }
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         return RamUsageEstimator.NUM_BYTES_OBJECT_REF;
     }
 

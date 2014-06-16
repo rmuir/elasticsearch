@@ -70,7 +70,7 @@ public class PagedBytesIndexFieldData extends AbstractBytesIndexFieldData<PagedB
         Terms terms = reader.terms(getFieldNames().indexName());
         if (terms == null) {
             PagedBytesAtomicFieldData emptyData = PagedBytesAtomicFieldData.empty();
-            estimator.adjustForNoTerms(emptyData.getMemorySizeInBytes());
+            estimator.adjustForNoTerms(emptyData.ramBytesUsed());
             return emptyData;
         }
 
@@ -120,7 +120,7 @@ public class PagedBytesIndexFieldData extends AbstractBytesIndexFieldData<PagedB
                 estimator.afterLoad(termsEnum, 0);
             } else {
                 // Call .afterLoad() to adjust the breaker now that we have an exact size
-                estimator.afterLoad(termsEnum, data.getMemorySizeInBytes());
+                estimator.afterLoad(termsEnum, data.ramBytesUsed());
             }
 
         }

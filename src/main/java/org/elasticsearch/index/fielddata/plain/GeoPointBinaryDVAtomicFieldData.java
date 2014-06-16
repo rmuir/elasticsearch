@@ -47,7 +47,7 @@ final class GeoPointBinaryDVAtomicFieldData extends AtomicGeoPointFieldData<Scri
     }
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         return -1; // not exposed by Lucene
     }
 

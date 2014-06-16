@@ -49,7 +49,7 @@ abstract class AbstractGeoPointIndexFieldData extends AbstractIndexFieldData<Ato
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             return 0;
         }
 

@@ -147,7 +147,7 @@ final class BinaryDVNumericAtomicFieldData extends AbstractAtomicNumericFieldDat
     }
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         return -1; // Lucene doesn't expose it
     }
 

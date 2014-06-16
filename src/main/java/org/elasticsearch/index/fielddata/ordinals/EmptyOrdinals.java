@@ -27,7 +27,7 @@ public enum EmptyOrdinals implements Ordinals {
     INSTANCE;
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         return 0;
     }
 

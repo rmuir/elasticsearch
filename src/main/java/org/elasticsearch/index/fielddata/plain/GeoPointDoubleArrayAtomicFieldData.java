@@ -65,9 +65,9 @@ public abstract class GeoPointDoubleArrayAtomicFieldData extends AtomicGeoPointF
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + lon.sizeInBytes() + lat.sizeInBytes();
+                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + lon.ramBytesUsed() + lat.ramBytesUsed();
             }
             return size;
         }
@@ -133,9 +133,9 @@ public abstract class GeoPointDoubleArrayAtomicFieldData extends AtomicGeoPointF
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + lon.sizeInBytes() + lat.sizeInBytes() + RamUsageEstimator.sizeOf(set.getBits());
+                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + lon.ramBytesUsed() + lat.ramBytesUsed() + RamUsageEstimator.sizeOf(set.getBits());
             }
             return size;
         }
@@ -200,9 +200,9 @@ public abstract class GeoPointDoubleArrayAtomicFieldData extends AtomicGeoPointF
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + RamUsageEstimator.NUM_BYTES_INT/*numDocs*/ + (lon.sizeInBytes() + lat.sizeInBytes());
+                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + RamUsageEstimator.NUM_BYTES_INT/*numDocs*/ + (lon.ramBytesUsed() + lat.ramBytesUsed());
             }
             return size;
         }

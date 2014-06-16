@@ -68,7 +68,7 @@ public class GeoPointDoubleArrayIndexFieldData extends AbstractGeoPointIndexFiel
         NonEstimatingEstimator estimator = new NonEstimatingEstimator(breakerService.getBreaker());
         if (terms == null) {
             data = new Empty();
-            estimator.afterLoad(null, data.getMemorySizeInBytes());
+            estimator.afterLoad(null, data.ramBytesUsed());
             return data;
         }
         DoubleArray lat = BigArrays.NON_RECYCLING_INSTANCE.newDoubleArray(128);
@@ -115,7 +115,7 @@ public class GeoPointDoubleArrayIndexFieldData extends AbstractGeoPointIndexFiel
             return data;
         } finally {
             if (success) {
-                estimator.afterLoad(null, data.getMemorySizeInBytes());
+                estimator.afterLoad(null, data.ramBytesUsed());
             }
 
         }

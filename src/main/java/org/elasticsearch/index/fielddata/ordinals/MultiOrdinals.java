@@ -75,7 +75,7 @@ public class MultiOrdinals implements Ordinals {
     }
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         return endOffsets.ramBytesUsed() + ords.ramBytesUsed();
     }
 

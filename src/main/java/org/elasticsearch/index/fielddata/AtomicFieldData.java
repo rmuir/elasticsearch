@@ -20,11 +20,12 @@
 package org.elasticsearch.index.fielddata;
 
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.util.Accountable;
 
 /**
  * The thread safe {@link org.apache.lucene.index.AtomicReader} level cache of the data.
  */
-public interface AtomicFieldData<Script extends ScriptDocValues> extends RamUsage {
+public interface AtomicFieldData<Script extends ScriptDocValues> extends Accountable {
 
     /**
      * If this method returns false, this means that no document has multiple values. However this method may return true even if all

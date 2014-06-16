@@ -55,7 +55,7 @@ abstract class SortedSetDVAtomicFieldData {
         return values.getValueCount();
     }
 
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         // There is no API to access memory usage per-field and RamUsageEstimator can't help since there are often references
         // from a per-field instance to all other instances handled by the same format
         return -1L;
@@ -118,7 +118,7 @@ abstract class SortedSetDVAtomicFieldData {
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             // Ordinals can't be distinguished from the atomic field data instance
             return -1;
         }

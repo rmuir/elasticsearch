@@ -69,7 +69,7 @@ public abstract class GeoPointCompressedAtomicFieldData extends AtomicGeoPointFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + lon.ramBytesUsed() + lat.ramBytesUsed();
             }
@@ -141,7 +141,7 @@ public abstract class GeoPointCompressedAtomicFieldData extends AtomicGeoPointFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + lon.ramBytesUsed() + lat.ramBytesUsed() + RamUsageEstimator.sizeOf(set.getBits());
             }
@@ -211,7 +211,7 @@ public abstract class GeoPointCompressedAtomicFieldData extends AtomicGeoPointFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + (lon.ramBytesUsed() + lat.ramBytesUsed());
             }

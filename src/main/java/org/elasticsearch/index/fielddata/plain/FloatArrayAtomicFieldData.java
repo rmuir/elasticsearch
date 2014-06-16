@@ -69,7 +69,7 @@ public abstract class FloatArrayAtomicFieldData extends AbstractAtomicNumericFie
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             return 0;
         }
 
@@ -106,9 +106,9 @@ public abstract class FloatArrayAtomicFieldData extends AbstractAtomicNumericFie
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + values.sizeInBytes() + ordinals.getMemorySizeInBytes();
+                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + values.ramBytesUsed() + ordinals.ramBytesUsed();
             }
             return size;
         }
@@ -183,9 +183,9 @@ public abstract class FloatArrayAtomicFieldData extends AbstractAtomicNumericFie
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_ARRAY_HEADER + values.sizeInBytes() + RamUsageEstimator.sizeOf(set.getBits());
+                size = RamUsageEstimator.NUM_BYTES_ARRAY_HEADER + values.ramBytesUsed() + RamUsageEstimator.sizeOf(set.getBits());
             }
             return size;
         }
@@ -278,9 +278,9 @@ public abstract class FloatArrayAtomicFieldData extends AbstractAtomicNumericFie
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_ARRAY_HEADER + values.sizeInBytes();
+                size = RamUsageEstimator.NUM_BYTES_ARRAY_HEADER + values.ramBytesUsed();
             }
             return size;
         }

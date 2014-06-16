@@ -46,7 +46,7 @@ final class BytesBinaryDVAtomicFieldData implements AtomicFieldData<ScriptDocVal
     }
 
     @Override
-    public long getMemorySizeInBytes() {
+    public long ramBytesUsed() {
         return -1; // not exposed by Lucene
     }
 

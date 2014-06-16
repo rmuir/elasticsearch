@@ -64,7 +64,7 @@ public abstract class PackedArrayAtomicFieldData extends AbstractAtomicNumericFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             return 0;
         }
 
@@ -101,9 +101,9 @@ public abstract class PackedArrayAtomicFieldData extends AbstractAtomicNumericFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
-                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + values.ramBytesUsed() + ordinals.getMemorySizeInBytes();
+                size = RamUsageEstimator.NUM_BYTES_INT/*size*/ + values.ramBytesUsed() + ordinals.ramBytesUsed();
             }
             return size;
         }
@@ -188,7 +188,7 @@ public abstract class PackedArrayAtomicFieldData extends AbstractAtomicNumericFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = values.ramBytesUsed() + 2 * RamUsageEstimator.NUM_BYTES_LONG;
             }
@@ -287,7 +287,7 @@ public abstract class PackedArrayAtomicFieldData extends AbstractAtomicNumericFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = values.ramBytesUsed();
             }
@@ -378,7 +378,7 @@ public abstract class PackedArrayAtomicFieldData extends AbstractAtomicNumericFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = values.ramBytesUsed();
             }
@@ -466,7 +466,7 @@ public abstract class PackedArrayAtomicFieldData extends AbstractAtomicNumericFi
         }
 
         @Override
-        public long getMemorySizeInBytes() {
+        public long ramBytesUsed() {
             if (size == -1) {
                 size = values.ramBytesUsed() + 2 * RamUsageEstimator.NUM_BYTES_LONG;
             }
