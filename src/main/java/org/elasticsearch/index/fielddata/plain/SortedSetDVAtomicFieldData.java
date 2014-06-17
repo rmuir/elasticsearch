@@ -38,21 +38,23 @@ abstract class SortedSetDVAtomicFieldData {
 
     private final AtomicReader reader;
     private final String field;
+    private final boolean multiValued;
+    private final long valueCount;
 
     SortedSetDVAtomicFieldData(AtomicReader reader, String field) {
         this.reader = reader;
         this.field = field;
+        SortedSetDocValues dv = getValuesNoException(reader, field);
+        this.multiValued = DocValues.unwrapSingleton(dv) == null;
+        this.valueCount = dv.getValueCount();
     }
 
     public boolean isMultiValued() {
-        // we could compute it when loading the values for the first time and then cache it but it would defeat the point of
-        // doc values which is to make loading faster
-        return true;
+        return multiValued;
     }
 
     public long getNumberUniqueValues() {
-        final SortedSetDocValues values = getValuesNoException(reader, field);
-        return values.getValueCount();
+        return valueCount;
     }
 
     public long ramBytesUsed() {
@@ -67,7 +69,7 @@ abstract class SortedSetDVAtomicFieldData {
 
     public org.elasticsearch.index.fielddata.BytesValues.WithOrdinals getBytesValues() {
         final SortedSetDocValues values = getValuesNoException(reader, field);
-        return new SortedSetValues(reader, field, values);
+        return new SortedSetValues(reader, field, values, valueCount, multiValued);
     }
 
     public TermsEnum getTermsEnum() {
@@ -86,10 +88,10 @@ abstract class SortedSetDVAtomicFieldData {
 
         protected final SortedSetDocValues values;
 
-        SortedSetValues(AtomicReader reader, String field, SortedSetDocValues values) {
+        SortedSetValues(AtomicReader reader, String field, SortedSetDocValues values, long valueCount, boolean multiValued) {
             super(values instanceof RandomAccessOrds ? 
-                    new RandomAccessSortedSetDocs(new SortedSetOrdinals(reader, field, values.getValueCount()), (RandomAccessOrds) values) :
-                    new SortedSetDocs(new SortedSetOrdinals(reader, field, values.getValueCount()), values));
+                    new RandomAccessSortedSetDocs(new SortedSetOrdinals(reader, field, valueCount, multiValued), (RandomAccessOrds) values) :
+                    new SortedSetDocs(new SortedSetOrdinals(reader, field, valueCount, multiValued), values));
             this.values = values;
         }
 
@@ -111,12 +113,14 @@ abstract class SortedSetDVAtomicFieldData {
         private final AtomicReader reader;
         private final String field;
         private final long maxOrd;
+        private final boolean multiValued;
 
-        public SortedSetOrdinals(AtomicReader reader, String field, long numOrds) {
+        public SortedSetOrdinals(AtomicReader reader, String field, long numOrds, boolean multiValued) {
             super();
             this.reader = reader;
             this.field = field;
             this.maxOrd = numOrds;
+            this.multiValued = multiValued;
         }
 
         @Override
@@ -127,7 +131,7 @@ abstract class SortedSetDVAtomicFieldData {
 
         @Override
         public boolean isMultiValued() {
-            return true;
+            return multiValued;
         }
 
         @Override
