@@ -51,7 +51,6 @@ import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
-import org.elasticsearch.client.internal.InternalClient;
 import org.elasticsearch.cluster.ClusterService;
 import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.common.Nullable;
@@ -185,7 +184,7 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
      */
     public static final String TESTS_COMPATIBILITY = "tests.compatibility";
 
-    protected static final Version COMPATIBILITY_VERSION = Version.fromString(System.getProperty(TESTS_COMPATIBILITY));
+    protected static final Version COMPATIBILITY_VERSION = Version.fromString(compatibilityVersionProperty());
 
     /**
      * Threshold at which indexing switches from frequently async to frequently bulk.
@@ -300,6 +299,16 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
         }
     }
 
+    private Loading randomLoadingValues() {
+        if (COMPATIBILITY_VERSION.onOrAfter(Version.V_1_2_0)) {
+            // Loading.EAGER_GLOBAL_ORDINALS was added in 1,2.0
+            return randomFrom(Loading.values());
+        } else {
+            return randomFrom(Loading.LAZY, Loading.EAGER);
+        }
+
+    }
+
     /**
      * Creates a randomized index template. This template is used to pass in randomized settings on a
      * per index basis. Allows to enable/disable the randomization for number of shards and replicas
@@ -331,7 +340,7 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
                                 .startObject("mapping")
                                     .startObject("fielddata")
                                         .field(FieldDataType.FORMAT_KEY, randomFrom("paged_bytes", "fst")) // unfortunately doc values only work on not_analyzed fields
-                                        .field(Loading.KEY, randomFrom(Loading.values()))
+                                        .field(Loading.KEY, randomLoadingValues())
                                     .endObject()
                                 .endObject()
                             .endObject()
@@ -558,7 +567,7 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
     public static Client client() {
         Client client = cluster().client();
         if (frequently()) {
-            client = new RandomizingClient((InternalClient) client, getRandom());
+            client = new RandomizingClient(client, getRandom());
         }
         return client;
     }
@@ -566,7 +575,7 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
     public static Client dataNodeClient() {
         Client client = internalCluster().dataNodeClient();
         if (frequently()) {
-            client = new RandomizingClient((InternalClient) client, getRandom());
+            client = new RandomizingClient(client, getRandom());
         }
         return client;
     }
@@ -1489,6 +1498,15 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
     @Ignore
     public @interface SuiteScopeTest {
     }
+
+    private static String compatibilityVersionProperty() {
+        final String version = System.getProperty(TESTS_COMPATIBILITY);
+        if (Strings.hasLength(version)) {
+            return version;
+        }
+        return System.getProperty(TESTS_BACKWARDS_COMPATIBILITY_VERSION);
+    }
+
 
 
 }
