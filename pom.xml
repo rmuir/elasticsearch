@@ -50,7 +50,7 @@
         </repository>
         <repository>
             <id>Fake release candidate</id>
-            <url>http://people.apache.org/~rmuir/fake_staging_area/lucene-solr-4.9.0-r1602531/maven/</url>
+            <url>http://people.apache.org/~rmuir/fake_staging_area/lucene-solr-4.9.0-r1603046/maven/</url>
         </repository>
     </repositories>
 
