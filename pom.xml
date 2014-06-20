@@ -49,8 +49,8 @@
             <url>http://repository.codehaus.org/</url>
         </repository>
         <repository>
-            <id>Fake release candidate</id>
-            <url>http://people.apache.org/~rmuir/fake_staging_area/lucene-solr-4.9.0-r1603046/maven/</url>
+            <id>Release candidate</id>
+            <url>http://people.apache.org/~rmuir/staging_area/lucene_solr_4_9_0_r1604085/lucene/maven/</url>
         </repository>
     </repositories>
 
