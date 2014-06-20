@@ -21,7 +21,6 @@ package org.elasticsearch.search.aggregations.support;
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
-import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.ArrayUtil;
 import org.apache.lucene.util.BytesRef;
@@ -32,7 +31,6 @@ import org.elasticsearch.common.lucene.TopReaderContextAware;
 import org.elasticsearch.common.util.CollectionUtils;
 import org.elasticsearch.index.fielddata.*;
 import org.elasticsearch.index.fielddata.AtomicFieldData.Order;
-import org.elasticsearch.index.fielddata.ordinals.Ordinals;
 import org.elasticsearch.script.SearchScript;
 import org.elasticsearch.search.aggregations.support.ValuesSource.Bytes.SortedAndUnique.SortedUniqueBytesValues;
 import org.elasticsearch.search.aggregations.support.values.ScriptBytesValues;
@@ -91,8 +89,25 @@ public abstract class ValuesSource {
             metaData.uniqueness = Uniqueness.UNIQUE;
             for (AtomicReaderContext readerContext : context.searcher().getTopReaderContext().leaves()) {
                 AtomicFieldData fieldData = indexFieldData.load(readerContext);
-                metaData.multiValued |= fieldData.isMultiValued();
-                metaData.maxAtomicUniqueValuesCount = Math.max(metaData.maxAtomicUniqueValuesCount, fieldData.getNumberUniqueValues());
+                if (fieldData instanceof AtomicFieldData.WithOrdinals<?>) {
+                    AtomicFieldData.WithOrdinals<?> fd = (AtomicFieldData.WithOrdinals<?>) fieldData;
+                    BytesValues.WithOrdinals values = fd.getBytesValues();
+                    metaData.multiValued |= values.isMultiValued();
+                    metaData.maxAtomicUniqueValuesCount = Math.max(metaData.maxAtomicUniqueValuesCount, values.getMaxOrd());
+                } else if (fieldData instanceof AtomicNumericFieldData) {
+                    AtomicNumericFieldData fd = (AtomicNumericFieldData) fieldData;
+                    DoubleValues values = fd.getDoubleValues();
+                    metaData.multiValued |= values.isMultiValued();
+                    metaData.maxAtomicUniqueValuesCount = Long.MAX_VALUE;
+                } else if (fieldData instanceof AtomicGeoPointFieldData<?>) {
+                    AtomicGeoPointFieldData<?> fd = (AtomicGeoPointFieldData<?>) fieldData;
+                    GeoPointValues values = fd.getGeoPointValues();
+                    metaData.multiValued |= values.isMultiValued();
+                    metaData.maxAtomicUniqueValuesCount = Long.MAX_VALUE;
+                } else {
+                    metaData.multiValued = true;
+                    metaData.maxAtomicUniqueValuesCount = Long.MAX_VALUE;
+                }
             }
             return metaData;
         }
@@ -159,8 +174,6 @@ public abstract class ValuesSource {
             public abstract BytesValues.WithOrdinals globalBytesValues();
 
             public abstract long globalMaxOrd(IndexSearcher indexSearcher);
-
-            public abstract TermsEnum getGlobalTermsEnum();
 
             public static class FieldData extends WithOrdinals implements ReaderContextAware {
 
@@ -243,14 +256,8 @@ public abstract class ValuesSource {
                         IndexFieldData.WithOrdinals<?> globalFieldData = indexFieldData.loadGlobal(indexReader);
                         AtomicFieldData.WithOrdinals afd = globalFieldData.load(atomicReaderContext);
                         BytesValues.WithOrdinals values = afd.getBytesValues();
-                        Ordinals.Docs ordinals = values.ordinals();
-                        return maxOrd = ordinals.getMaxOrd();
+                        return maxOrd = values.getMaxOrd();
                     }
-                }
-
-                @Override
-                public TermsEnum getGlobalTermsEnum() {
-                    return globalAtomicFieldData.getTermsEnum();
                 }
             }
 
@@ -349,6 +356,7 @@ public abstract class ValuesSource {
             }
 
             static class SortedUniqueBytesValues extends BytesValues {
+                final BytesRef scratch = new BytesRef();
                 final BytesValues delegate;
                 int[] indices = new int[1]; // at least one
                 final BytesRefArray bytes;
@@ -758,6 +766,7 @@ public abstract class ValuesSource {
 
         static class BytesValues extends org.elasticsearch.index.fielddata.BytesValues {
 
+            private final BytesRef scratch = new BytesRef();
             private final ValuesSource source;
             private final SearchScript script;
 

@@ -28,7 +28,6 @@ import org.elasticsearch.common.collect.Iterators2;
 import org.elasticsearch.common.lease.Releasables;
 import org.elasticsearch.common.util.BytesRefHash;
 import org.elasticsearch.index.fielddata.BytesValues;
-import org.elasticsearch.index.fielddata.ordinals.Ordinals;
 import org.elasticsearch.search.aggregations.Aggregator;
 import org.elasticsearch.search.aggregations.AggregatorFactories;
 import org.elasticsearch.search.aggregations.InternalAggregation;
@@ -90,40 +89,38 @@ public class StringTermsAggregator extends AbstractStringTermsAggregator {
         }
     }
 
+    // TODO: use terms enum
     /** Returns an iterator over the field data terms. */
     private static Iterator<BytesRef> terms(final BytesValues.WithOrdinals bytesValues, boolean reverse) {
-        final Ordinals.Docs ordinals = bytesValues.ordinals();
         if (reverse) {
             return new UnmodifiableIterator<BytesRef>() {
 
-                long i = ordinals.getMaxOrd() - 1;
+                long i = bytesValues.getMaxOrd() - 1;
 
                 @Override
                 public boolean hasNext() {
-                    return i >= Ordinals.MIN_ORDINAL;
+                    return i >= BytesValues.WithOrdinals.MIN_ORDINAL;
                 }
 
                 @Override
                 public BytesRef next() {
-                    bytesValues.getValueByOrd(i--);
-                    return bytesValues.copyShared();
+                    return BytesRef.deepCopyOf(bytesValues.getValueByOrd(i--));
                 }
 
             };
         } else {
             return new UnmodifiableIterator<BytesRef>() {
 
-                long i = Ordinals.MIN_ORDINAL;
+                long i = BytesValues.WithOrdinals.MIN_ORDINAL;
 
                 @Override
                 public boolean hasNext() {
-                    return i < ordinals.getMaxOrd();
+                    return i < bytesValues.getMaxOrd();
                 }
 
                 @Override
                 public BytesRef next() {
-                    bytesValues.getValueByOrd(i++);
-                    return bytesValues.copyShared();
+                    return BytesRef.deepCopyOf(bytesValues.getValueByOrd(i++));
                 }
 
             };

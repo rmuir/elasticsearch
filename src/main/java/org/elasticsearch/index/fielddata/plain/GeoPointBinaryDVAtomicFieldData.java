@@ -37,16 +37,6 @@ final class GeoPointBinaryDVAtomicFieldData extends AtomicGeoPointFieldData<Scri
     }
 
     @Override
-    public boolean isMultiValued() {
-        return false;
-    }
-
-    @Override
-    public long getNumberUniqueValues() {
-        return Long.MAX_VALUE;
-    }
-
-    @Override
     public long ramBytesUsed() {
         return -1; // not exposed by Lucene
     }

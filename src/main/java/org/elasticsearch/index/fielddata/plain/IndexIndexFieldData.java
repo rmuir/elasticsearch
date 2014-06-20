@@ -21,14 +21,12 @@ package org.elasticsearch.index.fielddata.plain;
 
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.fielddata.*;
 import org.elasticsearch.index.fielddata.fieldcomparator.BytesRefFieldComparatorSource;
 import org.elasticsearch.index.fielddata.ordinals.GlobalOrdinalsBuilder;
-import org.elasticsearch.index.fielddata.ordinals.Ordinals;
 import org.elasticsearch.index.mapper.FieldMapper;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.indices.fielddata.breaker.CircuitBreakerService;
@@ -46,7 +44,15 @@ public class IndexIndexFieldData implements IndexFieldData.WithOrdinals<AtomicFi
 
     }
 
-    private static final Ordinals.Docs INDEX_ORDINALS = new Ordinals.Docs() {
+    private static class IndexBytesValues extends BytesValues.WithOrdinals {
+
+        private final BytesRef scratch;
+
+        protected IndexBytesValues(String index) {
+            super(false);
+            scratch = new BytesRef();
+            scratch.copyChars(index);
+        }
 
         @Override
         public int setDocument(int docId) {
@@ -55,35 +61,17 @@ public class IndexIndexFieldData implements IndexFieldData.WithOrdinals<AtomicFi
 
         @Override
         public long nextOrd() {
-            return Ordinals.MIN_ORDINAL;
-        }
-
-        @Override
-        public boolean isMultiValued() {
-            return false;
+            return BytesValues.WithOrdinals.MIN_ORDINAL;
         }
 
         @Override
         public long getOrd(int docId) {
-            return Ordinals.MIN_ORDINAL;
+            return BytesValues.WithOrdinals.MIN_ORDINAL;
         }
 
         @Override
         public long getMaxOrd() {
             return 1;
-        }
-
-        @Override
-        public long currentOrd() {
-            return Ordinals.MIN_ORDINAL;
-        }
-    };
-
-    private static class IndexBytesValues extends BytesValues.WithOrdinals {
-
-        protected IndexBytesValues(String index) {
-            super(INDEX_ORDINALS);
-            scratch.copyChars(index);
         }
 
         @Override
@@ -107,16 +95,6 @@ public class IndexIndexFieldData implements IndexFieldData.WithOrdinals<AtomicFi
         }
 
         @Override
-        public boolean isMultiValued() {
-            return false;
-        }
-
-        @Override
-        public long getNumberUniqueValues() {
-            return 1;
-        }
-
-        @Override
         public BytesValues.WithOrdinals getBytesValues() {
             return new IndexBytesValues(index);
         }
@@ -128,11 +106,6 @@ public class IndexIndexFieldData implements IndexFieldData.WithOrdinals<AtomicFi
 
         @Override
         public void close() {
-        }
-
-        @Override
-        public TermsEnum getTermsEnum() {
-            return new AtomicFieldDataWithOrdinalsTermsEnum(this);
         }
 
     }

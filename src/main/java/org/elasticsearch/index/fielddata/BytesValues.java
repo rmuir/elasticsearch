@@ -19,10 +19,11 @@
 
 package org.elasticsearch.index.fielddata;
 
+import org.apache.lucene.index.SortedSetDocValues;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.ElasticsearchIllegalStateException;
-import org.elasticsearch.index.fielddata.ordinals.Ordinals;
-import org.elasticsearch.index.fielddata.ordinals.Ordinals.Docs;
+import org.elasticsearch.index.fielddata.plain.BytesValuesWithOrdinalsTermsEnum;
 
 /**
  * A state-full lightweight per document set of <code>byte[]</code> values.
@@ -44,11 +45,7 @@ public abstract class BytesValues {
      */
     public static final BytesValues EMPTY = new Empty();
 
-    private boolean multiValued;
-
-    protected BytesRef scratch = new BytesRef();
-
-    protected int docId = -1;
+    private final boolean multiValued;
 
     /**
      * Creates a new {@link BytesValues} instance
@@ -63,15 +60,6 @@ public abstract class BytesValues {
      */
     public final boolean isMultiValued() {
         return multiValued;
-    }
-
-    /**
-     * Converts the current shared {@link BytesRef} to a stable instance. Note,
-     * this calls makes the bytes safe for *reads*, not writes (into the same BytesRef). For example,
-     * it makes it safe to be placed in a map.
-     */
-    public BytesRef copyShared() {
-        return BytesRef.deepCopyOf(scratch);
     }
 
     /**
@@ -114,20 +102,35 @@ public abstract class BytesValues {
      */
     public static abstract class WithOrdinals extends BytesValues {
 
-        protected final Docs ordinals;
+        public static final long MIN_ORDINAL = 0;
+        public static final long MISSING_ORDINAL = SortedSetDocValues.NO_MORE_ORDS;
 
-        protected WithOrdinals(Ordinals.Docs ordinals) {
-            super(ordinals.isMultiValued());
-            this.ordinals = ordinals;
+        protected WithOrdinals(boolean multiValued) {
+            super(multiValued);
         }
 
         /**
-         * Returns the associated ordinals instance.
-         * @return the associated ordinals instance.
+         * Returns total unique ord count;
          */
-        public Ordinals.Docs ordinals() {
-            return ordinals;
-        }
+        public abstract long getMaxOrd();
+
+        /**
+         * The ordinal that maps to the relevant docId. If it has no value, returns
+         * <tt>0</tt>.
+         */
+        public abstract long getOrd(int docId);
+
+        /**
+         * Returns the next ordinal for the current docID set to {@link #setDocument(int)}.
+         * This method should only be called <tt>N</tt> times where <tt>N</tt> is the number
+         * returned from {@link #setDocument(int)}. If called more than <tt>N</tt> times the behavior
+         * is undefined.
+         *
+         * Note: This method will never return <tt>0</tt>.
+         *
+         * @return the next ordinal for the current docID set to {@link #setDocument(int)}.
+         */
+        public abstract long nextOrd();
 
         /**
          * Returns the value for the given ordinal.
@@ -138,17 +141,15 @@ public abstract class BytesValues {
         public abstract BytesRef getValueByOrd(long ord);
 
         @Override
-        public int setDocument(int docId) {
-            this.docId = docId;
-            int length = ordinals.setDocument(docId);
-            assert (ordinals.getOrd(docId) != Ordinals.MISSING_ORDINAL) == length > 0 : "Doc: [" + docId + "] hasValue: [" + (ordinals.getOrd(docId) != Ordinals.MISSING_ORDINAL) + "] but length is [" + length + "]";
-            return length;
+        public BytesRef nextValue() {
+            return getValueByOrd(nextOrd());
         }
 
-        @Override
-        public BytesRef nextValue() {
-            assert docId != -1;
-            return getValueByOrd(ordinals.nextOrd());
+        /**
+         * Returns a terms enum to iterate over all the underlying values.
+         */
+        public TermsEnum getTermsEnum() {
+            return new BytesValuesWithOrdinalsTermsEnum(this);
         }
     }
 

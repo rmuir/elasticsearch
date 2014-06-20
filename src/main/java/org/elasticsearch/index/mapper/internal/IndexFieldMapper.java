@@ -66,7 +66,7 @@ public class IndexFieldMapper extends AbstractFieldMapper<String> implements Int
             FIELD_TYPE.freeze();
         }
 
-        public static final EnabledAttributeMapper ENABLED_STATE = EnabledAttributeMapper.DISABLED;
+        public static final EnabledAttributeMapper ENABLED_STATE = EnabledAttributeMapper.UNSET_DISABLED;
     }
 
     public static class Builder extends AbstractFieldMapper.Builder<Builder, IndexFieldMapper> {
@@ -201,7 +201,7 @@ public class IndexFieldMapper extends AbstractFieldMapper<String> implements Int
         if (includeDefaults || fieldType().stored() != Defaults.FIELD_TYPE.stored() && enabledState.enabled) {
             builder.field("store", fieldType().stored());
         }
-        if (includeDefaults || enabledState != Defaults.ENABLED_STATE) {
+        if (includeDefaults || enabledState.enabled != Defaults.ENABLED_STATE.enabled) {
             builder.field("enabled", enabledState.enabled);
         }
 

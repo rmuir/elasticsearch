@@ -137,16 +137,6 @@ final class BinaryDVNumericAtomicFieldData extends AbstractAtomicNumericFieldDat
     }
 
     @Override
-    public boolean isMultiValued() {
-        return true; // no way to know
-    }
-
-    @Override
-    public long getNumberUniqueValues() {
-        return Long.MAX_VALUE; // no clue
-    }
-
-    @Override
     public long ramBytesUsed() {
         return -1; // Lucene doesn't expose it
     }
