@@ -33,7 +33,7 @@ import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
@@ -171,7 +171,7 @@ public class TransportNodesListShardStoreMetaData extends TransportNodesOperatio
         for (int i = 0; i < shardLocations.length; i++) {
             shardIndexLocations[i] = shardLocations[i].resolve("index");
         }
-        final boolean exists = FileSystemUtils.exists(shardIndexLocations);
+        final boolean exists = PathUtils.exists(shardIndexLocations);
         if (!exists) {
             return new StoreFilesMetaData(false, shardId, ImmutableMap.<String, StoreFileMetaData>of());
         }

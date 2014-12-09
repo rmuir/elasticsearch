@@ -19,7 +19,7 @@
 package org.elasticsearch.env;
 
 import com.google.common.base.Charsets;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
@@ -52,7 +52,7 @@ public class EnvironmentTests extends ElasticsearchTestCase {
         Environment environment = newEnvironment();
         URL url = environment.resolveConfig("META-INF/MANIFEST.MF"); // this works because there is one jar having this file in the classpath
         assertNotNull(url);
-        try (BufferedReader reader = FileSystemUtils.newBufferedReader(url, Charsets.UTF_8)) {
+        try (BufferedReader reader = PathUtils.newBufferedReader(url, Charsets.UTF_8)) {
             String string = Streams.copyToString(reader);
             assertTrue(string, string.contains("Manifest-Version"));
         }
@@ -63,7 +63,7 @@ public class EnvironmentTests extends ElasticsearchTestCase {
         Environment environment = newEnvironment();
         URL url = environment.resolveConfig("org/elasticsearch/common/cli/tool.help");
         assertNotNull(url);
-        try (BufferedReader reader = FileSystemUtils.newBufferedReader(url, Charsets.UTF_8)) {
+        try (BufferedReader reader = PathUtils.newBufferedReader(url, Charsets.UTF_8)) {
             String string = Streams.copyToString(reader);
             assertEquals(string, "tool help");
         }

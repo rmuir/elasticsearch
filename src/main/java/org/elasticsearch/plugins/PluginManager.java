@@ -27,7 +27,7 @@ import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.*;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.http.client.HttpDownloadHelper;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
@@ -53,7 +53,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
 import static org.elasticsearch.common.Strings.hasLength;
-import static org.elasticsearch.common.io.FileSystemUtils.moveFilesWithoutOverwriting;
+import static org.elasticsearch.common.io.PathUtils.moveFilesWithoutOverwriting;
 import static org.elasticsearch.common.settings.ImmutableSettings.Builder.EMPTY_SETTINGS;
 
 /**
@@ -182,7 +182,7 @@ public class PluginManager {
         }
         try (FileSystem zipFile = FileSystems.newFileSystem(pluginFile, null)) {
             for (final Path root : zipFile.getRootDirectories() ) {
-                final Path[] topLevelFiles = FileSystemUtils.files(root);
+                final Path[] topLevelFiles = PathUtils.files(root);
                 //we check whether we need to remove the top-level folder while extracting
                 //sometimes (e.g. github) the downloaded archive contains a top-level folder which needs to be removed
                 final boolean stripTopLevelDirectory;
@@ -204,7 +204,7 @@ public class PluginManager {
                 Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Path target =  FileSystemUtils.append(extractLocation, file, stripTopLevelDirectory ? 1 : 0);
+                        Path target =  PathUtils.append(extractLocation, file, stripTopLevelDirectory ? 1 : 0);
                         Files.createDirectories(target);
                         Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING);
                         return FileVisitResult.CONTINUE;
@@ -224,7 +224,7 @@ public class PluginManager {
             }
         }
 
-        if (FileSystemUtils.hasExtensions(extractLocation, ".java")) {
+        if (PathUtils.hasExtensions(extractLocation, ".java")) {
             debug("Plugin installation assumed to be site plugin, but contains source code, aborting installation...");
             try {
                 IOUtils.rm(extractLocation);
@@ -277,7 +277,7 @@ public class PluginManager {
         // try and identify the plugin type, see if it has no .class or .jar files in it
         // so its probably a _site, and it it does not have a _site in it, move everything to _site
         if (!Files.exists(extractLocation.resolve("_site"))) {
-            if (potentialSitePlugin && !FileSystemUtils.hasExtensions(extractLocation, ".class", ".jar")) {
+            if (potentialSitePlugin && !PathUtils.hasExtensions(extractLocation, ".class", ".jar")) {
                 log("Identified as a _site plugin, moving to _site structure ...");
                 Path site = extractLocation.resolve("_site");
                 Path tmpLocation = environment.pluginsFile().resolve(extractLocation.getFileName() + ".tmp");

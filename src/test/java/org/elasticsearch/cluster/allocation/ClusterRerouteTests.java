@@ -33,7 +33,7 @@ import org.elasticsearch.cluster.routing.allocation.decider.Decision;
 import org.elasticsearch.cluster.routing.allocation.decider.DisableAllocationDecider;
 import org.elasticsearch.cluster.routing.allocation.decider.EnableAllocationDecider;
 import org.elasticsearch.common.Priority;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
@@ -192,11 +192,11 @@ public class ClusterRerouteTests extends ElasticsearchIntegrationTest {
 
         logger.info("--> closing all nodes");
         Path[] shardLocation = internalCluster().getInstance(NodeEnvironment.class, node_1).shardPaths(new ShardId("test", 0));
-        assertThat(FileSystemUtils.exists(shardLocation), equalTo(true)); // make sure the data is there!
+        assertThat(PathUtils.exists(shardLocation), equalTo(true)); // make sure the data is there!
         internalCluster().closeNonSharedNodes(false); // don't wipe data directories the index needs to be there!
 
         logger.info("--> deleting the shard data [{}] ", Arrays.toString(shardLocation));
-        assertThat(FileSystemUtils.exists(shardLocation), equalTo(true)); // verify again after cluster was shut down
+        assertThat(PathUtils.exists(shardLocation), equalTo(true)); // verify again after cluster was shut down
         IOUtils.rm(shardLocation);
 
         logger.info("--> starting nodes back, will not allocate the shard since it has no data, but the index will be there");

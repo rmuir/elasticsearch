@@ -20,7 +20,7 @@
 package org.elasticsearch.index.translog.fs;
 
 import org.apache.lucene.util.IOUtils;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.index.translog.AbstractSimpleTranslogTests;
 import org.elasticsearch.index.translog.Translog;

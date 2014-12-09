@@ -20,7 +20,6 @@
 package org.elasticsearch.common.io;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.common.logging.ESLogger;
 
@@ -33,7 +32,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -42,9 +40,9 @@ import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 /**
  * Elasticsearch utils to work with {@link java.nio.file.Path}
  */
-public final class FileSystemUtils {
+public final class PathUtils {
 
-    private FileSystemUtils() {} // only static methods
+    private PathUtils() {} // only static methods
 
     /**
      * Returns <code>true</code> iff a file under the given root has one of the given extensions. This method

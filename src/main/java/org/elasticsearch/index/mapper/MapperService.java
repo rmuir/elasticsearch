@@ -40,7 +40,7 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.compress.CompressedString;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.lucene.search.AndFilter;
 import org.elasticsearch.common.lucene.search.NotFilter;
@@ -165,7 +165,7 @@ public class MapperService extends AbstractIndexComponent  {
             }
         } else {
             try {
-                defaultMappingSource = Streams.copyToString(FileSystemUtils.newBufferedReader(defaultMappingUrl, Charsets.UTF_8));
+                defaultMappingSource = Streams.copyToString(PathUtils.newBufferedReader(defaultMappingUrl, Charsets.UTF_8));
             } catch (IOException e) {
                 throw new MapperException("Failed to load default mapping source from [" + defaultMappingLocation + "]", e);
             }
@@ -187,7 +187,7 @@ public class MapperService extends AbstractIndexComponent  {
         }
         if (percolatorMappingUrl != null) {
             try {
-                defaultPercolatorMappingSource = Streams.copyToString(FileSystemUtils.newBufferedReader(percolatorMappingUrl, Charsets.UTF_8));
+                defaultPercolatorMappingSource = Streams.copyToString(PathUtils.newBufferedReader(percolatorMappingUrl, Charsets.UTF_8));
             } catch (IOException e) {
                 throw new MapperException("Failed to load default percolator mapping source from [" + percolatorMappingUrl + "]", e);
             }

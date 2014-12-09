@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.io.Streams;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
@@ -175,7 +175,7 @@ public class HttpServer extends AbstractLifecycleComponent<HttpServer> {
         // Convert file separators.
         sitePath = sitePath.replace("/", separator);
         // this is a plugin provided site, serve it as static files from the plugin location
-        Path file = FileSystemUtils.append(siteFile, Paths.get(sitePath), 0);
+        Path file = PathUtils.append(siteFile, Paths.get(sitePath), 0);
         if (!Files.exists(file) || Files.isHidden(file)) {
             channel.sendResponse(new BytesRestResponse(NOT_FOUND));
             return;

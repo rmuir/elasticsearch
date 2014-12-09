@@ -24,7 +24,7 @@ import org.apache.lucene.util.IOUtils;
 import org.apache.lucene.util.LuceneTestCase;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.bytes.BytesArray;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.VersionType;
 import org.elasticsearch.index.shard.ShardId;
@@ -66,7 +66,7 @@ public abstract class AbstractSimpleTranslogTests extends ElasticsearchTestCase 
         super.setUp();
         translog = create();
         // if a previous test failed we clean up things here
-        FileSystemUtils.deleteSubDirectories(translog.locations());
+        PathUtils.deleteSubDirectories(translog.locations());
         translog.newTranslog(1);
     }
 
@@ -530,7 +530,7 @@ public abstract class AbstractSimpleTranslogTests extends ElasticsearchTestCase 
      * Randomly overwrite some bytes in the translog files
      */
     private void corruptTranslogs(Path directory) throws Exception {
-        Path[] files = FileSystemUtils.files(directory, "translog-*");
+        Path[] files = PathUtils.files(directory, "translog-*");
         for (Path file : files) {
             logger.info("--> corrupting {}...", file);
             FileChannel f = FileChannel.open(file, StandardOpenOption.READ, StandardOpenOption.WRITE);

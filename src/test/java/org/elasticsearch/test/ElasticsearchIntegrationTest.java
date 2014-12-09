@@ -72,7 +72,7 @@ import org.elasticsearch.common.Priority;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.collect.Tuple;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.regex.Regex;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
@@ -1860,7 +1860,7 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
             TestUtil.unzip(stream, indexDir);
         }
         assertTrue(Files.exists(dataDir));
-        Path[] list = FileSystemUtils.files(dataDir);
+        Path[] list = PathUtils.files(dataDir);
         if (list.length != 1) {
             throw new IllegalStateException("Backwards index must contain exactly one cluster");
         }

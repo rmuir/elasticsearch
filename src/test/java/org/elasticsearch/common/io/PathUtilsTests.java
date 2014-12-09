@@ -37,9 +37,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
 /**
- * Unit tests for {@link org.elasticsearch.common.io.FileSystemUtils}.
+ * Unit tests for {@link org.elasticsearch.common.io.PathUtils}.
  */
-public class FileSystemUtilsTests extends ElasticsearchTestCase {
+public class PathUtilsTests extends ElasticsearchTestCase {
 
     Path src;
     Path dst;
@@ -55,21 +55,21 @@ public class FileSystemUtilsTests extends ElasticsearchTestCase {
         // We first copy sources test files from src/test/resources
         // Because after when the test runs, src files are moved to their destination
         Properties props = new Properties();
-        try (InputStream is = FileSystemUtilsTests.class.getResource("rootdir.properties").openStream()) {
+        try (InputStream is = PathUtilsTests.class.getResource("rootdir.properties").openStream()) {
             props.load(is);
         }
 
-        FileSystemUtils.copyDirectoryRecursively(Paths.get(props.getProperty("copyappend.root.dir")), src);
+        PathUtils.copyDirectoryRecursively(Paths.get(props.getProperty("copyappend.root.dir")), src);
     }
 
     @Test
     public void testMoveOverExistingFileAndAppend() throws IOException {
 
-        FileSystemUtils.moveFilesWithoutOverwriting(src.resolve("v1"), dst, ".new");
+        PathUtils.moveFilesWithoutOverwriting(src.resolve("v1"), dst, ".new");
         assertFileContent(dst, "file1.txt", "version1");
         assertFileContent(dst, "dir/file2.txt", "version1");
 
-        FileSystemUtils.moveFilesWithoutOverwriting(src.resolve("v2"), dst, ".new");
+        PathUtils.moveFilesWithoutOverwriting(src.resolve("v2"), dst, ".new");
         assertFileContent(dst, "file1.txt", "version1");
         assertFileContent(dst, "dir/file2.txt", "version1");
         assertFileContent(dst, "file1.txt.new", "version2");
@@ -77,7 +77,7 @@ public class FileSystemUtilsTests extends ElasticsearchTestCase {
         assertFileContent(dst, "file3.txt", "version1");
         assertFileContent(dst, "dir/subdir/file4.txt", "version1");
 
-        FileSystemUtils.moveFilesWithoutOverwriting(src.resolve("v3"), dst, ".new");
+        PathUtils.moveFilesWithoutOverwriting(src.resolve("v3"), dst, ".new");
         assertFileContent(dst, "file1.txt", "version1");
         assertFileContent(dst, "dir/file2.txt", "version1");
         assertFileContent(dst, "file1.txt.new", "version3");
@@ -93,11 +93,11 @@ public class FileSystemUtilsTests extends ElasticsearchTestCase {
     public void testMoveOverExistingFileAndIgnore() throws IOException {
         Path dest = globalTempDirPath();
 
-        FileSystemUtils.moveFilesWithoutOverwriting(src.resolve("v1"), dest, null);
+        PathUtils.moveFilesWithoutOverwriting(src.resolve("v1"), dest, null);
         assertFileContent(dest, "file1.txt", "version1");
         assertFileContent(dest, "dir/file2.txt", "version1");
 
-        FileSystemUtils.moveFilesWithoutOverwriting(src.resolve("v2"), dest, null);
+        PathUtils.moveFilesWithoutOverwriting(src.resolve("v2"), dest, null);
         assertFileContent(dest, "file1.txt", "version1");
         assertFileContent(dest, "dir/file2.txt", "version1");
         assertFileContent(dest, "file1.txt.new", null);
@@ -105,7 +105,7 @@ public class FileSystemUtilsTests extends ElasticsearchTestCase {
         assertFileContent(dest, "file3.txt", "version1");
         assertFileContent(dest, "dir/subdir/file4.txt", "version1");
 
-        FileSystemUtils.moveFilesWithoutOverwriting(src.resolve("v3"), dest, null);
+        PathUtils.moveFilesWithoutOverwriting(src.resolve("v3"), dest, null);
         assertFileContent(dest, "file1.txt", "version1");
         assertFileContent(dest, "dir/file2.txt", "version1");
         assertFileContent(dest, "file1.txt.new", null);
@@ -139,13 +139,13 @@ public class FileSystemUtilsTests extends ElasticsearchTestCase {
 
     @Test
     public void testAppend() {
-        assertEquals(FileSystemUtils.append(Paths.get("/foo/bar"), Paths.get("/hello/world/this_is/awesome"), 0),
+        assertEquals(PathUtils.append(Paths.get("/foo/bar"), Paths.get("/hello/world/this_is/awesome"), 0),
                 Paths.get("/foo/bar/hello/world/this_is/awesome"));
 
-        assertEquals(FileSystemUtils.append(Paths.get("/foo/bar"), Paths.get("/hello/world/this_is/awesome"), 2),
+        assertEquals(PathUtils.append(Paths.get("/foo/bar"), Paths.get("/hello/world/this_is/awesome"), 2),
                 Paths.get("/foo/bar/this_is/awesome"));
 
-        assertEquals(FileSystemUtils.append(Paths.get("/foo/bar"), Paths.get("/hello/world/this_is/awesome"), 1),
+        assertEquals(PathUtils.append(Paths.get("/foo/bar"), Paths.get("/hello/world/this_is/awesome"), 1),
                 Paths.get("/foo/bar/world/this_is/awesome"));
     }
 }

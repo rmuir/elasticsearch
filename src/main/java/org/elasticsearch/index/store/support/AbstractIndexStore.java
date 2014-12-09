@@ -22,7 +22,7 @@ package org.elasticsearch.index.store.support;
 import org.apache.lucene.store.StoreRateLimiting;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchIllegalStateException;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.env.NodeEnvironment;
@@ -132,7 +132,7 @@ public abstract class AbstractIndexStore extends AbstractIndexComponent implemen
         if (indexService.hasShard(shardId.id())) {
             return false;
         }
-        return FileSystemUtils.exists(nodeEnv.shardPaths(shardId));
+        return PathUtils.exists(nodeEnv.shardPaths(shardId));
     }
 
     @Override

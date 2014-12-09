@@ -29,7 +29,7 @@ import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.ImmutableSettings;
@@ -163,7 +163,7 @@ public class IndicesStore extends AbstractComponent implements ClusterStateListe
                     if (indexService == null) {
                         if (nodeEnv.hasNodeFile()) {
                             Path[] shardLocations = nodeEnv.shardPaths(shardId);
-                            if (FileSystemUtils.exists(shardLocations)) {
+                            if (PathUtils.exists(shardLocations)) {
                                 deleteShardIfExistElseWhere(event.state(), indexShardRoutingTable);
                             }
                         }
@@ -322,7 +322,7 @@ public class IndicesStore extends AbstractComponent implements ClusterStateListe
                         // not physical allocation of the index, delete it from the file system if applicable
                         if (nodeEnv.hasNodeFile()) {
                             Path[] shardLocations = nodeEnv.shardPaths(shardId);
-                            if (FileSystemUtils.exists(shardLocations)) {
+                            if (PathUtils.exists(shardLocations)) {
                                 logger.debug("{} deleting shard that is no longer used", shardId);
                                 try {
                                     nodeEnv.deleteShardDirectorySafe(shardId);

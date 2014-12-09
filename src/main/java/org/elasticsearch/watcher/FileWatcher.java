@@ -19,7 +19,7 @@
 package org.elasticsearch.watcher;
 
 import com.google.common.collect.Iterators;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 
@@ -161,7 +161,7 @@ public class FileWatcher extends AbstractResourceWatcher<FileChangesListener> {
         }
 
         private Path[] listFiles() throws IOException {
-            final Path[] files = FileSystemUtils.files(file);
+            final Path[] files = PathUtils.files(file);
             Arrays.sort(files);
             return files;
         }

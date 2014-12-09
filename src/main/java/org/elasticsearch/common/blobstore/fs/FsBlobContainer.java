@@ -26,7 +26,7 @@ import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
 import org.elasticsearch.common.collect.MapBuilder;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 
 import java.io.*;
 import java.nio.file.*;
@@ -48,7 +48,7 @@ public class FsBlobContainer extends AbstractBlobContainer {
     }
 
     public ImmutableMap<String, BlobMetaData> listBlobs() throws IOException {
-        Path[] files = FileSystemUtils.files(path);
+        Path[] files = PathUtils.files(path);
         if (files.length == 0) {
             return ImmutableMap.of();
         }

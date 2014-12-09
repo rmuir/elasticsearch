@@ -62,7 +62,7 @@ import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.collect.MapBuilder;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.lucene.Lucene;
 import org.elasticsearch.common.settings.Settings;
@@ -233,7 +233,7 @@ public class Analysis {
 
         final URL wordListFile = env.resolveConfig(wordListPath);
 
-        try (BufferedReader reader = FileSystemUtils.newBufferedReader(wordListFile, Charsets.UTF_8)) {
+        try (BufferedReader reader = PathUtils.newBufferedReader(wordListFile, Charsets.UTF_8)) {
             return loadWordList(reader, "#");
         } catch (IOException ioe) {
             String message = String.format(Locale.ROOT, "IOException while reading %s_path: %s", settingPrefix, ioe.getMessage());
@@ -281,7 +281,7 @@ public class Analysis {
         final URL fileUrl = env.resolveConfig(filePath);
 
         try {
-            return FileSystemUtils.newBufferedReader(fileUrl, Charsets.UTF_8);
+            return PathUtils.newBufferedReader(fileUrl, Charsets.UTF_8);
         } catch (IOException ioe) {
             String message = String.format(Locale.ROOT, "IOException while reading %s_path: %s", settingPrefix, ioe.getMessage());
             throw new ElasticsearchIllegalArgumentException(message);

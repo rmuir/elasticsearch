@@ -32,7 +32,7 @@ import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.routing.allocation.decider.EnableAllocationDecider;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.test.ElasticsearchBackwardsCompatIntegrationTest;
 import org.junit.Ignore;
@@ -222,7 +222,7 @@ public class SnapshotBackwardsCompatibilityTest extends ElasticsearchBackwardsCo
             logger.info("--> move from 0 to 1 replica");
             client().admin().indices().prepareUpdateSettings("test").setSettings(ImmutableSettings.builder().put(IndexMetaData.SETTING_NUMBER_OF_REPLICAS, 1)).get();
         }
-        logger.debug("---> repo exists: " + Files.exists(tempDir.resolve("indices/test/0")) + " files: " + Arrays.toString(FileSystemUtils.files(tempDir.resolve("indices/test/0")))); // it's only one shard!
+        logger.debug("---> repo exists: " + Files.exists(tempDir.resolve("indices/test/0")) + " files: " + Arrays.toString(PathUtils.files(tempDir.resolve("indices/test/0")))); // it's only one shard!
         CreateSnapshotResponse createSnapshotResponseSecond = client.admin().cluster().prepareCreateSnapshot("test-repo", "test-1").setWaitForCompletion(true).setIndices("test").get();
         assertThat(createSnapshotResponseSecond.getSnapshotInfo().successfulShards(), greaterThan(0));
         assertThat(createSnapshotResponseSecond.getSnapshotInfo().successfulShards(), equalTo(createSnapshotResponseSecond.getSnapshotInfo().totalShards()));

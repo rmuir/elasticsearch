@@ -56,7 +56,7 @@ import org.elasticsearch.cluster.routing.allocation.decider.ThrottlingAllocation
 import org.elasticsearch.cluster.routing.operation.OperationRouting;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.breaker.CircuitBreaker;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.lease.Releasables;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
@@ -993,7 +993,7 @@ public final class InternalTestCluster extends TestCluster {
             try {
                 for (Path path : dataDirToClean) {
                     try {
-                        FileSystemUtils.deleteSubDirectories(path);
+                        PathUtils.deleteSubDirectories(path);
                         logger.info("Successfully wiped data directory for node location: {}", path);
                     } catch (IOException e) {
                         logger.info("Failed to wipe data directory for node location: {}", path);

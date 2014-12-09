@@ -30,7 +30,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.cluster.metadata.RepositoriesMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.repositories.RepositoryException;
@@ -64,12 +64,12 @@ public class RepositoriesTests extends AbstractSnapshotTests {
         assertThat(putRepositoryResponse.isAcknowledged(), equalTo(true));
 
         logger.info("--> verify the repository");
-        int numberOfFiles = FileSystemUtils.files(location).length;
+        int numberOfFiles = PathUtils.files(location).length;
         VerifyRepositoryResponse verifyRepositoryResponse = client.admin().cluster().prepareVerifyRepository("test-repo-1").get();
         assertThat(verifyRepositoryResponse.getNodes().length, equalTo(cluster().numDataAndMasterNodes()));
 
         logger.info("--> verify that we didn't leave any files as a result of verification");
-        assertThat(FileSystemUtils.files(location).length, equalTo(numberOfFiles));
+        assertThat(PathUtils.files(location).length, equalTo(numberOfFiles));
 
         logger.info("--> check that repository is really there");
         ClusterStateResponse clusterStateResponse = client.admin().cluster().prepareState().clear().setMetaData(true).get();

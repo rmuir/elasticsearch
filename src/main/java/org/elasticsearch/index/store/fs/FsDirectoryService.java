@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.lucene.store.*;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.metrics.CounterMetric;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.settings.IndexSettings;

@@ -50,7 +50,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.*;
 
-import static org.elasticsearch.common.io.FileSystemUtils.isAccessibleDirectory;
+import static org.elasticsearch.common.io.PathUtils.isAccessibleDirectory;
 
 /**
  *

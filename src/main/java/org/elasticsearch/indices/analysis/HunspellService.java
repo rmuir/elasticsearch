@@ -25,7 +25,7 @@ import org.apache.lucene.analysis.hunspell.Dictionary;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.io.FileSystemUtils;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
@@ -153,7 +153,7 @@ public class HunspellService extends AbstractComponent {
             logger.debug("Loading hunspell dictionary [{}]...", locale);
         }
         Path dicDir = hunspellDir.resolve(locale);
-        if (FileSystemUtils.isAccessibleDirectory(dicDir, logger) == false) {
+        if (PathUtils.isAccessibleDirectory(dicDir, logger) == false) {
             throw new ElasticsearchException(String.format(Locale.ROOT, "Could not find hunspell dictionary [%s]", locale));
         }
 
@@ -162,7 +162,7 @@ public class HunspellService extends AbstractComponent {
 
         boolean ignoreCase = nodeSettings.getAsBoolean("ignore_case", defaultIgnoreCase);
 
-        Path[] affixFiles = FileSystemUtils.files(dicDir, "*.aff");
+        Path[] affixFiles = PathUtils.files(dicDir, "*.aff");
         if (affixFiles.length == 0) {
             throw new ElasticsearchException(String.format(Locale.ROOT, "Missing affix file for hunspell dictionary [%s]", locale));
         }
@@ -171,7 +171,7 @@ public class HunspellService extends AbstractComponent {
         }
         InputStream affixStream = null;
 
-        Path[] dicFiles = FileSystemUtils.files(dicDir, "*.dic");
+        Path[] dicFiles = PathUtils.files(dicDir, "*.dic");
         List<InputStream> dicStreams = new ArrayList<>(dicFiles.length);
         try {
 
