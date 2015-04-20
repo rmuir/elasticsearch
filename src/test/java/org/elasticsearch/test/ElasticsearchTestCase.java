@@ -179,7 +179,7 @@ public abstract class ElasticsearchTestCase extends LuceneTestCase {
     
     @BeforeClass
     public static void setProcessors() {
-        int numCpu = TestUtil.nextInt(random(), 1, 4);
+        int numCpu = scaledRandomIntBetween(1, 2);
         System.setProperty(EsExecutors.DEFAULT_SYSPROP, Integer.toString(numCpu));
         assertEquals(numCpu, EsExecutors.boundedNumberOfProcessors(ImmutableSettings.EMPTY));
     }
@@ -261,10 +261,27 @@ public abstract class ElasticsearchTestCase extends LuceneTestCase {
     
     /**
      * Returns a "scaled" random number between min and max (inclusive).
+     */
+    public static int scaledRandomIntBetween(Random random, int min, int max) {
+        if (min < 0) throw new IllegalArgumentException("min must be >= 0: " + min);
+        if (min > max) throw new IllegalArgumentException("max must be >= min: " + min + ", " + max);
+
+        double point = Math.min(1, Math.abs(random.nextGaussian()) * 0.3) * RANDOM_MULTIPLIER;
+        double range = max - min;
+        int scaled = (int) Math.round(Math.min(point * range, range));
+        if (TEST_NIGHTLY) {
+          return max - scaled;
+        } else {
+          return min + scaled; 
+        }
+    }
+    
+    /**
+     * Returns a "scaled" random number between min and max (inclusive).
      * @see RandomizedTest#scaledRandomIntBetween(int, int);
      */
     public static int scaledRandomIntBetween(int min, int max) {
-        return RandomizedTest.scaledRandomIntBetween(min, max);
+        return scaledRandomIntBetween(random(), min, max);
     }
     
     /** 

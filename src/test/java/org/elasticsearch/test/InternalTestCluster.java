@@ -246,7 +246,7 @@ public final class InternalTestCluster extends TestCluster {
 
         Random random = new Random(clusterSeed);
 
-        this.numSharedDataNodes = RandomInts.randomIntBetween(random, minNumDataNodes, maxNumDataNodes);
+        this.numSharedDataNodes = ElasticsearchTestCase.scaledRandomIntBetween(random, minNumDataNodes, maxNumDataNodes);
         assert this.numSharedDataNodes >= 0;
 
         //for now all shared data nodes are also master eligible
@@ -254,7 +254,7 @@ public final class InternalTestCluster extends TestCluster {
             this.numSharedClientNodes = 0;
         } else {
             if (numClientNodes < 0) {
-                this.numSharedClientNodes = RandomInts.randomIntBetween(random, DEFAULT_MIN_NUM_CLIENT_NODES, DEFAULT_MAX_NUM_CLIENT_NODES);
+                this.numSharedClientNodes = ElasticsearchTestCase.scaledRandomIntBetween(random, DEFAULT_MIN_NUM_CLIENT_NODES, DEFAULT_MAX_NUM_CLIENT_NODES);
             } else {
                 this.numSharedClientNodes = numClientNodes;
             }
