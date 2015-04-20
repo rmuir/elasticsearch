@@ -19,12 +19,15 @@
 
 package org.elasticsearch.common.lucene.search;
 
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.util.Bits;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A marker interface for {@link org.apache.lucene.search.Filter} denoting the filter
@@ -32,10 +35,18 @@ import java.io.IOException;
  */
 public abstract class NoCacheFilter extends Filter {
 
+    /**
+     * Prevents caching of filters by rewrite()'ing to a unique
+     * filter every time.
+     */
     private static final class NoCacheFilterWrapper extends NoCacheFilter {
         private final Filter delegate;
-        private NoCacheFilterWrapper(Filter delegate) {
-            this.delegate = delegate;
+        /** cache key or null if not yet rewritten */
+        private final Object cacheKey;
+
+        private NoCacheFilterWrapper(Filter delegate, Object cacheKey) {
+            this.delegate = Objects.requireNonNull(delegate);
+            this.cacheKey = cacheKey;
         }
 
         @Override
@@ -53,8 +64,22 @@ public abstract class NoCacheFilter extends Filter {
             if (this == obj) {
                 return true;
             }
+
             if (obj instanceof NoCacheFilterWrapper) {
-                return delegate.equals(((NoCacheFilterWrapper)obj).delegate);
+                NoCacheFilterWrapper other = (NoCacheFilterWrapper) obj;
+
+                if (!delegate.equals(other.delegate)) {
+                    return false;
+                }
+
+                if (cacheKey == null) {
+                    if (other.cacheKey != null) {
+                        return false;
+                    }
+                } else if (!cacheKey.equals(other.cacheKey)) {
+                    return false;
+                }
+                return true;
             }
             return false;
         }
@@ -63,6 +88,17 @@ public abstract class NoCacheFilter extends Filter {
         public String toString(String field) {
 
             return "no_cache(" + delegate + ")";
+        }
+
+        @Override
+        public Query rewrite(IndexReader reader) throws IOException {
+            if (cacheKey != null) {
+                // we are already rewritten.
+                return this;
+            } else {
+                // rewrite with a new object so we never cache.
+                return new NoCacheFilterWrapper(delegate, new Object());
+            }
         }
 
     }
@@ -74,6 +110,6 @@ public abstract class NoCacheFilter extends Filter {
         if (filter instanceof NoCacheFilter) {
             return filter;
         }
-        return new NoCacheFilterWrapper(filter);
+        return new NoCacheFilterWrapper(filter, null);
     }
 }
