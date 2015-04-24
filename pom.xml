@@ -461,6 +461,7 @@
                 <argument>-XX:+DisableExplicitGC</argument>
                 <argument>-Dfile.encoding=UTF-8</argument>
                 <argument>-Delasticsearch</argument>
+                <argument>-Des.security.manager=false</argument>
               </arguments>
             </configuration>
           </plugin>

@@ -96,10 +96,10 @@ public class Bootstrap {
      * option for elasticsearch.yml etc to turn off our security manager completely,
      * for example if you want to have your own configuration or just disable.
      */
-    static final String SECURITY_SETTING = "security.manager.enabled";
+    static final String SECURITY_SETTING = "es.security.manager";
 
     private void setupSecurity(Settings settings, Environment environment) throws Exception {
-        if (settings.getAsBoolean(SECURITY_SETTING, true)) {
+        if (settings.getAsBoolean(SECURITY_SETTING, false)) {
             Security.configure(environment);
         }
     }
