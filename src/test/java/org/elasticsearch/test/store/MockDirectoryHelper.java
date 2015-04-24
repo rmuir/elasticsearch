@@ -19,21 +19,21 @@
 
 package org.elasticsearch.test.store;
 
+import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FilterDirectory;
-import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.MockDirectoryWrapper.Throttling;
 import org.apache.lucene.store.MockDirectoryWrapper;
 import org.apache.lucene.store.NRTCachingDirectory;
-import org.apache.lucene.util.Constants;
-import org.apache.lucene.util.LuceneTestCase;
 import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ConcurrentCollections;
 import org.elasticsearch.index.shard.ShardId;
-import org.elasticsearch.index.store.DirectoryService;
+import org.elasticsearch.index.shard.ShardPath;
+import org.elasticsearch.index.store.FsDirectoryService;
 import org.elasticsearch.index.store.IndexStore;
-import org.elasticsearch.index.store.fs.*;
+import org.elasticsearch.index.store.IndexStoreModule;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 
 import java.io.IOException;
@@ -96,32 +96,11 @@ public class MockDirectoryHelper {
         return w;
     }
 
-    public Directory[] wrapAllInplace(Directory[] dirs) {
-        for (int i = 0; i < dirs.length; i++) {
-            dirs[i] = wrap(dirs[i]);
-        }
-        return dirs;
-    }
-
-    public FsDirectoryService randomDirectorService(IndexStore indexStore) {
-        if ((Constants.WINDOWS || Constants.SUN_OS) && Constants.JRE_IS_64BIT && MMapDirectory.UNMAP_SUPPORTED) {
-            return new MmapFsDirectoryService(shardId, indexSettings, indexStore);
-        } else if (Constants.WINDOWS) {
-            return new SimpleFsDirectoryService(shardId, indexSettings, indexStore);
-        }
-        switch (random.nextInt(4)) {
-            case 2:
-                return new DefaultFsDirectoryService(shardId, indexSettings, indexStore);
-            case 1:
-                return new MmapFsDirectoryService(shardId, indexSettings, indexStore);
-            case 0:
-                if (random.nextInt(10) == 0) {
-                    // use simplefs less, it synchronizes all threads reads
-                    return new SimpleFsDirectoryService(shardId, indexSettings, indexStore);
-                }
-            default:
-                return new NioFsDirectoryService(shardId, indexSettings, indexStore);
-        }
+    public FsDirectoryService randomDirectorService(IndexStore indexStore, ShardPath path) {
+        ImmutableSettings.Builder builder = ImmutableSettings.settingsBuilder();
+        builder.put(indexSettings);
+        builder.put(IndexStoreModule.STORE_TYPE, RandomPicks.randomFrom(random, IndexStoreModule.Type.values()));
+        return new FsDirectoryService(builder.build(), indexStore, path);
     }
 
     public static final class ElasticsearchMockDirectoryWrapper extends MockDirectoryWrapper {
@@ -170,7 +149,7 @@ public class MockDirectoryHelper {
         /**
          * Returns true if {@link #in} must sync its files.
          * Currently, only {@link NRTCachingDirectory} requires sync'ing its files
-         * because otherwise they are cached in an internal {@link RAMDirectory}. If
+         * because otherwise they are cached in an internal {@link org.apache.lucene.store.RAMDirectory}. If
          * other directories require that too, they should be added to this method.
          */
         private boolean mustSync() {

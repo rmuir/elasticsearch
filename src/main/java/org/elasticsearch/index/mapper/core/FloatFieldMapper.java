@@ -27,18 +27,20 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
+import org.apache.lucene.index.Terms;
 import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.NumericRangeFilter;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefBuilder;
 import org.apache.lucene.util.NumericUtils;
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
+import org.elasticsearch.action.fieldstats.FieldStats;
 import org.elasticsearch.common.Explicit;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.Numbers;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.lucene.search.Queries;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.common.util.ByteUtils;
@@ -202,13 +204,6 @@ public class FloatFieldMapper extends NumberFieldMapper<Float> {
     }
 
     @Override
-    public Query termQuery(Object value, @Nullable QueryParseContext context) {
-        float fValue = parseValue(value);
-        return NumericRangeQuery.newFloatRange(names.indexName(), precisionStep,
-                fValue, fValue, true, true);
-    }
-
-    @Override
     public Query rangeQuery(Object lowerTerm, Object upperTerm, boolean includeLower, boolean includeUpper, @Nullable QueryParseContext context) {
         return NumericRangeQuery.newFloatRange(names.indexName(), precisionStep,
                 lowerTerm == null ? null : parseValue(lowerTerm),
@@ -217,18 +212,11 @@ public class FloatFieldMapper extends NumberFieldMapper<Float> {
     }
 
     @Override
-    public Filter termFilter(Object value, @Nullable QueryParseContext context) {
-        float fValue = parseValue(value);
-        return NumericRangeFilter.newFloatRange(names.indexName(), precisionStep,
-                fValue, fValue, true, true);
-    }
-
-    @Override
     public Filter rangeFilter(Object lowerTerm, Object upperTerm, boolean includeLower, boolean includeUpper, @Nullable QueryParseContext context) {
-        return NumericRangeFilter.newFloatRange(names.indexName(), precisionStep,
+        return Queries.wrap(NumericRangeQuery.newFloatRange(names.indexName(), precisionStep,
                 lowerTerm == null ? null : parseValue(lowerTerm),
                 upperTerm == null ? null : parseValue(upperTerm),
-                includeLower, includeUpper);
+                includeLower, includeUpper));
     }
 
     @Override
@@ -244,10 +232,10 @@ public class FloatFieldMapper extends NumberFieldMapper<Float> {
         if (nullValue == null) {
             return null;
         }
-        return NumericRangeFilter.newFloatRange(names.indexName(), precisionStep,
+        return Queries.wrap(NumericRangeQuery.newFloatRange(names.indexName(), precisionStep,
                 nullValue,
                 nullValue,
-                true, true);
+                true, true));
     }
 
     @Override
@@ -379,6 +367,15 @@ public class FloatFieldMapper extends NumberFieldMapper<Float> {
             builder.field("include_in_all", false);
         }
 
+    }
+
+    @Override
+    public FieldStats stats(Terms terms, int maxDoc) throws IOException {
+        float minValue = NumericUtils.sortableIntToFloat(NumericUtils.getMinInt(terms));
+        float maxValue = NumericUtils.sortableIntToFloat(NumericUtils.getMaxInt(terms));
+        return new FieldStats.Float(
+                maxDoc, terms.getDocCount(), terms.getSumDocFreq(), terms.getSumTotalTermFreq(), minValue, maxValue
+        );
     }
 
     public static class CustomFloatNumericField extends CustomNumericField {

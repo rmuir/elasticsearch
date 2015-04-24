@@ -18,10 +18,7 @@
  */
 package org.elasticsearch.test;
 
-import com.carrotsearch.randomizedtesting.LifecycleScope;
-import com.carrotsearch.randomizedtesting.RandomizedContext;
-import com.carrotsearch.randomizedtesting.RandomizedTest;
-import com.carrotsearch.randomizedtesting.Randomness;
+import com.carrotsearch.randomizedtesting.*;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
@@ -675,13 +672,6 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
         }
     }
 
-    /**
-     * Allows to execute some additional task after a test is failed, right after we cleared the clusters
-     */
-    protected void afterTestFailed() {
-
-    }
-
     public static TestCluster cluster() {
         return currentCluster;
     }
@@ -1129,7 +1119,7 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
     public void logSegmentsState(String... indices) throws Exception {
         IndicesSegmentResponse segsRsp = client().admin().indices().prepareSegments(indices).get();
         logger.debug("segments {} state: \n{}", indices.length == 0 ? "[_all]" : indices,
-                     segsRsp.toXContent(JsonXContent.contentBuilder().prettyPrint(), ToXContent.EMPTY_PARAMS).string());
+                segsRsp.toXContent(JsonXContent.contentBuilder().prettyPrint(), ToXContent.EMPTY_PARAMS).string());
     }
 
     /**
@@ -1431,6 +1421,24 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
         client().admin().indices().prepareUpdateSettings(index).setSettings(settings).get();
     }
 
+    /** Disables an index block for the specified index */
+    public static void disableIndexBlock(String index, String block) {
+        Settings settings = ImmutableSettings.builder().put(block, false).build();
+        client().admin().indices().prepareUpdateSettings(index).setSettings(settings).get();
+    }
+
+    /** Enables an index block for the specified index */
+    public static void enableIndexBlock(String index, String block) {
+        Settings settings = ImmutableSettings.builder().put(block, true).build();
+        client().admin().indices().prepareUpdateSettings(index).setSettings(settings).get();
+    }
+
+    /** Sets or unsets the cluster read_only mode **/
+    public static void setClusterReadOnly(boolean value) {
+        Settings settings = settingsBuilder().put(MetaData.SETTING_READ_ONLY, value).build();
+        assertAcked(client().admin().cluster().prepareUpdateSettings().setTransientSettings(settings).get());
+    }
+
     private static CountDownLatch newLatch(List<CountDownLatch> latches) {
         CountDownLatch l = new CountDownLatch(1);
         latches.add(l);
@@ -1716,9 +1724,8 @@ public abstract class ElasticsearchIntegrationTest extends ElasticsearchTestCase
             minNumDataNodes = getMinNumDataNodes();
             maxNumDataNodes = getMaxNumDataNodes();
         }
-
         return new InternalTestCluster(seed, createTempDir(), minNumDataNodes, maxNumDataNodes,
-                scope.name() + "-cluster", settingsSource, getNumClientNodes(),
+                InternalTestCluster.clusterName(scope.name(), seed) + "-cluster", settingsSource, getNumClientNodes(),
                 InternalTestCluster.DEFAULT_ENABLE_HTTP_PIPELINING, nodePrefix);
     }
 

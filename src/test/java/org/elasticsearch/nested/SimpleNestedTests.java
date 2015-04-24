@@ -532,7 +532,7 @@ public class SimpleNestedTests extends ElasticsearchIntegrationTest {
         assertThat(searchResponse.getHits().totalHits(), equalTo(1l));
         Explanation explanation = searchResponse.getHits().hits()[0].explanation();
         assertThat(explanation.getValue(), equalTo(2f));
-        assertThat(explanation.getDescription(), equalTo("Score based on child doc range from 0 to 1"));
+        assertThat(explanation.toString(), startsWith("2.0 = sum of:\n  2.0 = Score based on child doc range from 0 to 1\n"));
         // TODO: Enable when changes from BlockJoinQuery#explain are added to Lucene (Most likely version 4.2)
 //        assertThat(explanation.getDetails().length, equalTo(2));
 //        assertThat(explanation.getDetails()[0].getValue(), equalTo(1f));
@@ -707,7 +707,7 @@ public class SimpleNestedTests extends ElasticsearchIntegrationTest {
                     .execute().actionGet();
             Assert.fail("SearchPhaseExecutionException should have been thrown");
         } catch (SearchPhaseExecutionException e) {
-            assertThat(e.getMessage(), containsString("type [string] doesn't support mode [SUM]"));
+            assertThat(e.toString(), containsString("type [string] doesn't support mode [SUM]"));
         }
     }
 

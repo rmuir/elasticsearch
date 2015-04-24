@@ -37,7 +37,6 @@ import org.elasticsearch.cluster.block.ClusterBlockLevel;
 import org.elasticsearch.cluster.routing.GroupShardsIterator;
 import org.elasticsearch.cluster.routing.ShardRouting;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.lucene.search.MatchNoDocsFilter;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.BigArrays;
 import org.elasticsearch.index.IndexService;
@@ -77,7 +76,8 @@ public class TransportValidateQueryAction extends TransportBroadcastOperationAct
 
     @Inject
     public TransportValidateQueryAction(Settings settings, ThreadPool threadPool, ClusterService clusterService, TransportService transportService, IndicesService indicesService, ScriptService scriptService, PageCacheRecycler pageCacheRecycler, BigArrays bigArrays, ActionFilters actionFilters) {
-        super(settings, ValidateQueryAction.NAME, threadPool, clusterService, transportService, actionFilters);
+        super(settings, ValidateQueryAction.NAME, threadPool, clusterService, transportService, actionFilters,
+                ValidateQueryRequest.class, ShardValidateQueryRequest.class, ThreadPool.Names.SEARCH);
         this.indicesService = indicesService;
         this.scriptService = scriptService;
         this.pageCacheRecycler = pageCacheRecycler;
@@ -88,21 +88,6 @@ public class TransportValidateQueryAction extends TransportBroadcastOperationAct
     protected void doExecute(ValidateQueryRequest request, ActionListener<ValidateQueryResponse> listener) {
         request.nowInMillis = System.currentTimeMillis();
         super.doExecute(request, listener);
-    }
-
-    @Override
-    protected String executor() {
-        return ThreadPool.Names.SEARCH;
-    }
-
-    @Override
-    protected ValidateQueryRequest newRequestInstance() {
-        return new ValidateQueryRequest();
-    }
-
-    @Override
-    protected ShardValidateQueryRequest newShardRequest() {
-        return new ShardValidateQueryRequest();
     }
 
     @Override
@@ -219,7 +204,7 @@ public class TransportValidateQueryAction extends TransportBroadcastOperationAct
 
     private String getRewrittenQuery(IndexSearcher searcher, Query query) throws IOException {
         Query queryRewrite = searcher.rewrite(query);
-        if (queryRewrite instanceof MatchNoDocsQuery || queryRewrite instanceof MatchNoDocsFilter) {
+        if (queryRewrite instanceof MatchNoDocsQuery) {
             return query.toString();
         } else {
             return queryRewrite.toString();

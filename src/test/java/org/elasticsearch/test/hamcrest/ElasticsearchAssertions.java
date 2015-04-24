@@ -54,6 +54,8 @@ import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.action.support.broadcast.BroadcastOperationResponse;
 import org.elasticsearch.action.support.master.AcknowledgedRequestBuilder;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.cluster.block.ClusterBlock;
+import org.elasticsearch.cluster.block.ClusterBlockException;
 import org.elasticsearch.cluster.metadata.IndexTemplateMetaData;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -66,8 +68,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.suggest.Suggest;
 import org.elasticsearch.test.VersionUtils;
 import org.elasticsearch.test.engine.AssertingSearcher;
-import org.elasticsearch.test.engine.MockInternalEngine;
-import org.elasticsearch.test.engine.MockShadowEngine;
+import org.elasticsearch.test.engine.MockEngineSupport;
 import org.elasticsearch.test.store.MockDirectoryHelper;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -84,6 +85,7 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Predicates.isNull;
 import static org.elasticsearch.test.ElasticsearchTestCase.*;
 import static org.elasticsearch.test.VersionUtils.randomVersion;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -117,6 +119,42 @@ public class ElasticsearchAssertions {
     public static void assertAcked(DeleteIndexResponse response) {
         assertThat("Delete Index failed - not acked", response.isAcknowledged(), equalTo(true));
         assertVersionSerializable(response);
+    }
+
+    /**
+     * Executes the request and fails if the request has not been blocked.
+     *
+     * @param builder the request builder
+     */
+    public static void assertBlocked(ActionRequestBuilder builder) {
+        assertBlocked(builder, null);
+    }
+
+    /**
+     * Executes the request and fails if the request has not been blocked by a specific {@link ClusterBlock}.
+     *
+     * @param builder the request builder
+     * @param expectedBlock the expected block
+     */
+    public static void assertBlocked(ActionRequestBuilder builder, ClusterBlock expectedBlock) {
+        try {
+            builder.get();
+            fail("Request executed with success but a ClusterBlockException was expected");
+        } catch (ClusterBlockException e) {
+            assertThat(e.blocks().size(), greaterThan(0));
+            assertThat(e.status(), equalTo(RestStatus.FORBIDDEN));
+
+            if (expectedBlock != null) {
+                boolean found = false;
+                for (ClusterBlock clusterBlock : e.blocks()) {
+                    if (clusterBlock.id() == expectedBlock.id()) {
+                        found = true;
+                        break;
+                    }
+                }
+                assertThat("Request should have been blocked by [" + expectedBlock + "] instead of " + e.blocks(), found, equalTo(true));
+            }
+        }
     }
 
     public static String formatShardStatus(BroadcastOperationResponse response) {
@@ -272,7 +310,7 @@ public class ElasticsearchAssertions {
             assertVersionSerializable(searchResponse);
         } catch (SearchPhaseExecutionException e) {
             assertThat(e.status(), equalTo(restStatus));
-            assertThat(e.getMessage(), reasonMatcher);
+            assertThat(e.toString(), reasonMatcher);
             for (ShardSearchFailure shardSearchFailure : e.shardFailures()) {
                 assertThat(shardSearchFailure.status(), equalTo(restStatus));
                 assertThat(shardSearchFailure.reason(), reasonMatcher);
@@ -653,34 +691,27 @@ public class ElasticsearchAssertions {
             if (awaitBusy(new Predicate<Object>() {
                 @Override
                 public boolean apply(Object o) {
-                    return MockInternalEngine.INFLIGHT_ENGINE_SEARCHERS.isEmpty() &&
-                            MockShadowEngine.INFLIGHT_ENGINE_SEARCHERS.isEmpty();
+                    return MockEngineSupport.INFLIGHT_ENGINE_SEARCHERS.isEmpty();
                 }
             }, 5, TimeUnit.SECONDS)) {
                 return;
             }
         } catch (InterruptedException ex) {
-            if (MockInternalEngine.INFLIGHT_ENGINE_SEARCHERS.isEmpty() &&
-                    MockShadowEngine.INFLIGHT_ENGINE_SEARCHERS.isEmpty()) {
+            if (MockEngineSupport.INFLIGHT_ENGINE_SEARCHERS.isEmpty()) {
                 return;
             }
         }
         try {
             RuntimeException ex = null;
             StringBuilder builder = new StringBuilder("Unclosed Searchers instance for shards: [");
-            for (Map.Entry<AssertingSearcher, RuntimeException> entry : MockInternalEngine.INFLIGHT_ENGINE_SEARCHERS.entrySet()) {
-                ex = entry.getValue();
-                builder.append(entry.getKey().shardId()).append(",");
-            }
-            for (Map.Entry<AssertingSearcher, RuntimeException> entry : MockShadowEngine.INFLIGHT_ENGINE_SEARCHERS.entrySet()) {
+            for (Map.Entry<AssertingSearcher, RuntimeException> entry : MockEngineSupport.INFLIGHT_ENGINE_SEARCHERS.entrySet()) {
                 ex = entry.getValue();
                 builder.append(entry.getKey().shardId()).append(",");
             }
             builder.append("]");
             throw new RuntimeException(builder.toString(), ex);
         } finally {
-            MockInternalEngine.INFLIGHT_ENGINE_SEARCHERS.clear();
-            MockShadowEngine.INFLIGHT_ENGINE_SEARCHERS.clear();
+            MockEngineSupport.INFLIGHT_ENGINE_SEARCHERS.clear();
         }
     }
 

@@ -21,23 +21,18 @@ package org.elasticsearch.env;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Ints;
-
 import org.apache.lucene.store.*;
-import org.apache.lucene.util.Constants;
 import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.ElasticsearchIllegalStateException;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.cluster.node.DiscoveryNode;
-import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.FileSystemUtils;
 import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.settings.IndexSettings;
 import org.elasticsearch.index.shard.ShardId;
@@ -68,23 +63,37 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
          *  not running on Linux, or we hit an exception trying), True means the device possibly spins and False means it does not. */
         public final Boolean spins;
 
-        public NodePath(Path path) throws IOException {
+        public NodePath(Path path, Environment environment) throws IOException {
             this.path = path;
             this.indicesPath = path.resolve(INDICES_FOLDER);
-            this.fileStore = getFileStore(path);
-            Boolean spins;
-
-            // Lucene's IOUtils.spins only works on Linux today:
-            if (Constants.LINUX) {
-                try {
-                    spins = IOUtils.spins(path);
-                } catch (Exception e) {
-                    spins = null;
-                }
+            this.fileStore = environment.getFileStore(path);
+            if (fileStore.supportsFileAttributeView("lucene")) {
+                this.spins = (Boolean) fileStore.getAttribute("lucene:spins");
             } else {
-                spins = null;
+                this.spins = null;
             }
-            this.spins = spins;
+        }
+
+        /**
+         * Resolves the given shards directory against this NodePath
+         */
+        public Path resolve(ShardId shardId) {
+            return resolve(shardId.index()).resolve(Integer.toString(shardId.id()));
+        }
+
+        /**
+         * Resolves the given indexes directory against this NodePath
+         */
+        public Path resolve(Index index) {
+            return indicesPath.resolve(index.name());
+        }
+
+        @Override
+        public String toString() {
+            return "NodePath{" +
+                    "path=" + path +
+                    ", spins=" + spins +
+                    '}';
         }
     }
 
@@ -139,7 +148,7 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
                     Lock tmpLock = luceneDir.makeLock(NODE_LOCK_FILENAME);
                     boolean obtained = tmpLock.obtain();
                     if (obtained) {
-                        nodePaths[dirIndex] = new NodePath(dir);
+                        nodePaths[dirIndex] = new NodePath(dir, environment);
                         locks[dirIndex] = tmpLock;
                         localNodeId = possibleLockId;
                     } else {
@@ -271,39 +280,6 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
         return b.toString();
     }
 
-
-    // TODO: move somewhere more "util"?  But, this is somewhat hacky code ... not great to publicize it any more:
-
-    // NOTE: poached from Lucene's IOUtils:
-
-    /** Files.getFileStore(Path) useless here!  Don't complain, just try it yourself. */
-    private static FileStore getFileStore(Path path) throws IOException {
-        FileStore store = Files.getFileStore(path);
-
-        try {
-            String mount = getMountPoint(store);
-            // find the "matching" FileStore from system list, it's the one we want.
-            for (FileStore fs : path.getFileSystem().getFileStores()) {
-                if (mount.equals(getMountPoint(fs))) {
-                    return fs;
-                }
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-
-        // fall back to crappy one we got from Files.getFileStore
-        return store;    
-    }
-
-    // NOTE: poached from Lucene's IOUtils:
-
-    // these are hacks that are not guaranteed
-    private static String getMountPoint(FileStore store) {
-        String desc = store.toString();
-        return desc.substring(0, desc.lastIndexOf('(') - 1);
-    }
-
     /**
      * Deletes a shard data directory iff the shards locks were successfully acquired.
      *
@@ -313,7 +289,7 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
     public void deleteShardDirectorySafe(ShardId shardId, @IndexSettings Settings indexSettings) throws IOException {
         // This is to ensure someone doesn't use ImmutableSettings.EMPTY
         assert indexSettings != ImmutableSettings.EMPTY;
-        final Path[] paths = shardPaths(shardId);
+        final Path[] paths = availableShardPaths(shardId);
         logger.trace("deleting shard {} directory, paths: [{}]", shardId, paths);
         try (ShardLock lock = shardLock(shardId)) {
             deleteShardDirectoryUnderLock(lock, indexSettings);
@@ -330,7 +306,7 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
         assert indexSettings != ImmutableSettings.EMPTY;
         final ShardId shardId = lock.getShardId();
         assert isShardLocked(shardId) : "shard " + shardId + " is not locked";
-        final Path[] paths = shardPaths(shardId);
+        final Path[] paths = availableShardPaths(shardId);
         IOUtils.rm(paths);
         if (hasCustomDataPath(indexSettings)) {
             Path customLocation = resolveCustomLocation(indexSettings, shardId);
@@ -575,7 +551,7 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
     }
 
     /**
-     * Returns an array of all of the {@link #NodePath}s.
+     * Returns an array of all of the {@link NodePath}s.
      */
     public NodePath[] nodePaths() {
         assert assertEnvIsLocked();
@@ -598,36 +574,24 @@ public class NodeEnvironment extends AbstractComponent implements Closeable {
     }
 
     /**
-     * Returns all paths where lucene data will be stored, if a index.data_path
-     * setting is present, will return the custom data path to be used
+     * Returns all shard paths excluding custom shard path. Note: Shards are only allocated on one of the
+     * returned paths. The returned array may contain paths to non-existing directories.
+     *
+     * @see #hasCustomDataPath(org.elasticsearch.common.settings.Settings)
+     * @see #resolveCustomLocation(org.elasticsearch.common.settings.Settings, org.elasticsearch.index.shard.ShardId)
+     *
      */
-    public Path[] shardDataPaths(ShardId shardId, @IndexSettings Settings indexSettings) {
-        assert indexSettings != ImmutableSettings.EMPTY;
-        assert assertEnvIsLocked();
-        if (hasCustomDataPath(indexSettings)) {
-            return new Path[] {resolveCustomLocation(indexSettings, shardId)};
-        } else {
-            return shardPaths(shardId);
-        }
-    }
-
-    /**
-     * Returns all shard paths excluding custom shard path
-     */
-    public Path[] shardPaths(ShardId shardId) {
+    public Path[] availableShardPaths(ShardId shardId) {
         assert assertEnvIsLocked();
         final NodePath[] nodePaths = nodePaths();
         final Path[] shardLocations = new Path[nodePaths.length];
         for (int i = 0; i < nodePaths.length; i++) {
-            // TODO: wtf with resolve(get())
-            shardLocations[i] = nodePaths[i].path.resolve(PathUtils.get(INDICES_FOLDER,
-                    shardId.index().name(),
-                    Integer.toString(shardId.id())));
+            shardLocations[i] = nodePaths[i].resolve(shardId);
         }
         return shardLocations;
     }
 
-    public Set<String> findAllIndices() throws Exception {
+    public Set<String> findAllIndices() throws IOException {
         if (nodePaths == null || locks == null) {
             throw new ElasticsearchIllegalStateException("node is not configured to store local location");
         }
