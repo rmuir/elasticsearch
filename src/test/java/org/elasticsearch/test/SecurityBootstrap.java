@@ -44,7 +44,7 @@ class SecurityBootstrap {
 
     static {
         // just like bootstrap, initialize natives, then SM
-        Bootstrap.initializeNatives(true, true);
+        Bootstrap.initialize(true, true);
         // install security manager if requested
         if (systemPropertyAsBoolean("tests.security.manager", false)) {
             try {

@@ -27,6 +27,7 @@ import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
+import org.elasticsearch.env.Environment;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -58,7 +59,7 @@ public class JvmInfo implements Streamable, Serializable, ToXContent {
         JvmInfo info = new JvmInfo();
         info.pid = pid;
         info.startTime = runtimeMXBean.getStartTime();
-        info.version = runtimeMXBean.getSystemProperties().get("java.version");
+        info.version = System.getProperty("java.version");
         info.vmName = runtimeMXBean.getVmName();
         info.vmVendor = runtimeMXBean.getVmVendor();
         info.vmVersion = runtimeMXBean.getVmVersion();
@@ -76,7 +77,7 @@ public class JvmInfo implements Streamable, Serializable, ToXContent {
         info.inputArguments = runtimeMXBean.getInputArguments().toArray(new String[runtimeMXBean.getInputArguments().size()]);
         info.bootClassPath = runtimeMXBean.getBootClassPath();
         info.classPath = runtimeMXBean.getClassPath();
-        info.systemProperties = runtimeMXBean.getSystemProperties();
+        info.systemProperties = Environment.getSystemProperties();
 
         List<GarbageCollectorMXBean> gcMxBeans = ManagementFactory.getGarbageCollectorMXBeans();
         info.gcCollectors = new String[gcMxBeans.size()];

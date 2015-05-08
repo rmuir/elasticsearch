@@ -1011,10 +1011,10 @@ public class ImmutableSettings implements Settings {
          * @param properties The properties to put
          * @return The builder
          */
-        public Builder putProperties(String prefix, Properties properties) {
+        public Builder putProperties(String prefix, Map<String,String> properties) {
             for (Object key1 : properties.keySet()) {
                 String key = (String) key1;
-                String value = properties.getProperty(key);
+                String value = properties.get(key);
                 if (key.startsWith(prefix)) {
                     map.put(key.substring(prefix.length()), value);
                 }
@@ -1029,10 +1029,10 @@ public class ImmutableSettings implements Settings {
          * @param properties The properties to put
          * @return The builder
          */
-        public Builder putProperties(String prefix, Properties properties, String[] ignorePrefixes) {
+        public Builder putProperties(String prefix, Map<String,String> properties, String[] ignorePrefixes) {
             for (Object key1 : properties.keySet()) {
                 String key = (String) key1;
-                String value = properties.getProperty(key);
+                String value = properties.get(key);
                 if (key.startsWith(prefix)) {
                     boolean ignore = false;
                     for (String ignorePrefix : ignorePrefixes) {

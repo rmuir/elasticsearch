@@ -30,6 +30,9 @@ import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.elasticsearch.common.Strings.cleanPath;
 
@@ -57,6 +60,9 @@ public class Environment {
 
     /** List of filestores on the system */
     private static final FileStore[] fileStores;
+    
+    /** immutable system properties, for reporting, configuration, testing */
+    private static final Map<String,String> systemProperties;
 
     /**
      * We have to do this in clinit instead of init, because ES code is pretty messy,
@@ -69,6 +75,10 @@ public class Environment {
             allStores.add(new ESFileStore(store));
         }
         fileStores = allStores.toArray(new ESFileStore[allStores.size()]);
+        // gather immutable system properties (for reporting, etc)
+        Map<String,String> properties = new HashMap<>();
+        System.getProperties().putAll(properties);
+        systemProperties = Collections.unmodifiableMap(properties);
     }
 
     public Environment(Settings settings) {
@@ -208,5 +218,9 @@ public class Environment {
             }
         }
         throw new FailedToResolveConfigException("Failed to resolve config path [" + path + "], tried config path [" + f + "] and classpath");
+    }
+    
+    public static Map<String,String> getSystemProperties() {
+        return systemProperties;
     }
 }

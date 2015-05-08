@@ -84,8 +84,8 @@ public class Bootstrap {
         });
     }
     
-    /** initialize native resources */
-    public static void initializeNatives(boolean mlockAll, boolean ctrlHandler) {
+    /** initialize native resources, random seed, system properties snapshot */
+    public static void initialize(boolean mlockAll, boolean ctrlHandler) {
         // mlockall if requested
         if (mlockAll) {
             Natives.tryMlockall();
@@ -134,10 +134,13 @@ public class Bootstrap {
 
         // init lucene random seed. it will use /dev/urandom where available:
         StringHelper.randomId();
+        
+        // init environment clinit (system properties, etc)
+        Environment.getSystemProperties();
     }
 
     private void setup(boolean addShutdownHook, Settings settings, Environment environment) throws Exception {
-        initializeNatives(settings.getAsBoolean("bootstrap.mlockall", false), 
+        initialize(settings.getAsBoolean("bootstrap.mlockall", false), 
                           settings.getAsBoolean("bootstrap.ctrlhandler", true));
 
         NodeBuilder nodeBuilder = NodeBuilder.nodeBuilder().settings(settings).loadConfigSettings(false);

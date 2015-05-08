@@ -45,10 +45,10 @@ public class InternalSettingsPreparer {
         // just create enough settings to build the environment
         ImmutableSettings.Builder settingsBuilder = settingsBuilder().put(pSettings);
         if (useSystemProperties) {
-            settingsBuilder.putProperties("elasticsearch.default.", System.getProperties())
-                    .putProperties("es.default.", System.getProperties())
-                    .putProperties("elasticsearch.", System.getProperties(), ignorePrefixes)
-                    .putProperties("es.", System.getProperties(), ignorePrefixes);
+            settingsBuilder.putProperties("elasticsearch.default.", Environment.getSystemProperties())
+                    .putProperties("es.default.", Environment.getSystemProperties())
+                    .putProperties("elasticsearch.", Environment.getSystemProperties(), ignorePrefixes)
+                    .putProperties("es.", Environment.getSystemProperties(), ignorePrefixes);
         }
         settingsBuilder.replacePropertyPlaceholders();
 
@@ -95,8 +95,8 @@ public class InternalSettingsPreparer {
 
         settingsBuilder.put(pSettings);
         if (useSystemProperties) {
-            settingsBuilder.putProperties("elasticsearch.", System.getProperties(), ignorePrefixes)
-                    .putProperties("es.", System.getProperties(), ignorePrefixes);
+            settingsBuilder.putProperties("elasticsearch.", Environment.getSystemProperties(), ignorePrefixes)
+                    .putProperties("es.", Environment.getSystemProperties(), ignorePrefixes);
         }
         settingsBuilder.replacePropertyPlaceholders();
 

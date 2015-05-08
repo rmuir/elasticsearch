@@ -50,8 +50,46 @@ grant {
   // Allow connecting to the internet anywhere
   permission java.net.SocketPermission "*", "accept,listen,connect,resolve";
 
-  // Basic permissions needed for Lucene / Elasticsearch to work:
-  permission java.util.PropertyPermission "*", "read,write";
+  // Read the value of any sysprop
+  permission java.util.PropertyPermission "*", "read";
+  // write access to only these:
+  // locale randomization
+  permission java.util.PropertyPermission "user.language", "write";
+  // timezone randomization
+  permission java.util.PropertyPermission "user.timezone", "write";
+
+  // CMS randomization
+  permission java.util.PropertyPermission "lucene.cms.override_core_count", "write";
+  permission java.util.PropertyPermission "lucene.cms.override_spins", "write";
+
+  // used by nested tests? (e.g. TestLeaveFilesIfTestFails). TODO: look into this
+  permission java.util.PropertyPermission "tests.runnested", "write";
+
+  // solr properties. TODO: move these out to SolrTestCase
+  permission java.util.PropertyPermission "solr.data.dir", "write";
+  permission java.util.PropertyPermission "solr.solr.home", "write";
+  permission java.util.PropertyPermission "solr.directoryFactory", "write";
+  
+  // ES testcase randomization
+  permission java.util.PropertyPermission "es.processors.override", "write";
+  
+  // InternalSettingsPreparerTests
+  // does it really need to use sysproperties? can it use fake ones?
+  permission java.util.PropertyPermission "es.node.zone", "write";
+  
+  // CLI TerminalTests
+  permission java.util.PropertyPermission "es.default.path.home", "write";
+  
+  // SecurityTests (this could have a proper setter via Settings)
+  permission java.util.PropertyPermission "java.io.tmpdir", "write";
+  
+  // TribeUnitTests
+  permission java.util.PropertyPermission "es.cluster.name", "write";
+  permission java.util.PropertyPermission "es.tribe.t1.cluster.name", "write";
+  permission java.util.PropertyPermission "es.tribe.t2.cluster.name", "write";
+  
+  // ImmutableSettingsTests
+  permission java.util.PropertyPermission "sysProp1", "write";
 
   // needed by junit4's gson usage 
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";

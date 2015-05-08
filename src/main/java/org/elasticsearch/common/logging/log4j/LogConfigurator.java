@@ -91,8 +91,8 @@ public class LogConfigurator {
         ImmutableSettings.Builder settingsBuilder = settingsBuilder().put(settings);
         resolveConfig(environment, settingsBuilder);
         settingsBuilder
-                .putProperties("elasticsearch.", System.getProperties())
-                .putProperties("es.", System.getProperties())
+                .putProperties("elasticsearch.", Environment.getSystemProperties())
+                .putProperties("es.", Environment.getSystemProperties())
                 .replacePropertyPlaceholders();
         Properties props = new Properties();
         for (Map.Entry<String, String> entry : settingsBuilder.build().getAsMap().entrySet()) {
