@@ -20,6 +20,7 @@
 package org.elasticsearch.common.xcontent;
 
 import com.google.common.base.Charsets;
+
 import org.apache.lucene.util.BytesRef;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
@@ -1214,7 +1215,7 @@ public final class XContentBuilder implements BytesStream, Releasable {
             generator.writeNull();
             return;
         }
-        Class type = value.getClass();
+        Class<?> type = value.getClass();
         if (type == String.class) {
             generator.writeString((String) value);
         } else if (type == Integer.class) {
@@ -1237,10 +1238,12 @@ public final class XContentBuilder implements BytesStream, Releasable {
             generator.writeNumberField("lon", ((GeoPoint) value).lon());
             generator.writeEndObject();
         } else if (value instanceof Map) {
-            writeMap((Map) value);
+            @SuppressWarnings("unchecked")
+            Map<String,?> map = (Map<String,?>) value;
+            writeMap(map);
         } else if (value instanceof Iterable) {
             generator.writeStartArray();
-            for (Object v : (Iterable) value) {
+            for (Object v : (Iterable<?>) value) {
                 writeValue(v);
             }
             generator.writeEndArray();

@@ -84,7 +84,7 @@ public class IndexShardModule extends AbstractModule {
             bind(TranslogService.class).asEagerSingleton();
         }
 
-        bind(EngineFactory.class).to(settings.getAsClass(ENGINE_FACTORY, DEFAULT_ENGINE_FACTORY_CLASS, ENGINE_PREFIX, ENGINE_SUFFIX));
+        bind(EngineFactory.class).to(settings.getAsClass(EngineFactory.class, ENGINE_FACTORY, DEFAULT_ENGINE_FACTORY_CLASS, ENGINE_PREFIX, ENGINE_SUFFIX));
         bind(ShardIndexWarmerService.class).asEagerSingleton();
         bind(ShardIndexingService.class).asEagerSingleton();
         bind(ShardSlowLogIndexingService.class).asEagerSingleton();

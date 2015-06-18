@@ -175,7 +175,7 @@ public class AnalysisModule extends AbstractModule {
 
             Class<? extends CharFilterFactory> type = null;
             try {
-                type = charFilterSettings.getAsClass("type", null, "org.elasticsearch.index.analysis.", "CharFilterFactory");
+                type = charFilterSettings.getAsClass(CharFilterFactory.class, "type", null, "org.elasticsearch.index.analysis.", "CharFilterFactory");
             } catch (NoClassSettingsException e) {
                 // nothing found, see if its in bindings as a binding name
                 if (charFilterSettings.get("type") != null) {
@@ -235,7 +235,7 @@ public class AnalysisModule extends AbstractModule {
 
             Class<? extends TokenFilterFactory> type = null;
             try {
-                type = tokenFilterSettings.getAsClass("type", null, "org.elasticsearch.index.analysis.", "TokenFilterFactory");
+                type = tokenFilterSettings.getAsClass(TokenFilterFactory.class, "type", null, "org.elasticsearch.index.analysis.", "TokenFilterFactory");
             } catch (NoClassSettingsException e) {
                 // nothing found, see if its in bindings as a binding name
                 if (tokenFilterSettings.get("type") != null) {
@@ -294,7 +294,7 @@ public class AnalysisModule extends AbstractModule {
 
             Class<? extends TokenizerFactory> type = null;
             try {
-                type = tokenizerSettings.getAsClass("type", null, "org.elasticsearch.index.analysis.", "TokenizerFactory");
+                type = tokenizerSettings.getAsClass(TokenizerFactory.class, "type", null, "org.elasticsearch.index.analysis.", "TokenizerFactory");
             } catch (NoClassSettingsException e) {
                 // nothing found, see if its in bindings as a binding name
                 if (tokenizerSettings.get("type") != null) {
@@ -352,7 +352,7 @@ public class AnalysisModule extends AbstractModule {
 
             Class<? extends AnalyzerProvider> type = null;
             try {
-                type = analyzerSettings.getAsClass("type", null, "org.elasticsearch.index.analysis.", "AnalyzerProvider");
+                type = analyzerSettings.getAsClass(AnalyzerProvider.class, "type", null, "org.elasticsearch.index.analysis.", "AnalyzerProvider");
             } catch (NoClassSettingsException e) {
                 // nothing found, see if its in bindings as a binding name
                 if (analyzerSettings.get("type") != null) {

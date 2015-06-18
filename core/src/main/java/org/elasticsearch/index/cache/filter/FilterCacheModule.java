@@ -46,7 +46,7 @@ public class FilterCacheModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(FilterCache.class)
-                .to(settings.getAsClass(FilterCacheSettings.FILTER_CACHE_TYPE, IndexFilterCache.class, "org.elasticsearch.index.cache.filter.", "FilterCache"))
+                .to(settings.getAsClass(FilterCache.class, FilterCacheSettings.FILTER_CACHE_TYPE, IndexFilterCache.class, "org.elasticsearch.index.cache.filter.", "FilterCache"))
                 .in(Scopes.SINGLETON);
         // the filter cache is a node-level thing, however we want the most popular filters
         // to be computed on a per-index basis, that is why we don't use the SINGLETON

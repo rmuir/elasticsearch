@@ -50,7 +50,7 @@ public class HttpServerModule extends AbstractModule {
             bind(HttpServerTransport.class).to(configuredHttpServerTransport).asEagerSingleton();
         } else {
             Class<? extends HttpServerTransport> defaultHttpServerTransport = NettyHttpServerTransport.class;
-            Class<? extends HttpServerTransport> httpServerTransport = settings.getAsClass("http.type", defaultHttpServerTransport, "org.elasticsearch.http.", "HttpServerTransport");
+            Class<? extends HttpServerTransport> httpServerTransport = settings.getAsClass(HttpServerTransport.class, "http.type", defaultHttpServerTransport, "org.elasticsearch.http.", "HttpServerTransport");
             bind(HttpServerTransport.class).to(httpServerTransport).asEagerSingleton();
         }
 

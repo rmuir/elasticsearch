@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.elasticsearch.Version;
 import org.elasticsearch.common.Booleans;
 import org.elasticsearch.common.Classes;
@@ -558,6 +559,7 @@ public final class Settings implements ToXContent {
      * represent a loadable class, the value will be appended to the <tt>prefixPackage</tt> and suffixed with the
      * <tt>suffixClassName</tt> and it will try to be loaded with it.
      *
+     * @param type            Type of class to return
      * @param setting         The setting key
      * @param defaultClazz    The class to return if no value is associated with the setting
      * @param prefixPackage   The prefix package to prefix the value with if failing to load the class as is
@@ -566,15 +568,14 @@ public final class Settings implements ToXContent {
      * @return The class represented by the setting value, or the default class provided if no value exists
      * @throws org.elasticsearch.common.settings.NoClassSettingsException Failure to load the class
      */
-    @SuppressWarnings({"unchecked"})
-    public <T> Class<? extends T> getAsClass(String setting, Class<? extends T> defaultClazz, String prefixPackage, String suffixClassName) throws NoClassSettingsException {
+    public <T> Class<? extends T> getAsClass(Class<T> type, String setting, Class<? extends T> defaultClazz, String prefixPackage, String suffixClassName) throws NoClassSettingsException {
         String sValue = get(setting);
         if (sValue == null) {
             return defaultClazz;
         }
         String fullClassName = sValue;
         try {
-            return (Class<? extends T>) getClassLoader().loadClass(fullClassName);
+            return getClassLoader().loadClass(fullClassName).asSubclass(type);
         } catch (ClassNotFoundException e) {
             String prefixValue = prefixPackage;
             int packageSeparator = sValue.lastIndexOf('.');
@@ -584,19 +585,19 @@ public final class Settings implements ToXContent {
             }
             fullClassName = prefixValue + Strings.capitalize(toCamelCase(sValue)) + suffixClassName;
             try {
-                return (Class<? extends T>) getClassLoader().loadClass(fullClassName);
+                return getClassLoader().loadClass(fullClassName).asSubclass(type);
             } catch (ClassNotFoundException e1) {
-                return loadClass(prefixValue, sValue, suffixClassName, setting);
+                return loadClass(type, prefixValue, sValue, suffixClassName, setting);
             } catch (NoClassDefFoundError e1) {
-                return loadClass(prefixValue, sValue, suffixClassName, setting);
+                return loadClass(type, prefixValue, sValue, suffixClassName, setting);
             }
         }
     }
 
-    private <T> Class<? extends T> loadClass(String prefixValue, String sValue, String suffixClassName, String setting) {
+    private <T> Class<? extends T> loadClass(Class<T> type, String prefixValue, String sValue, String suffixClassName, String setting) {
         String fullClassName = prefixValue + toCamelCase(sValue).toLowerCase(Locale.ROOT) + "." + Strings.capitalize(toCamelCase(sValue)) + suffixClassName;
         try {
-            return (Class<? extends T>) getClassLoader().loadClass(fullClassName);
+            return getClassLoader().loadClass(fullClassName).asSubclass(type);
         } catch (ClassNotFoundException e2) {
             throw new NoClassSettingsException("Failed to load class setting [" + setting + "] with value [" + get(setting) + "]", e2);
         }
@@ -871,12 +872,13 @@ public final class Settings implements ToXContent {
          * Puts tuples of key value pairs of settings. Simplified version instead of repeating calling
          * put for each one.
          */
+        @SuppressWarnings("unchecked")
         public Builder put(Object... settings) {
             if (settings.length == 1) {
                 // support cases where the actual type gets lost down the road...
                 if (settings[0] instanceof Map) {
                     //noinspection unchecked
-                    return put((Map) settings[0]);
+                    return put((Map<String,String>) settings[0]);
                 } else if (settings[0] instanceof Settings) {
                     return put((Settings) settings[0]);
                 }
@@ -909,7 +911,7 @@ public final class Settings implements ToXContent {
          * @param clazz The setting class value
          * @return The builder
          */
-        public Builder put(String key, Class clazz) {
+        public Builder put(String key, Class<?> clazz) {
             map.put(key, clazz.getName());
             return this;
         }

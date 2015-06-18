@@ -359,6 +359,7 @@ public abstract class StreamOutput extends OutputStream {
             } else {
                 writeByte((byte) 10);
             }
+            @SuppressWarnings("unchecked")
             Map<String, Object> map = (Map<String, Object>) value;
             writeVInt(map.size());
             for (Map.Entry<String, Object> entry : map.entrySet()) {

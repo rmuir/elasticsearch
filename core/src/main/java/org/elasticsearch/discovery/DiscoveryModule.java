@@ -50,7 +50,7 @@ public class DiscoveryModule extends AbstractModule implements SpawnModules {
         } else {
             defaultDiscoveryModule = ZenDiscoveryModule.class;
         }
-        return ImmutableList.of(Modules.createModule(settings.getAsClass(DISCOVERY_TYPE_KEY, defaultDiscoveryModule, "org.elasticsearch.discovery.", "DiscoveryModule"), settings));
+        return ImmutableList.of(Modules.createModule(settings.getAsClass(Module.class, DISCOVERY_TYPE_KEY, defaultDiscoveryModule, "org.elasticsearch.discovery.", "DiscoveryModule"), settings));
     }
 
     @Override

@@ -55,23 +55,23 @@ public class SettingsTests extends ElasticsearchTestCase {
                 .build();
 
         // Assert that defaultClazz is loaded if setting is not specified
-        assertThat(settings.getAsClass("no.settings", FooTestClass.class, "org.elasticsearch.common.settings.", "TestClass").getName(),
+        assertThat(settings.getAsClass(Object.class, "no.settings", FooTestClass.class, "org.elasticsearch.common.settings.", "TestClass").getName(),
                 equalTo(FooTestClass.class.getName()));
 
         // Assert that correct class is loaded if setting contain name without package
-        assertThat(settings.getAsClass("test.class", FooTestClass.class, "org.elasticsearch.common.settings.", "TestClass").getName(),
+        assertThat(settings.getAsClass(Object.class, "test.class", FooTestClass.class, "org.elasticsearch.common.settings.", "TestClass").getName(),
                 equalTo(BarTestClass.class.getName()));
 
         // Assert that class cannot be loaded if wrong packagePrefix is specified
         try {
-            settings.getAsClass("test.class", FooTestClass.class, "com.example.elasticsearch.test.unit..common.settings.", "TestClass");
+            settings.getAsClass(Object.class, "test.class", FooTestClass.class, "com.example.elasticsearch.test.unit..common.settings.", "TestClass");
             fail("Class with wrong package name shouldn't be loaded");
         } catch (NoClassSettingsException ex) {
             // Ignore
         }
 
         // Assert that package name in settings is getting correctly applied
-        assertThat(settings.getAsClass("test.class.package", FooTestClass.class, "com.example.elasticsearch.test.unit.common.settings.", "TestClass").getName(),
+        assertThat(settings.getAsClass(Object.class, "test.class.package", FooTestClass.class, "com.example.elasticsearch.test.unit.common.settings.", "TestClass").getName(),
                 equalTo(BarTestClass.class.getName()));
 
     }
@@ -99,7 +99,7 @@ public class SettingsTests extends ElasticsearchTestCase {
     public void testThatAllClassNotFoundExceptionsAreCaught() {
         // this should be nGram in order to really work, but for sure not not throw a NoClassDefFoundError
         Settings settings = settingsBuilder().put("type", "ngram").build();
-        settings.getAsClass("type", null, "org.elasticsearch.index.analysis.", "TokenFilterFactory");
+        settings.getAsClass(Object.class, "type", null, "org.elasticsearch.index.analysis.", "TokenFilterFactory");
     }
 
     @Test

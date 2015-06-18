@@ -56,7 +56,7 @@ public class TransportModule extends AbstractModule {
             bind(TransportService.class).to(configuredTransportService).asEagerSingleton();
         } else {
             Class<? extends TransportService> defaultTransportService = TransportService.class;
-            Class<? extends TransportService> transportService = settings.getAsClass(TRANSPORT_SERVICE_TYPE_KEY, defaultTransportService, "org.elasticsearch.transport.", "TransportService");
+            Class<? extends TransportService> transportService = settings.getAsClass(TransportService.class, TRANSPORT_SERVICE_TYPE_KEY, defaultTransportService, "org.elasticsearch.transport.", "TransportService");
             if (!TransportService.class.equals(transportService)) {
                 bind(TransportService.class).to(transportService).asEagerSingleton();
             } else {
@@ -69,7 +69,7 @@ public class TransportModule extends AbstractModule {
             bind(Transport.class).to(configuredTransport).asEagerSingleton();
         } else {
             Class<? extends Transport> defaultTransport = DiscoveryNode.localNode(settings) ? LocalTransport.class : NettyTransport.class;
-            Class<? extends Transport> transport = settings.getAsClass(TRANSPORT_TYPE_KEY, defaultTransport, "org.elasticsearch.transport.", "Transport");
+            Class<? extends Transport> transport = settings.getAsClass(Transport.class, TRANSPORT_TYPE_KEY, defaultTransport, "org.elasticsearch.transport.", "Transport");
             bind(Transport.class).to(transport).asEagerSingleton();
         }
     }

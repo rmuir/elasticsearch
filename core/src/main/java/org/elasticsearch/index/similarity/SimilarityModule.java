@@ -68,7 +68,7 @@ public class SimilarityModule extends AbstractModule {
             Settings settings = entry.getValue();
 
             Class<? extends SimilarityProvider> type =
-                    settings.getAsClass("type", null, "org.elasticsearch.index.similarity.", "SimilarityProvider");
+                    settings.getAsClass(SimilarityProvider.class, "type", null, "org.elasticsearch.index.similarity.", "SimilarityProvider");
             if (type == null) {
                 throw new IllegalArgumentException("SimilarityProvider [" + name + "] must have an associated type");
             }

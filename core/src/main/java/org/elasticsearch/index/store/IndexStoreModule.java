@@ -74,7 +74,7 @@ public class IndexStoreModule extends AbstractModule implements SpawnModules {
                 return ImmutableList.of(new DefaultStoreModule());
             }
         }
-        final Class<? extends Module> indexStoreModule = settings.getAsClass(STORE_TYPE, null, "org.elasticsearch.index.store.", "IndexStoreModule");
+        final Class<? extends Module> indexStoreModule = settings.getAsClass(Module.class, STORE_TYPE, null, "org.elasticsearch.index.store.", "IndexStoreModule");
         return ImmutableList.of(Modules.createModule(indexStoreModule, settings));
     }
 

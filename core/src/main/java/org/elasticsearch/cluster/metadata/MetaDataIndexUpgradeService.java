@@ -62,7 +62,7 @@ public class MetaDataIndexUpgradeService extends AbstractComponent {
                     pre20HashFunction = DjbHashFunction.class;
                     break;
                 default:
-                    pre20HashFunction = settings.getAsClass(DEPRECATED_SETTING_ROUTING_HASH_FUNCTION, DjbHashFunction.class, "org.elasticsearch.cluster.routing.", "HashFunction");
+                    pre20HashFunction = settings.getAsClass(HashFunction.class, DEPRECATED_SETTING_ROUTING_HASH_FUNCTION, DjbHashFunction.class, "org.elasticsearch.cluster.routing.", "HashFunction");
             }
         } else {
             pre20HashFunction = DjbHashFunction.class;

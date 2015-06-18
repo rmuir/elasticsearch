@@ -540,6 +540,10 @@
                         <useIncrementalCompilation>false</useIncrementalCompilation>
                         <compilerArgs>
                             <arg>-XDignore.symbol.file</arg>
+                            <arg>-Xlint</arg>
+                            <!-- TODO: fix this -->
+                            <arg>-Xlint:-deprecation</arg>
+                            <arg>-Werror</arg>
                         </compilerArgs>
                     </configuration>
                 </plugin>

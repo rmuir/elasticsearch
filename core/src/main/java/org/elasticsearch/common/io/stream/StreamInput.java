@@ -337,6 +337,7 @@ public abstract class StreamInput extends InputStream {
         return ret;
     }
 
+    @SuppressWarnings({"unchecked"})
     @Nullable
     public Map<String, Object> readMap() throws IOException {
         return (Map<String, Object>) readGenericValue();
@@ -479,6 +480,7 @@ public abstract class StreamInput extends InputStream {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends Throwable> T readThrowable() throws IOException {
         try {
             ObjectInputStream oin = new ObjectInputStream(this);
