@@ -118,4 +118,7 @@ grant {
 
   // needed to install SSLFactories, advanced SSL configuration, etc.
   permission java.lang.RuntimePermission "setFactory";
+  
+  // nocommit
+  permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
 };
