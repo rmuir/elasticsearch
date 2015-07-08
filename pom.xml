@@ -1171,6 +1171,7 @@ org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UT
                                 <goal>run</goal>
                             </goals>
                             <configuration>
+                                <skip>${skip.license.checks}</skip>
                                 <target>
                                     <condition property="licenses.exists">
                                         <available file="${basedir}/licenses" type="dir"/>
