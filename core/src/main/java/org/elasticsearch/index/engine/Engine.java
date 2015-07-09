@@ -510,26 +510,17 @@ public abstract class Engine implements Closeable {
      */
     public abstract SnapshotIndexCommit snapshotIndex(boolean flushFirst) throws EngineException;
 
-    /** fail engine due to some error. the engine will also be closed. */
-    public void failEngine(String reason, Throwable failure) {
-        assert failure != null;
+    /**
+     * fail engine due to some error. the engine will also be closed.
+     * The underlying store is marked corrupted iff failure is caused by index corruption
+     */
+    public void failEngine(String reason, @Nullable Throwable failure) {
         if (failEngineLock.tryLock()) {
             store.incRef();
             try {
                 try {
                     // we just go and close this engine - no way to recover
                     closeNoLock("engine failed on: [" + reason + "]");
-                    // we first mark the store as corrupted before we notify any listeners
-                    // this must happen first otherwise we might try to reallocate so quickly
-                    // on the same node that we don't see the corrupted marker file when
-                    // the shard is initializing
-                    if (Lucene.isCorruptionException(failure)) {
-                        try {
-                            store.markStoreCorrupted(ExceptionsHelper.unwrapCorruption(failure));
-                        } catch (IOException e) {
-                            logger.warn("Couldn't marks store corrupted", e);
-                        }
-                    }
                 } finally {
                     if (failedEngine != null) {
                         logger.debug("tried to fail engine but engine is already failed. ignoring. [{}]", reason, failure);
@@ -537,7 +528,18 @@ public abstract class Engine implements Closeable {
                     }
                     logger.warn("failed engine [{}]", failure, reason);
                     // we must set a failure exception, generate one if not supplied
-                    failedEngine = failure;
+                    failedEngine = (failure != null) ? failure : new IllegalStateException(reason);
+                    // we first mark the store as corrupted before we notify any listeners
+                    // this must happen first otherwise we might try to reallocate so quickly
+                    // on the same node that we don't see the corrupted marker file when
+                    // the shard is initializing
+                    if (Lucene.isCorruptionException(failure)) {
+                        try {
+                            store.markStoreCorrupted(new IOException("failed engine (reason: [" + reason + "])", ExceptionsHelper.unwrapCorruption(failure)));
+                        } catch (IOException e) {
+                            logger.warn("Couldn't mark store corrupted", e);
+                        }
+                    }
                     failedEngineListener.onFailedEngine(shardId, reason, failure);
                 }
             } catch (Throwable t) {
@@ -554,10 +556,10 @@ public abstract class Engine implements Closeable {
     /** Check whether the engine should be failed */
     protected boolean maybeFailEngine(String source, Throwable t) {
         if (Lucene.isCorruptionException(t)) {
-            failEngine("corrupt file detected source: [" + source + "]", t);
+            failEngine("corrupt file (source: [" + source + "])", t);
             return true;
         } else if (ExceptionsHelper.isOOM(t)) {
-            failEngine("out of memory", t);
+            failEngine("out of memory (source: [" + source + "])", t);
             return true;
         }
         return false;
@@ -629,7 +631,6 @@ public abstract class Engine implements Closeable {
 
     public static abstract class IndexingOperation implements Operation {
 
-        private final DocumentMapper docMapper;
         private final Term uid;
         private final ParsedDocument doc;
         private long version;
@@ -641,8 +642,7 @@ public abstract class Engine implements Closeable {
         private final long startTime;
         private long endTime;
 
-        public IndexingOperation(DocumentMapper docMapper, Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime, boolean canHaveDuplicates) {
-            this.docMapper = docMapper;
+        public IndexingOperation(Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime, boolean canHaveDuplicates) {
             this.uid = uid;
             this.doc = doc;
             this.version = version;
@@ -652,12 +652,8 @@ public abstract class Engine implements Closeable {
             this.canHaveDuplicates = canHaveDuplicates;
         }
 
-        public IndexingOperation(DocumentMapper docMapper, Term uid, ParsedDocument doc) {
-            this(docMapper, uid, doc, Versions.MATCH_ANY, VersionType.INTERNAL, Origin.PRIMARY, System.nanoTime(), true);
-        }
-
-        public DocumentMapper docMapper() {
-            return this.docMapper;
+        public IndexingOperation(Term uid, ParsedDocument doc) {
+            this(uid, doc, Versions.MATCH_ANY, VersionType.INTERNAL, Origin.PRIMARY, System.nanoTime(), true);
         }
 
         @Override
@@ -758,17 +754,17 @@ public abstract class Engine implements Closeable {
     public static final class Create extends IndexingOperation {
         private final boolean autoGeneratedId;
 
-        public Create(DocumentMapper docMapper, Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime, boolean canHaveDuplicates, boolean autoGeneratedId) {
-            super(docMapper, uid, doc, version, versionType, origin, startTime, canHaveDuplicates);
+        public Create(Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime, boolean canHaveDuplicates, boolean autoGeneratedId) {
+            super(uid, doc, version, versionType, origin, startTime, canHaveDuplicates);
             this.autoGeneratedId = autoGeneratedId;
         }
 
-        public Create(DocumentMapper docMapper, Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime) {
-            this(docMapper, uid, doc, version, versionType, origin, startTime, true, false);
+        public Create(Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime) {
+            this(uid, doc, version, versionType, origin, startTime, true, false);
         }
 
-        public Create(DocumentMapper docMapper, Term uid, ParsedDocument doc) {
-            super(docMapper, uid, doc);
+        public Create(Term uid, ParsedDocument doc) {
+            super(uid, doc);
             autoGeneratedId = false;
         }
 
@@ -791,16 +787,16 @@ public abstract class Engine implements Closeable {
 
     public static final class Index extends IndexingOperation {
 
-        public Index(DocumentMapper docMapper, Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime, boolean canHaveDuplicates) {
-            super(docMapper, uid, doc, version, versionType, origin, startTime, canHaveDuplicates);
+        public Index(Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime, boolean canHaveDuplicates) {
+            super(uid, doc, version, versionType, origin, startTime, canHaveDuplicates);
         }
 
-        public Index(DocumentMapper docMapper, Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime) {
-            super(docMapper, uid, doc, version, versionType, origin, startTime, true);
+        public Index(Term uid, ParsedDocument doc, long version, VersionType versionType, Origin origin, long startTime) {
+            super(uid, doc, version, versionType, origin, startTime, true);
         }
 
-        public Index(DocumentMapper docMapper, Term uid, ParsedDocument doc) {
-            super(docMapper, uid, doc);
+        public Index(Term uid, ParsedDocument doc) {
+            super(uid, doc);
         }
 
         @Override

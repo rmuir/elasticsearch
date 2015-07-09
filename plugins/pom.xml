@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>org.elasticsearch.plugin</groupId>
     <artifactId>elasticsearch-plugin</artifactId>
     <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -19,6 +21,8 @@
     <properties>
         <elasticsearch.assembly.descriptor>${basedir}/src/main/assemblies/plugin.xml</elasticsearch.assembly.descriptor>
         <elasticsearch.assembly.appendId>false</elasticsearch.assembly.appendId>
+        <elasticsearch.integ.antfile.default>${elasticsearch.tools.directory}/ant/integration-tests.xml</elasticsearch.integ.antfile.default>
+        <elasticsearch.integ.antfile>${elasticsearch.integ.antfile.default}</elasticsearch.integ.antfile>
     </properties>
 
     <dependencies>
@@ -37,6 +41,12 @@
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <type>zip</type>
             <scope>test</scope>
         </dependency>
 
@@ -207,12 +217,9 @@
             <artifactId>jna</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.fusesource</groupId>
-            <artifactId>sigar</artifactId>
-            <scope>provided</scope>
-        </dependency>
+
         <!-- Required by the REST test framework -->
+        <!-- TODO: remove this dependency when we will have a REST Test module -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
@@ -273,9 +280,16 @@
                     <!-- required by the test framework -->
                     <include>api/info.json</include>
                     <include>api/cluster.health.json</include>
+                    <include>api/cluster.state.json</include>
                     <!-- used in plugin REST tests -->
                     <include>api/index.json</include>
+                    <include>api/get.json</include>
+                    <include>api/update.json</include>
+                    <include>api/search.json</include>
+                    <include>api/indices.analyze.json</include>
+                    <include>api/indices.create.json</include>
                     <include>api/indices.refresh.json</include>
+                    <include>api/nodes.info.json</include>
                     <include>api/count.json</include>
                 </includes>
             </testResource>
@@ -285,6 +299,53 @@
                 <filtering>false</filtering>
             </testResource>
         </testResources>
+
+        <plugins>
+           <!-- integration tests -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <executions>
+                        <!-- start up external cluster -->
+                        <execution>
+                            <id>integ-setup</id>
+                            <phase>pre-integration-test</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <target>
+                                    <ant antfile="${elasticsearch.integ.antfile}"
+                                         target="start-external-cluster-with-plugin"/>
+                                </target>
+                            </configuration>
+                        </execution>
+                        <!-- shut down external cluster -->
+                        <execution>
+                            <id>integ-teardown</id>
+                            <phase>post-integration-test</phase>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                            <configuration>
+                                <target>
+                                    <ant antfile="${elasticsearch.integ.antfile}"
+                                         target="stop-external-cluster"/>
+                                </target>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <tests.cluster>127.0.0.1:9300</tests.cluster>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+        </plugins>
 
         <pluginManagement>
             <plugins>

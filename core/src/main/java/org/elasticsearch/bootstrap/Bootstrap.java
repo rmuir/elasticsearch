@@ -36,11 +36,11 @@ import org.elasticsearch.common.logging.log4j.LogConfigurator;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.monitor.jvm.JvmInfo;
-import org.elasticsearch.monitor.process.JmxProcessProbe;
+import org.elasticsearch.monitor.os.OsProbe;
+import org.elasticsearch.monitor.process.ProcessProbe;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.node.internal.InternalSettingsPreparer;
-import org.hyperic.sigar.Sigar;
 
 import java.util.Locale;
 import java.util.Set;
@@ -83,7 +83,7 @@ public class Bootstrap {
     }
     
     /** initialize native resources */
-    public static void initializeNatives(boolean mlockAll, boolean ctrlHandler, boolean loadSigar) {
+    public static void initializeNatives(boolean mlockAll, boolean ctrlHandler) {
         final ESLogger logger = Loggers.getLogger(Bootstrap.class);
         
         // check if the user is running as root, and bail
@@ -126,20 +126,14 @@ public class Bootstrap {
             // we've already logged this.
         }
 
-        if (loadSigar) {
-            // initialize sigar explicitly
-            try {
-                Sigar.load();
-                logger.trace("sigar libraries loaded successfully");
-            } catch (Throwable t) {
-                logger.trace("failed to load sigar libraries", t);
-            }
-        } else {
-            logger.trace("sigar not loaded, disabled via settings");
-        }
-
         // init lucene random seed. it will use /dev/urandom where available:
         StringHelper.randomId();
+    }
+
+    static void initializeProbes() {
+        // Force probes to be loaded
+        ProcessProbe.getInstance();
+        OsProbe.getInstance();
     }
 
     public static boolean isMemoryLocked() {
@@ -147,9 +141,11 @@ public class Bootstrap {
     }
 
     private void setup(boolean addShutdownHook, Settings settings, Environment environment) throws Exception {
-        initializeNatives(settings.getAsBoolean("bootstrap.mlockall", false), 
-                          settings.getAsBoolean("bootstrap.ctrlhandler", true),
-                          settings.getAsBoolean("bootstrap.sigar", true));
+        initializeNatives(settings.getAsBoolean("bootstrap.mlockall", false),
+                settings.getAsBoolean("bootstrap.ctrlhandler", true));
+
+        // initialize probes before the security manager is installed
+        initializeProbes();
 
         if (addShutdownHook) {
             Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -164,7 +160,7 @@ public class Bootstrap {
 
         // look for jar hell
         JarHell.checkJarHell();
-        
+
         // install SM after natives, shutdown hooks, etc.
         setupSecurity(settings, environment);
 
@@ -259,7 +255,7 @@ public class Bootstrap {
 
         if (System.getProperty("es.max-open-files", "false").equals("true")) {
             ESLogger logger = Loggers.getLogger(Bootstrap.class);
-            logger.info("max_open_files [{}]", JmxProcessProbe.getMaxFileDescriptorCount());
+            logger.info("max_open_files [{}]", ProcessProbe.getInstance().getMaxFileDescriptorCount());
         }
 
         // warn if running using the client VM

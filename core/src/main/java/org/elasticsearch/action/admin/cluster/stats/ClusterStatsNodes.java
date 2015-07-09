@@ -36,7 +36,7 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
-import org.elasticsearch.monitor.fs.FsStats;
+import org.elasticsearch.monitor.fs.FsInfo;
 import org.elasticsearch.monitor.jvm.JvmInfo;
 import org.elasticsearch.monitor.os.OsInfo;
 
@@ -52,7 +52,7 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
     private OsStats os;
     private ProcessStats process;
     private JvmStats jvm;
-    private FsStats.Info fs;
+    private FsInfo.Path fs;
     private Set<PluginInfo> plugins;
 
     private ClusterStatsNodes() {
@@ -63,7 +63,7 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
         this.versions = new HashSet<>();
         this.os = new OsStats();
         this.jvm = new JvmStats();
-        this.fs = new FsStats.Info();
+        this.fs = new FsInfo.Path();
         this.plugins = new HashSet<>();
         this.process = new ProcessStats();
 
@@ -116,7 +116,7 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
         return jvm;
     }
 
-    public FsStats.Info getFs() {
+    public FsInfo.Path getFs() {
         return fs;
     }
 
@@ -138,7 +138,7 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
         os = OsStats.readOsStats(in);
         process = ProcessStats.readStats(in);
         jvm = JvmStats.readJvmStats(in);
-        fs = FsStats.Info.readInfoFrom(in);
+        fs = FsInfo.Path.readInfoFrom(in);
 
         size = in.readVInt();
         plugins = new HashSet<>(size);
@@ -304,26 +304,15 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
         int availableProcessors;
         long availableMemory;
         final ObjectIntHashMap<String> names;
-        final ObjectIntHashMap<OsInfo.Cpu> cpus;
 
         public OsStats() {
-            cpus = new ObjectIntHashMap<>();
             names = new ObjectIntHashMap<>();
         }
 
         public void addNodeInfo(NodeInfo nodeInfo) {
-            availableProcessors += nodeInfo.getOs().availableProcessors();
-            if (nodeInfo.getOs() == null) {
-                return;
-            }
+            availableProcessors += nodeInfo.getOs().getAvailableProcessors();
             if (nodeInfo.getOs().getName() != null) {
                 names.addTo(nodeInfo.getOs().getName(), 1);
-            }
-            if (nodeInfo.getOs().cpu() != null) {
-                cpus.addTo(nodeInfo.getOs().cpu(), 1);
-            }
-            if (nodeInfo.getOs().getMem() != null && nodeInfo.getOs().getMem().getTotal().bytes() != -1) {
-                availableMemory += nodeInfo.getOs().getMem().getTotal().bytes();
             }
         }
 
@@ -335,10 +324,6 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
             return new ByteSizeValue(availableMemory);
         }
 
-        public ObjectIntHashMap<OsInfo.Cpu> getCpus() {
-            return cpus;
-        }
-
         @Override
         public void readFrom(StreamInput in) throws IOException {
             availableProcessors = in.readVInt();
@@ -347,11 +332,6 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
             names.clear();
             for (int i = 0; i < size; i++) {
                 names.addTo(in.readString(), in.readVInt());
-            }
-            size = in.readVInt();
-            cpus.clear();
-            for (int i = 0; i < size; i++) {
-                cpus.addTo(OsInfo.Cpu.readCpu(in), in.readVInt());
             }
         }
 
@@ -363,11 +343,6 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
             for (ObjectIntCursor<String> name : names) {
                 out.writeString(name.key);
                 out.writeVInt(name.value);
-            }
-            out.writeVInt(cpus.size());
-            for (ObjectIntCursor<OsInfo.Cpu> c : cpus) {
-                c.key.writeTo(out);
-                out.writeVInt(c.value);
             }
         }
 
@@ -384,7 +359,6 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
             static final XContentBuilderString MEM = new XContentBuilderString("mem");
             static final XContentBuilderString TOTAL = new XContentBuilderString("total");
             static final XContentBuilderString TOTAL_IN_BYTES = new XContentBuilderString("total_in_bytes");
-            static final XContentBuilderString CPU = new XContentBuilderString("cpu");
             static final XContentBuilderString COUNT = new XContentBuilderString("count");
         }
 
@@ -400,15 +374,6 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
                 builder.startObject();
                 builder.field(Fields.NAME, name.key);
                 builder.field(Fields.COUNT, name.value);
-                builder.endObject();
-            }
-            builder.endArray();
-
-            builder.startArray(Fields.CPU);
-            for (ObjectIntCursor<OsInfo.Cpu> cpu : cpus) {
-                builder.startObject();
-                cpu.key.toXContent(builder, params);
-                builder.field(Fields.COUNT, cpu.value);
                 builder.endObject();
             }
             builder.endArray();
@@ -430,11 +395,11 @@ public class ClusterStatsNodes implements ToXContent, Streamable {
                 return;
             }
             count++;
-            if (nodeStats.getProcess().cpu() != null) {
+            if (nodeStats.getProcess().getCpu() != null) {
                 // with no sigar, this may not be available
-                cpuPercent += nodeStats.getProcess().cpu().getPercent();
+                cpuPercent += nodeStats.getProcess().getCpu().getPercent();
             }
-            long fd = nodeStats.getProcess().openFileDescriptors();
+            long fd = nodeStats.getProcess().getOpenFileDescriptors();
             if (fd > 0) {
                 // fd can be -1 if not supported on platform
                 totalOpenFileDescriptors += fd;

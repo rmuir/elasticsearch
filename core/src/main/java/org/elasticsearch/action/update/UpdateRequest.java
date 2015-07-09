@@ -44,6 +44,7 @@ import org.elasticsearch.script.ScriptService.ScriptType;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;
@@ -667,6 +668,10 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
                     docAsUpsert(parser.booleanValue());
                 } else if ("detect_noop".equals(currentFieldName)) {
                     detectNoop(parser.booleanValue());
+                } else if ("fields".equals(currentFieldName)) {
+                    List<Object> values = parser.list();
+                    String[] fields = values.toArray(new String[values.size()]);
+                    fields(fields);
                 } else {
                     //here we don't have settings available, unable to throw deprecation exceptions
                     scriptParameterParser.token(currentFieldName, token, parser, ParseFieldMatcher.EMPTY);
@@ -690,16 +695,18 @@ public class UpdateRequest extends InstanceShardOperationRequest<UpdateRequest> 
         return this.docAsUpsert;
     }
 
-    public void docAsUpsert(boolean shouldUpsertDoc) {
+    public UpdateRequest docAsUpsert(boolean shouldUpsertDoc) {
         this.docAsUpsert = shouldUpsertDoc;
+        return this;
     }
     
     public boolean scriptedUpsert(){
         return this.scriptedUpsert;
     }
     
-    public void scriptedUpsert(boolean scriptedUpsert) {
+    public UpdateRequest scriptedUpsert(boolean scriptedUpsert) {
         this.scriptedUpsert = scriptedUpsert;
+        return this;
     }
     
 
