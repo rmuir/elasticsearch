@@ -89,8 +89,10 @@ public class BootstrapForTesting {
                 for (URL url : ((URLClassLoader)BootstrapForTesting.class.getClassLoader()).getURLs()) {
                     Path path = PathUtils.get(url.toURI());
                     if (path.toString().endsWith(".jar")) {
-                        // jar
+                        // jar itself
                         perms.add(new FilePermission(path.toString(), "read,readlink"));
+                        // crazy jython...
+                        Security.addPath(perms, path.getParent().resolve("Lib"), "read,readlink");
                     } else {
                         // classes
                         Security.addPath(perms, path, "read,readlink");
