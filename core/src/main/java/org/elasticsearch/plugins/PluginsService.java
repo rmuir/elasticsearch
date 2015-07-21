@@ -22,10 +22,8 @@ package org.elasticsearch.plugins;
 import com.google.common.base.Charsets;
 import com.google.common.collect.*;
 
-import org.apache.lucene.util.Constants;
 import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.cluster.node.info.PluginInfo;
 import org.elasticsearch.action.admin.cluster.node.info.PluginsInfo;
 import org.elasticsearch.bootstrap.Bootstrap;
@@ -39,7 +37,6 @@ import org.elasticsearch.common.io.FileSystemUtils;
 import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.common.lucene.Lucene;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.env.Environment;
@@ -63,7 +60,6 @@ public class PluginsService extends AbstractComponent {
     public static final String ES_PLUGIN_PROPERTIES = "es-plugin.properties";
     public static final String LOAD_PLUGIN_FROM_CLASSPATH = "plugins.load_classpath_plugins";
 
-    public static final String PLUGINS_CHECK_LUCENE_KEY = "plugins.check_lucene";
     public static final String PLUGINS_INFO_REFRESH_INTERVAL_KEY = "plugins.info_refresh_interval";
 
 
@@ -80,7 +76,6 @@ public class PluginsService extends AbstractComponent {
 
     private PluginsInfo cachedPluginsInfo;
     private final TimeValue refreshInterval;
-    private final boolean checkLucene;
     private long lastRefreshNS;
 
     static class OnModuleReference {
@@ -101,7 +96,6 @@ public class PluginsService extends AbstractComponent {
     public PluginsService(Settings settings, Environment environment) {
         super(settings);
         this.environment = environment;
-        this.checkLucene = settings.getAsBoolean(PLUGINS_CHECK_LUCENE_KEY, true);
         this.esPluginPropertiesFile = settings.get(ES_PLUGIN_PROPERTIES_FILE_KEY, ES_PLUGIN_PROPERTIES);
         this.loadClasspathPlugins = settings.getAsBoolean(LOAD_PLUGIN_FROM_CLASSPATH, true);
 
@@ -539,85 +533,22 @@ public class PluginsService extends AbstractComponent {
 
     private Plugin loadPlugin(String className, Settings settings) {
         try {
-            Class<? extends Plugin> pluginClass = (Class<? extends Plugin>) settings.getClassLoader().loadClass(className);
-            Plugin plugin;
+            Class<? extends Plugin> pluginClass = settings.getClassLoader().loadClass(className).asSubclass(Plugin.class);
 
-            if (!checkLucene || checkLuceneCompatibility(pluginClass, settings, logger, esPluginPropertiesFile)) {
+            try {
+                return pluginClass.getConstructor(Settings.class).newInstance(settings);
+            } catch (NoSuchMethodException e) {
                 try {
-                    plugin = pluginClass.getConstructor(Settings.class).newInstance(settings);
-                } catch (NoSuchMethodException e) {
-                    try {
-                        plugin = pluginClass.getConstructor().newInstance();
-                    } catch (NoSuchMethodException e1) {
-                        throw new ElasticsearchException("No constructor for [" + pluginClass + "]. A plugin class must " +
-                                "have either an empty default constructor or a single argument constructor accepting a " +
-                                "Settings instance");
-                    }
+                    return pluginClass.getConstructor().newInstance();
+                } catch (NoSuchMethodException e1) {
+                    throw new ElasticsearchException("No constructor for [" + pluginClass + "]. A plugin class must " +
+                            "have either an empty default constructor or a single argument constructor accepting a " +
+                            "Settings instance");
                 }
-            } else {
-                throw new ElasticsearchException("Plugin is incompatible with the current node");
             }
-
-
-            return plugin;
 
         } catch (Throwable e) {
             throw new ElasticsearchException("Failed to load plugin class [" + className + "]", e);
         }
-    }
-
-    /**
-     * <p>Check that a plugin is Lucene compatible with the current running node using `lucene` property
-     * in `es-plugin.properties` file.</p>
-     * <p>If plugin does not provide `lucene` property, we consider that the plugin is compatible.</p>
-     * <p>If plugin provides `lucene` property, we try to load related Enum org.apache.lucene.util.Version. If this
-     * fails, it means that the node is too "old" comparing to the Lucene version the plugin was built for.</p>
-     * <p>We compare then two first digits of current node lucene version against two first digits of plugin Lucene
-     * version. If not equal, it means that the plugin is too "old" for the current node.</p>
-     *
-     * @param pluginClass Plugin class we are checking
-     * @return true if the plugin is Lucene compatible
-     */
-    public static boolean checkLuceneCompatibility(Class<? extends Plugin> pluginClass, Settings settings, ESLogger logger, String propertiesFile) {
-        String luceneVersion = null;
-        try {
-            // We try to read the es-plugin.properties file
-            // But as we can have several plugins in the same classloader,
-            // we have to find the right es-plugin.properties file
-            Enumeration<URL> pluginUrls = settings.getClassLoader().getResources(propertiesFile);
-
-            while (pluginUrls.hasMoreElements()) {
-                URL pluginUrl = pluginUrls.nextElement();
-                try (InputStream is = pluginUrl.openStream()) {
-                    Properties pluginProps = new Properties();
-                    pluginProps.load(is);
-                    String plugin = pluginProps.getProperty("plugin");
-                    // If we don't have the expected plugin, let's continue to the next one
-                    if (pluginClass.getName().equals(plugin)) {
-                        luceneVersion = pluginProps.getProperty("lucene");
-                        break;
-                    }
-                    logger.debug("skipping [{}]", pluginUrl);
-                }
-            }
-
-            if (luceneVersion != null) {
-                // Should fail if the running node is too old!
-                org.apache.lucene.util.Version luceneExpectedVersion = Lucene.parseVersionLenient(luceneVersion, null);
-                if (Version.CURRENT.luceneVersion.equals(luceneExpectedVersion)) {
-                    logger.debug("starting analysis plugin for Lucene [{}].", luceneExpectedVersion);
-                    return true;
-                }
-            } else {
-                logger.debug("lucene property is not set in plugin {} file. Skipping test.", propertiesFile);
-                return true;
-            }
-        } catch (Throwable t) {
-            // We don't have the expected version... Let's fail after.
-            logger.debug("exception raised while checking plugin Lucene version.", t);
-        }
-        logger.error("cannot start plugin due to incorrect Lucene version: plugin [{}], node [{}].",
-                luceneVersion, Constants.LUCENE_MAIN_VERSION);
-        return false;
     }
 }
