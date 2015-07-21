@@ -19,7 +19,7 @@
     </parent>
 
     <properties>
-        <elasticsearch.assembly.descriptor>${basedir}/src/main/assemblies/plugin.xml</elasticsearch.assembly.descriptor>
+        <elasticsearch.assembly.descriptor>${elasticsearch.tools.directory}/plugin-metadata/plugin-assembly.xml</elasticsearch.assembly.descriptor>
         <elasticsearch.assembly.appendId>false</elasticsearch.assembly.appendId>
     </properties>
 
