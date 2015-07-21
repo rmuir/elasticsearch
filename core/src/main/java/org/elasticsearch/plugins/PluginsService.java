@@ -22,9 +22,7 @@ package org.elasticsearch.plugins;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
 
-import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.cluster.node.info.PluginInfo;
 import org.elasticsearch.action.admin.cluster.node.info.PluginsInfo;
@@ -36,7 +34,6 @@ import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.io.FileSystemUtils;
-import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
@@ -49,15 +46,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -126,13 +121,14 @@ public class PluginsService extends AbstractComponent {
 
         // now, find all the ones that are in the classpath
         try {
-          loadPluginsIntoClassLoader(environment);
+          List<Bundle> bundles = getPluginBundles(environment);
+          if (loadClasspathPlugins) {
+              tupleBuilder.addAll(loadPluginsFromClasspath(bundles));
+          }
         } catch (IOException ex) {
           throw new IllegalStateException("Can't load plugins into classloader", ex);
         }
-        if (loadClasspathPlugins) {
-            tupleBuilder.addAll(loadPluginsFromClasspath(settings));
-        }
+
         this.plugins = tupleBuilder.build();
 
         // We need to build a List of jvm and site plugins for checking mandatory plugins
@@ -354,97 +350,81 @@ public class PluginsService extends AbstractComponent {
 
         return cachedPluginsInfo;
     }
+    
+    // a "bundle" is a group of plugins in a single classloader
+    // really should be 1-1, but we are not so fortunate
+    static class Bundle {
+        List<Properties> metadata = new ArrayList<>();
+        List<URL> urls = new ArrayList<>();
+    }
 
     static final String PLUGIN_LIB_PATTERN = "glob:**.{jar,zip}";
-    private static void loadPluginsIntoClassLoader(Environment environment) throws IOException {
+    private static List<Bundle> getPluginBundles(Environment environment) throws IOException {
         ESLogger logger = Loggers.getLogger(Bootstrap.class);
 
         Path pluginsDirectory = environment.pluginsFile();
         if (!isAccessibleDirectory(pluginsDirectory, logger)) {
-            return;
+            return Collections.emptyList();
         }
-
-        // note: there's only one classloader here, but Uwe gets upset otherwise.
-        ClassLoader classLoader = Bootstrap.class.getClassLoader();
-        Class<?> classLoaderClass = classLoader.getClass();
-        Method addURL = null;
-        while (!classLoaderClass.equals(Object.class)) {
-            try {
-                addURL = classLoaderClass.getDeclaredMethod("addURL", URL.class);
-                addURL.setAccessible(true);
-                break;
-            } catch (NoSuchMethodException e) {
-                // no method, try the parent
-                classLoaderClass = classLoaderClass.getSuperclass();
-            }
-        }
-
-        if (addURL == null) {
-            logger.debug("failed to find addURL method on classLoader [" + classLoader + "] to add methods");
-            return;
-        }
+        
+        List<Bundle> bundles = new ArrayList<>();
+        // TODO: add "shitty" bundle for plugins that depend on each other
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(pluginsDirectory)) {
-
             for (Path plugin : stream) {
-                // We check that subdirs are directories and readable
-                if (!isAccessibleDirectory(plugin, logger)) {
-                    continue;
-                }
-
-                logger.trace("--- adding plugin [{}]", plugin.toAbsolutePath());
-
                 try {
-                    // add the root
-                    addURL.invoke(classLoader, plugin.toUri().toURL());
-                    // gather files to add
-                    List<Path> libFiles = new ArrayList<>();
-                    libFiles.addAll(Arrays.asList(files(plugin)));
-                    Path libLocation = plugin.resolve("lib");
-                    if (Files.isDirectory(libLocation)) {
-                        libFiles.addAll(Arrays.asList(files(libLocation)));
+                    logger.trace("--- adding plugin [{}]", plugin.toAbsolutePath());
+                    // read the descriptor file
+                    Path descriptor = plugin.resolve(ES_PLUGIN_PROPERTIES);
+                    Properties pluginProps = new Properties();
+                    try (InputStream s = Files.newInputStream(descriptor)) {
+                        pluginProps.load(s);
                     }
-
-                    PathMatcher matcher = PathUtils.getDefaultFileSystem().getPathMatcher(PLUGIN_LIB_PATTERN);
-
-                    // if there are jars in it, add it as well
-                    for (Path libFile : libFiles) {
-                        if (!matcher.matches(libFile)) {
-                            continue;
+                    String pluginClassName = pluginProps.getProperty("plugin");
+                    
+                    if ("_site".equals(pluginClassName)) {
+                        // a site only plugin, easy, its just metadata...
+                        Bundle sitePlugin = new Bundle();
+                        sitePlugin.metadata.add(pluginProps);
+                        bundles.add(sitePlugin);
+                    } else {
+                        Bundle jvmPlugin = new Bundle();
+                        jvmPlugin.metadata.add(pluginProps);
+                        // a jvm plugin: list the urls
+                        try (DirectoryStream<Path> jarStream = Files.newDirectoryStream(plugin, "*.jar")) {
+                            for (Path jar : jarStream) {
+                                jvmPlugin.urls.add(jar.toUri().toURL());
+                            }
                         }
-                        addURL.invoke(classLoader, libFile.toUri().toURL());
+                        bundles.add(jvmPlugin);
                     }
                 } catch (Throwable e) {
                     logger.warn("failed to add plugin [" + plugin + "]", e);
                 }
             }
         }
+        
+        return bundles;
     }
 
-    private static Path[] files(Path from) throws IOException {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(from)) {
-            return Iterators.toArray(stream.iterator(), Path.class);
-        }
-    }
-
-    private List<Tuple<PluginInfo,Plugin>> loadPluginsFromClasspath(Settings settings) {
+    private List<Tuple<PluginInfo,Plugin>> loadPluginsFromClasspath(List<Bundle> bundles) {
         ImmutableList.Builder<Tuple<PluginInfo, Plugin>> plugins = ImmutableList.builder();
 
-        // Trying JVM plugins: looking for es-plugin.properties files
-        try {
-            Enumeration<URL> pluginUrls = settings.getClassLoader().getResources(ES_PLUGIN_PROPERTIES);
+        for (Bundle bundle : bundles) {
+            if (bundle.urls.isEmpty()) {
+                continue; // site plugin... deal with this later
+            }
 
-            // use a set for uniqueness as some classloaders such as groovy's can return the same URL multiple times and
-            // these plugins should only be loaded once
-            HashSet<URL> uniqueUrls = new HashSet<>(Collections.list(pluginUrls));
-            for (URL pluginUrl : uniqueUrls) {
-                Properties pluginProps = new Properties();
-                InputStream is = null;
+            ClassLoader loader = URLClassLoader.newInstance(bundle.urls.toArray(new URL[0]), settings.getClassLoader());
+            Settings settings = Settings.builder()
+                    .put(this.settings)
+                    .classLoader(loader)
+                    .build();
+
+            for (Properties props : bundle.metadata) {
                 try {
-                    is = pluginUrl.openStream();
-                    pluginProps.load(is);
-                    String pluginClassName = pluginProps.getProperty("plugin");
-                    String pluginVersion = pluginProps.getProperty("version", PluginInfo.VERSION_NOT_AVAILABLE);
+                    String pluginClassName = props.getProperty("plugin");
+                    String pluginVersion = props.getProperty("version", PluginInfo.VERSION_NOT_AVAILABLE);
                     Plugin plugin = loadPlugin(pluginClassName, settings);
 
                     // Is it a site plugin as well? Does it have also an embedded _site structure
@@ -459,13 +439,9 @@ public class PluginsService extends AbstractComponent {
 
                     plugins.add(new Tuple<>(pluginInfo, plugin));
                 } catch (Throwable e) {
-                    logger.warn("failed to load plugin from [" + pluginUrl + "]", e);
-                } finally {
-                    IOUtils.closeWhileHandlingException(is);
+                    logger.warn("failed to load plugin from [" + bundle.urls + "]", e);
                 }
             }
-        } catch (IOException e) {
-            logger.warn("failed to find jvm plugins from classpath", e);
         }
 
         return plugins.build();
