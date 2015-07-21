@@ -174,7 +174,7 @@ public class PluginsService extends AbstractComponent {
         MapBuilder<Plugin, List<OnModuleReference>> onModuleReferences = MapBuilder.newMapBuilder();
         for (Plugin plugin : jvmPlugins.values()) {
             List<OnModuleReference> list = new ArrayList<>();
-            for (Method method : plugin.getClass().getDeclaredMethods()) {
+            for (Method method : plugin.getClass().getMethods()) {
                 if (!method.getName().equals("onModule")) {
                     continue;
                 }
@@ -187,7 +187,6 @@ public class PluginsService extends AbstractComponent {
                     logger.warn("Plugin: {} implementing onModule by the type is not of Module type {}", plugin.name(), moduleClass);
                     continue;
                 }
-                method.setAccessible(true);
                 list.add(new OnModuleReference(moduleClass, method));
             }
             if (!list.isEmpty()) {
