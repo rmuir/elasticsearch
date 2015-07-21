@@ -56,8 +56,7 @@ import static org.elasticsearch.common.io.FileSystemUtils.isAccessibleDirectory;
  *
  */
 public class PluginsService extends AbstractComponent {
-    public static final String ES_PLUGIN_PROPERTIES_FILE_KEY = "plugins.properties_file";
-    public static final String ES_PLUGIN_PROPERTIES = "es-plugin.properties";
+    public static final String ES_PLUGIN_PROPERTIES = "plugin-descriptor.properties";
     public static final String LOAD_PLUGIN_FROM_CLASSPATH = "plugins.load_classpath_plugins";
 
     public static final String PLUGINS_INFO_REFRESH_INTERVAL_KEY = "plugins.info_refresh_interval";
@@ -71,7 +70,6 @@ public class PluginsService extends AbstractComponent {
     private final ImmutableList<Tuple<PluginInfo, Plugin>> plugins;
 
     private final ImmutableMap<Plugin, List<OnModuleReference>> onModuleReferences;
-    private final String esPluginPropertiesFile;
     private final boolean loadClasspathPlugins;
 
     private PluginsInfo cachedPluginsInfo;
@@ -96,7 +94,6 @@ public class PluginsService extends AbstractComponent {
     public PluginsService(Settings settings, Environment environment) {
         super(settings);
         this.environment = environment;
-        this.esPluginPropertiesFile = settings.get(ES_PLUGIN_PROPERTIES_FILE_KEY, ES_PLUGIN_PROPERTIES);
         this.loadClasspathPlugins = settings.getAsBoolean(LOAD_PLUGIN_FROM_CLASSPATH, true);
 
         ImmutableList.Builder<Tuple<PluginInfo, Plugin>> tupleBuilder = ImmutableList.builder();
@@ -421,7 +418,7 @@ public class PluginsService extends AbstractComponent {
 
         // Trying JVM plugins: looking for es-plugin.properties files
         try {
-            Enumeration<URL> pluginUrls = settings.getClassLoader().getResources(esPluginPropertiesFile);
+            Enumeration<URL> pluginUrls = settings.getClassLoader().getResources(ES_PLUGIN_PROPERTIES);
 
             // use a set for uniqueness as some classloaders such as groovy's can return the same URL multiple times and
             // these plugins should only be loaded once
@@ -489,7 +486,7 @@ public class PluginsService extends AbstractComponent {
                         String description = PluginInfo.DESCRIPTION_NOT_AVAILABLE;
 
                         // We check if es-plugin.properties exists in plugin/_site dir
-                        final Path pluginPropFile = sitePluginDir.resolve(esPluginPropertiesFile);
+                        final Path pluginPropFile = sitePluginDir.resolve(ES_PLUGIN_PROPERTIES);
                         if (Files.exists(pluginPropFile)) {
 
                             final Properties pluginProps = new Properties();
@@ -499,7 +496,7 @@ public class PluginsService extends AbstractComponent {
                                 version = pluginProps.getProperty("version", PluginInfo.VERSION_NOT_AVAILABLE);
                             } catch (Exception e) {
                                 // Can not load properties for this site plugin. Ignoring.
-                                logger.debug("can not load {} file.", e, esPluginPropertiesFile);
+                                logger.debug("can not load {} file.", e, ES_PLUGIN_PROPERTIES);
                             }
                         }
 
