@@ -27,6 +27,7 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.cluster.node.info.PluginInfo;
 import org.elasticsearch.action.admin.cluster.node.info.PluginsInfo;
 import org.elasticsearch.bootstrap.Bootstrap;
+import org.elasticsearch.bootstrap.JarHell;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.collect.Tuple;
@@ -123,7 +124,7 @@ public class PluginsService extends AbstractComponent {
         try {
           List<Bundle> bundles = getPluginBundles(environment);
           if (loadClasspathPlugins) {
-              tupleBuilder.addAll(loadPluginsFromClasspath(bundles));
+              tupleBuilder.addAll(loadBundles(bundles));
           }
         } catch (IOException ex) {
           throw new IllegalStateException("Can't load plugins into classloader", ex);
@@ -407,14 +408,31 @@ public class PluginsService extends AbstractComponent {
         return bundles;
     }
 
-    private List<Tuple<PluginInfo,Plugin>> loadPluginsFromClasspath(List<Bundle> bundles) {
+    private List<Tuple<PluginInfo,Plugin>> loadBundles(List<Bundle> bundles) {
         ImmutableList.Builder<Tuple<PluginInfo, Plugin>> plugins = ImmutableList.builder();
 
         for (Bundle bundle : bundles) {
             if (bundle.urls.isEmpty()) {
                 continue; // site plugin... deal with this later
             }
-
+            
+            // jar-hell check the bundle against the parent classloader
+            // pluginmanager does it, but we do it again, in case lusers mess with jar files manually
+            try {
+                final List<URL> jars = new ArrayList<>();
+                ClassLoader parentLoader = settings.getClassLoader();
+                if (parentLoader instanceof URLClassLoader) {
+                    for (URL url : ((URLClassLoader) parentLoader).getURLs()) {
+                        jars.add(url);
+                    }
+                }
+                jars.addAll(bundle.urls);
+                JarHell.checkJarHell(jars.toArray(new URL[0]));
+            } catch (Exception e) {
+                logger.warn("failed to load bundle {} due to jar hell", bundle.urls);
+            }
+            
+            // create a child to load the plugins in this bundle
             ClassLoader loader = URLClassLoader.newInstance(bundle.urls.toArray(new URL[0]), settings.getClassLoader());
             Settings settings = Settings.builder()
                     .put(this.settings)
