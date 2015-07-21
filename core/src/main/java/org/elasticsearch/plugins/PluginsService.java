@@ -19,7 +19,6 @@
 
 package org.elasticsearch.plugins;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -34,14 +33,11 @@ import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
-import org.elasticsearch.common.io.FileSystemUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.env.Environment;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,24 +64,14 @@ import static org.elasticsearch.common.io.FileSystemUtils.isAccessibleDirectory;
  */
 public class PluginsService extends AbstractComponent {
     public static final String ES_PLUGIN_PROPERTIES = "plugin-descriptor.properties";
-    public static final String LOAD_PLUGIN_FROM_CLASSPATH = "plugins.load_classpath_plugins";
-
-    public static final String PLUGINS_INFO_REFRESH_INTERVAL_KEY = "plugins.info_refresh_interval";
-
-
-    private final Environment environment;
 
     /**
-     * We keep around a list of jvm plugins
+     * We keep around a list of plugins
      */
     private final ImmutableList<Tuple<PluginInfo, Plugin>> plugins;
+    private final PluginsInfo info;
 
     private final ImmutableMap<Plugin, List<OnModuleReference>> onModuleReferences;
-    private final boolean loadClasspathPlugins;
-
-    private PluginsInfo cachedPluginsInfo;
-    private final TimeValue refreshInterval;
-    private long lastRefreshNS;
 
     static class OnModuleReference {
         public final Class<? extends Module> moduleClass;
@@ -104,52 +90,47 @@ public class PluginsService extends AbstractComponent {
      */
     public PluginsService(Settings settings, Environment environment) {
         super(settings);
-        this.environment = environment;
-        this.loadClasspathPlugins = settings.getAsBoolean(LOAD_PLUGIN_FROM_CLASSPATH, true);
 
         ImmutableList.Builder<Tuple<PluginInfo, Plugin>> tupleBuilder = ImmutableList.builder();
 
-        // first we load all the default plugins from the settings
+        // first we load specified plugins via 'plugin.types' settings parameter.
+        // this is a hack for what is between unit and integration tests...
         String[] defaultPluginsClasses = settings.getAsArray("plugin.types");
         for (String pluginClass : defaultPluginsClasses) {
             Plugin plugin = loadPlugin(pluginClass, settings);
-            PluginInfo pluginInfo = new PluginInfo(plugin.name(), plugin.description(), hasSite(plugin.name()), true, PluginInfo.VERSION_NOT_AVAILABLE);
+            PluginInfo pluginInfo = new PluginInfo(plugin.name(), plugin.description(), false, "NA", true, pluginClass, false);
             if (logger.isTraceEnabled()) {
                 logger.trace("plugin loaded from settings [{}]", pluginInfo);
             }
             tupleBuilder.add(new Tuple<>(pluginInfo, plugin));
         }
 
-        // now, find all the ones that are in the classpath
+        // now, find all the ones that are in plugins/
         try {
           List<Bundle> bundles = getPluginBundles(environment);
-          if (loadClasspathPlugins) {
-              tupleBuilder.addAll(loadBundles(bundles));
-          }
+          tupleBuilder.addAll(loadBundles(bundles));
         } catch (IOException ex) {
           throw new IllegalStateException("Can't load plugins into classloader", ex);
         }
 
-        this.plugins = tupleBuilder.build();
+        plugins = tupleBuilder.build();
+        info = new PluginsInfo();
+        for (Tuple<PluginInfo, Plugin> tuple : plugins) {
+            info.add(tuple.v1());
+        }
 
         // We need to build a List of jvm and site plugins for checking mandatory plugins
         Map<String, Plugin> jvmPlugins = new HashMap<>();
         List<String> sitePlugins = new ArrayList<>();
 
-        for (Tuple<PluginInfo, Plugin> tuple : this.plugins) {
-            jvmPlugins.put(tuple.v2().name(), tuple.v2());
-            if (tuple.v1().isSite()) {
-                sitePlugins.add(tuple.v1().getName());
+        for (Tuple<PluginInfo, Plugin> tuple : plugins) {
+            PluginInfo info = tuple.v1();
+            if (info.isJvm()) {
+                jvmPlugins.put(tuple.v2().name(), tuple.v2());
             }
-        }
-        try {
-            // we load site plugins
-            ImmutableList<Tuple<PluginInfo, Plugin>> tuples = loadSitePlugins();
-            for (Tuple<PluginInfo, Plugin> tuple : tuples) {
-                sitePlugins.add(tuple.v1().getName());
+            if (info.isSite()) {
+                sitePlugins.add(info.getName());
             }
-        } catch (IOException ex) {
-            throw new IllegalStateException("Can't load site  plugins", ex);
         }
 
         // Checking expected plugins
@@ -191,8 +172,6 @@ public class PluginsService extends AbstractComponent {
             }
         }
         this.onModuleReferences = onModuleReferences.immutableMap();
-
-        this.refreshInterval = settings.getAsTime(PLUGINS_INFO_REFRESH_INTERVAL_KEY, TimeValue.timeValueSeconds(10));
     }
 
     public ImmutableList<Tuple<PluginInfo, Plugin>> plugins() {
@@ -307,60 +286,42 @@ public class PluginsService extends AbstractComponent {
 
     /**
      * Get information about plugins (jvm and site plugins).
-     * Information are cached for 10 seconds by default. Modify `plugins.info_refresh_interval` property if needed.
-     * Setting `plugins.info_refresh_interval` to `-1` will cause infinite caching.
-     * Setting `plugins.info_refresh_interval` to `0` will disable caching.
-     * @return List of plugins information
      */
-    synchronized public PluginsInfo info() {
-        if (refreshInterval.millis() != 0) {
-            if (cachedPluginsInfo != null &&
-                    (refreshInterval.millis() < 0 || (System.nanoTime() - lastRefreshNS) < refreshInterval.nanos())) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("using cache to retrieve plugins info");
-                }
-                return cachedPluginsInfo;
-            }
-            lastRefreshNS = System.nanoTime();
-        }
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("starting to fetch info on plugins");
-        }
-        cachedPluginsInfo = new PluginsInfo();
-
-        // We first add all JvmPlugins
-        for (Tuple<PluginInfo, Plugin> plugin : this.plugins) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("adding jvm plugin [{}]", plugin.v1());
-            }
-            cachedPluginsInfo.add(plugin.v1());
-        }
-
-        try {
-            // We reload site plugins (in case of some changes)
-            for (Tuple<PluginInfo, Plugin> plugin : loadSitePlugins()) {
-                if (logger.isTraceEnabled()) {
-                    logger.trace("adding site plugin [{}]", plugin.v1());
-                }
-                cachedPluginsInfo.add(plugin.v1());
-            }
-        } catch (IOException ex) {
-            logger.warn("can load site plugins info", ex);
-        }
-
-        return cachedPluginsInfo;
+    public PluginsInfo info() {
+        return info;
     }
     
     // a "bundle" is a group of plugins in a single classloader
     // really should be 1-1, but we are not so fortunate
     static class Bundle {
-        List<Properties> metadata = new ArrayList<>();
+        List<PluginInfo> plugins = new ArrayList<>();
         List<URL> urls = new ArrayList<>();
     }
+    
+    /** reads (and validates) plugin metadata descriptor file */
+    static PluginInfo readMetadata(Path dir) throws IOException {
+        Path descriptor = dir.resolve(ES_PLUGIN_PROPERTIES);
+        Properties props = new Properties();
+        try (InputStream stream = Files.newInputStream(descriptor)) {
+            props.load(stream);
+        }
+        String name = dir.getFileName().toString();
+        String description = props.getProperty("description");
+        String version = props.getProperty("version");
+        String esversion = props.getProperty("elasticsearch.version");
+        // TODO: validate all this metadata, check version, and reuse from pluginmanager too before installing.
+        boolean jvm = Boolean.parseBoolean(props.getProperty("jvm"));
+        boolean site = Boolean.parseBoolean(props.getProperty("site"));
+        boolean isolated = true;
+        String classname = "NA";
+        if (jvm) {
+            isolated = Boolean.parseBoolean(props.getProperty("isolated"));
+            classname = props.getProperty("plugin");
+        }
+        return new PluginInfo(name, description, site, version, jvm, classname, isolated);
+    }
 
-    static final String PLUGIN_LIB_PATTERN = "glob:**.{jar,zip}";
-    private static List<Bundle> getPluginBundles(Environment environment) throws IOException {
+    static List<Bundle> getPluginBundles(Environment environment) throws IOException {
         ESLogger logger = Loggers.getLogger(Bootstrap.class);
 
         Path pluginsDirectory = environment.pluginsFile();
@@ -369,36 +330,32 @@ public class PluginsService extends AbstractComponent {
         }
         
         List<Bundle> bundles = new ArrayList<>();
-        // TODO: add "shitty" bundle for plugins that depend on each other
+        // a special purgatory for plugins that directly depend on each other
+        bundles.add(new Bundle());
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(pluginsDirectory)) {
             for (Path plugin : stream) {
                 try {
                     logger.trace("--- adding plugin [{}]", plugin.toAbsolutePath());
-                    // read the descriptor file
-                    Path descriptor = plugin.resolve(ES_PLUGIN_PROPERTIES);
-                    Properties pluginProps = new Properties();
-                    try (InputStream s = Files.newInputStream(descriptor)) {
-                        pluginProps.load(s);
-                    }
-                    String pluginClassName = pluginProps.getProperty("plugin");
-                    
-                    if ("_site".equals(pluginClassName)) {
-                        // a site only plugin, easy, its just metadata...
-                        Bundle sitePlugin = new Bundle();
-                        sitePlugin.metadata.add(pluginProps);
-                        bundles.add(sitePlugin);
-                    } else {
-                        Bundle jvmPlugin = new Bundle();
-                        jvmPlugin.metadata.add(pluginProps);
-                        // a jvm plugin: list the urls
+                    PluginInfo info = readMetadata(plugin);
+                    List<URL> urls = new ArrayList<>();
+                    if (info.isJvm()) {
+                        // a jvm plugin: gather urls for jar files
                         try (DirectoryStream<Path> jarStream = Files.newDirectoryStream(plugin, "*.jar")) {
                             for (Path jar : jarStream) {
-                                jvmPlugin.urls.add(jar.toUri().toURL());
+                                urls.add(jar.toUri().toURL());
                             }
                         }
-                        bundles.add(jvmPlugin);
                     }
+                    final Bundle bundle;
+                    if (info.isJvm() && info.isIsolated() == false) {
+                        bundle = bundles.get(0); // purgatory
+                    } else {
+                        bundle = new Bundle();
+                        bundles.add(bundle);
+                    }
+                    bundle.plugins.add(info);
+                    bundle.urls.addAll(urls);
                 } catch (Throwable e) {
                     logger.warn("failed to add plugin [" + plugin + "]", e);
                 }
@@ -412,10 +369,6 @@ public class PluginsService extends AbstractComponent {
         ImmutableList.Builder<Tuple<PluginInfo, Plugin>> plugins = ImmutableList.builder();
 
         for (Bundle bundle : bundles) {
-            if (bundle.urls.isEmpty()) {
-                continue; // site plugin... deal with this later
-            }
-            
             // jar-hell check the bundle against the parent classloader
             // pluginmanager does it, but we do it again, in case lusers mess with jar files manually
             try {
@@ -439,22 +392,14 @@ public class PluginsService extends AbstractComponent {
                     .classLoader(loader)
                     .build();
 
-            for (Properties props : bundle.metadata) {
+            for (PluginInfo pluginInfo : bundle.plugins) {
                 try {
-                    String pluginClassName = props.getProperty("plugin");
-                    String pluginVersion = props.getProperty("version", PluginInfo.VERSION_NOT_AVAILABLE);
-                    Plugin plugin = loadPlugin(pluginClassName, settings);
-
-                    // Is it a site plugin as well? Does it have also an embedded _site structure
-                    Path siteFile = environment.pluginsFile().resolve(plugin.name()).resolve("_site");
-                    boolean isSite = isAccessibleDirectory(siteFile, logger);
-                    if (logger.isTraceEnabled()) {
-                        logger.trace("found a jvm plugin [{}], [{}]{}",
-                                plugin.name(), plugin.description(), isSite ? ": with _site structure" : "");
+                    final Plugin plugin;
+                    if (pluginInfo.isJvm()) {
+                        plugin = loadPlugin(pluginInfo.getClassname(), settings);
+                    } else {
+                        plugin = null;
                     }
-
-                    PluginInfo pluginInfo = new PluginInfo(plugin.name(), plugin.description(), isSite, true, pluginVersion);
-
                     plugins.add(new Tuple<>(pluginInfo, plugin));
                 } catch (Throwable e) {
                     logger.warn("failed to load plugin from [" + bundle.urls + "]", e);
@@ -463,77 +408,6 @@ public class PluginsService extends AbstractComponent {
         }
 
         return plugins.build();
-    }
-
-    private ImmutableList<Tuple<PluginInfo,Plugin>> loadSitePlugins() throws IOException {
-        ImmutableList.Builder<Tuple<PluginInfo, Plugin>> sitePlugins = ImmutableList.builder();
-        List<String> loadedJvmPlugins = new ArrayList<>();
-
-        // Already known jvm plugins are ignored
-        for(Tuple<PluginInfo, Plugin> tuple : plugins) {
-            if (tuple.v1().isSite()) {
-                loadedJvmPlugins.add(tuple.v1().getName());
-            }
-        }
-
-        // Let's try to find all _site plugins we did not already found
-        Path pluginsFile = environment.pluginsFile();
-
-        if (FileSystemUtils.isAccessibleDirectory(pluginsFile, logger) == false) {
-            return sitePlugins.build();
-        }
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(pluginsFile)) {
-            for (Path pluginFile : stream) {
-                if (!loadedJvmPlugins.contains(pluginFile.getFileName().toString())) {
-                    Path sitePluginDir = pluginFile.resolve("_site");
-                    if (isAccessibleDirectory(sitePluginDir, logger)) {
-                        // We have a _site plugin. Let's try to get more information on it
-                        String name = pluginFile.getFileName().toString();
-                        String version = PluginInfo.VERSION_NOT_AVAILABLE;
-                        String description = PluginInfo.DESCRIPTION_NOT_AVAILABLE;
-
-                        // We check if es-plugin.properties exists in plugin/_site dir
-                        final Path pluginPropFile = sitePluginDir.resolve(ES_PLUGIN_PROPERTIES);
-                        if (Files.exists(pluginPropFile)) {
-
-                            final Properties pluginProps = new Properties();
-                            try (final BufferedReader reader = Files.newBufferedReader(pluginPropFile, Charsets.UTF_8)) {
-                                pluginProps.load(reader);
-                                description = pluginProps.getProperty("description", PluginInfo.DESCRIPTION_NOT_AVAILABLE);
-                                version = pluginProps.getProperty("version", PluginInfo.VERSION_NOT_AVAILABLE);
-                            } catch (Exception e) {
-                                // Can not load properties for this site plugin. Ignoring.
-                                logger.debug("can not load {} file.", e, ES_PLUGIN_PROPERTIES);
-                            }
-                        }
-
-                        if (logger.isTraceEnabled()) {
-                            logger.trace("found a site plugin name [{}], version [{}], description [{}]",
-                                    name, version, description);
-                        }
-                        sitePlugins.add(new Tuple<PluginInfo, Plugin>(new PluginInfo(name, description, true, false, version), null));
-                    }
-                }
-            }
-        }
-        return sitePlugins.build();
-    }
-
-    /**
-     * @param name plugin name
-     * @return if this jvm plugin has also a _site structure
-     */
-    private boolean hasSite(String name) {
-        // Let's try to find all _site plugins we did not already found
-        Path pluginsFile = environment.pluginsFile();
-
-        if (!Files.isDirectory(pluginsFile)) {
-            return false;
-        }
-
-        Path sitePluginDir = pluginsFile.resolve(name).resolve("_site");
-        return isAccessibleDirectory(sitePluginDir, logger);
     }
 
     private Plugin loadPlugin(String className, Settings settings) {

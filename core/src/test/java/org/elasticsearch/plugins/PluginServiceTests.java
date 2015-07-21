@@ -61,23 +61,6 @@ public class PluginServiceTests extends PluginTestCase {
         assertThat(plugin.getClass().getName(), endsWith("InZipPlugin"));
     }
 
-    @Test
-    public void testHasLibExtension() {
-        PathMatcher matcher = PathUtils.getDefaultFileSystem().getPathMatcher(PluginsService.PLUGIN_LIB_PATTERN);
-
-        Path p = PathUtils.get("path", "to", "plugin.jar");
-        assertTrue(matcher.matches(p));
-
-        p = PathUtils.get("path", "to", "plugin.zip");
-        assertTrue(matcher.matches(p));
-
-        p = PathUtils.get("path", "to", "plugin.tar.gz");
-        assertFalse(matcher.matches(p));
-
-        p = PathUtils.get("path", "to", "plugin");
-        assertFalse(matcher.matches(p));
-    }
-
     private Plugin getPlugin(String pluginName) {
         assertNotNull("cannot check plugin existence with a null plugin's name", pluginName);
         PluginsService pluginsService = internalCluster().getInstance(PluginsService.class);
