@@ -16,22 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.elasticsearch.index;
 
-package org.elasticsearch.index.shard;
-
+import org.elasticsearch.ResourceNotFoundException;
 import org.elasticsearch.common.io.stream.StreamInput;
 
 import java.io.IOException;
 
-/**
- */
-public class IndexShardCreationException extends IndexShardException {
+public final class IndexNotFoundException extends ResourceNotFoundException {
 
-    public IndexShardCreationException(ShardId shardId, Throwable cause) {
-        super(shardId, "failed to create shard", cause);
+    public IndexNotFoundException(String index) {
+        this(index, null);
     }
 
-    public IndexShardCreationException(StreamInput in) throws IOException{
+    public IndexNotFoundException(String index, Throwable cause) {
+        super("no such index", cause);
+        setIndex(index);
+    }
+
+    public IndexNotFoundException(StreamInput in) throws IOException {
         super(in);
     }
 }

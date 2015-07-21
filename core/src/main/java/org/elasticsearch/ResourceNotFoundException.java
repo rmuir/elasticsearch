@@ -16,25 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-package org.elasticsearch.index.store;
+package org.elasticsearch;
 
 import org.elasticsearch.common.io.stream.StreamInput;
-import org.elasticsearch.index.shard.IndexShardException;
-import org.elasticsearch.index.shard.ShardId;
+import org.elasticsearch.rest.RestStatus;
 
 import java.io.IOException;
 
 /**
- *
+ * Generic ResourceNotFoundException corresponding to the {@link RestStatus#NOT_FOUND} status code
  */
-public class StoreException extends IndexShardException {
+public class ResourceNotFoundException extends ElasticsearchException {
 
-    public StoreException(ShardId shardId, String msg, Throwable cause) {
-        super(shardId, msg, cause);
+    public ResourceNotFoundException(String msg, Object... args) {
+        super(msg, args);
     }
 
-    public StoreException(StreamInput in) throws IOException{
+    protected ResourceNotFoundException(String msg, Throwable cause, Object... args) {
+        super(msg, cause, args);
+    }
+
+    public ResourceNotFoundException(StreamInput in) throws IOException {
         super(in);
+    }
+
+    @Override
+    public final RestStatus status() {
+        return RestStatus.NOT_FOUND;
     }
 }

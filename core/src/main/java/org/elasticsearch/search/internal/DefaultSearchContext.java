@@ -33,6 +33,7 @@ import org.elasticsearch.common.lease.Releasables;
 import org.elasticsearch.common.lucene.search.Queries;
 import org.elasticsearch.common.lucene.search.function.BoostScoreFunction;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.util.BigArrays;
 import org.elasticsearch.index.IndexService;
 import org.elasticsearch.index.analysis.AnalysisService;
@@ -90,7 +91,7 @@ public class DefaultSearchContext extends SearchContext {
     private ScanContext scanContext;
     private float queryBoost = 1.0f;
     // timeout in millis
-    private long timeoutInMillis = -1;
+    private long timeoutInMillis;
     // terminate after count
     private int terminateAfter = DEFAULT_TERMINATE_AFTER;
     private List<String> groupStats;
@@ -121,13 +122,16 @@ public class DefaultSearchContext extends SearchContext {
     private boolean queryRewritten;
     private volatile long keepAlive;
     private ScoreDoc lastEmittedDoc;
+    private final long originNanoTime = System.nanoTime();
     private volatile long lastAccessTime = -1;
     private InnerHitsContext innerHitsContext;
 
     public DefaultSearchContext(long id, ShardSearchRequest request, SearchShardTarget shardTarget,
                          Engine.Searcher engineSearcher, IndexService indexService, IndexShard indexShard,
                          ScriptService scriptService, PageCacheRecycler pageCacheRecycler,
-                         BigArrays bigArrays, Counter timeEstimateCounter, ParseFieldMatcher parseFieldMatcher) {
+                         BigArrays bigArrays, Counter timeEstimateCounter, ParseFieldMatcher parseFieldMatcher,
+                         TimeValue timeout
+    ) {
         super(parseFieldMatcher);
         this.id = id;
         this.request = request;
@@ -145,6 +149,7 @@ public class DefaultSearchContext extends SearchContext {
         this.indexService = indexService;
         this.searcher = new ContextIndexSearcher(this, engineSearcher);
         this.timeEstimateCounter = timeEstimateCounter;
+        this.timeoutInMillis = timeout.millis();
     }
 
     @Override
@@ -263,6 +268,11 @@ public class DefaultSearchContext extends SearchContext {
     public SearchContext queryBoost(float queryBoost) {
         this.queryBoost = queryBoost;
         return this;
+    }
+
+    @Override
+    public long getOriginNanoTime() {
+        return originNanoTime;
     }
 
     @Override

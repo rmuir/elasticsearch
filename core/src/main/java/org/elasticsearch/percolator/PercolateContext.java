@@ -98,6 +98,8 @@ public class PercolateContext extends SearchContext {
     private final ConcurrentMap<BytesRef, Query> percolateQueries;
     private final int numberOfShards;
     private final Query aliasFilter;
+    private final long originNanoTime = System.nanoTime();
+    private final long startTime;
     private String[] types;
 
     private Engine.Searcher docSearcher;
@@ -133,6 +135,7 @@ public class PercolateContext extends SearchContext {
         this.scriptService = scriptService;
         this.numberOfShards = request.getNumberOfShards();
         this.aliasFilter = aliasFilter;
+        this.startTime = request.getStartTime();
     }
 
     public IndexSearcher docSearcher() {
@@ -336,8 +339,13 @@ public class PercolateContext extends SearchContext {
     }
 
     @Override
+    public long getOriginNanoTime() {
+        return originNanoTime;
+    }
+
+    @Override
     protected long nowInMillisImpl() {
-        throw new UnsupportedOperationException();
+        return startTime;
     }
 
     @Override

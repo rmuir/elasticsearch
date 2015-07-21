@@ -36,6 +36,7 @@ import org.elasticsearch.cluster.block.ClusterBlockLevel;
 import org.elasticsearch.cluster.routing.allocation.decider.DiskThresholdDecider;
 import org.elasticsearch.cluster.service.InternalClusterService;
 import org.elasticsearch.common.Nullable;
+import org.elasticsearch.common.ParseFieldMatcher;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.collect.HppcMaps;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -48,7 +49,7 @@ import org.elasticsearch.common.settings.loader.SettingsLoader;
 import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.discovery.DiscoverySettings;
 import org.elasticsearch.index.Index;
-import org.elasticsearch.indices.IndexMissingException;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.indices.recovery.RecoverySettings;
 import org.elasticsearch.indices.store.IndicesStore;
 import org.elasticsearch.indices.ttl.IndicesTTLService;
@@ -60,7 +61,7 @@ import java.util.*;
 
 import static org.elasticsearch.common.settings.Settings.*;
 
-public class MetaData implements Iterable<IndexMetaData>, Diffable<MetaData> {
+public class MetaData implements Iterable<IndexMetaData>, Diffable<MetaData>, FromXContentBuilder<MetaData>, ToXContent {
 
     public static final MetaData PROTO = builder().build();
 
@@ -635,6 +636,17 @@ public class MetaData implements Iterable<IndexMetaData>, Diffable<MetaData> {
         return new MetaDataDiff(in);
     }
 
+    @Override
+    public MetaData fromXContent(XContentParser parser, ParseFieldMatcher parseFieldMatcher) throws IOException {
+        return Builder.fromXContent(parser);
+    }
+
+    @Override
+    public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
+        Builder.toXContent(this, builder, params);
+        return builder;
+    }
+
     private static class MetaDataDiff implements Diff<MetaData> {
 
         private long version;
@@ -943,7 +955,7 @@ public class MetaData implements Iterable<IndexMetaData>, Diffable<MetaData> {
             for (String index : indices) {
                 IndexMetaData indexMetaData = this.indices.get(index);
                 if (indexMetaData == null) {
-                    throw new IndexMissingException(new Index(index));
+                    throw new IndexNotFoundException(index);
                 }
                 put(IndexMetaData.builder(indexMetaData)
                         .settings(settingsBuilder().put(indexMetaData.settings()).put(settings)));
@@ -958,7 +970,7 @@ public class MetaData implements Iterable<IndexMetaData>, Diffable<MetaData> {
             for (String index : indices) {
                 IndexMetaData indexMetaData = this.indices.get(index);
                 if (indexMetaData == null) {
-                    throw new IndexMissingException(new Index(index));
+                    throw new IndexNotFoundException(index);
                 }
                 put(IndexMetaData.builder(indexMetaData).numberOfReplicas(numberOfReplicas));
             }
