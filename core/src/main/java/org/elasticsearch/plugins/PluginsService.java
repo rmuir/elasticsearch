@@ -20,7 +20,9 @@
 package org.elasticsearch.plugins;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
 
 import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.ElasticsearchException;
@@ -47,8 +49,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import static org.elasticsearch.common.io.FileSystemUtils.isAccessibleDirectory;
 
@@ -121,8 +136,8 @@ public class PluginsService extends AbstractComponent {
         this.plugins = tupleBuilder.build();
 
         // We need to build a List of jvm and site plugins for checking mandatory plugins
-        Map<String, Plugin> jvmPlugins = Maps.newHashMap();
-        List<String> sitePlugins = Lists.newArrayList();
+        Map<String, Plugin> jvmPlugins = new HashMap<>();
+        List<String> sitePlugins = new ArrayList<>();
 
         for (Tuple<PluginInfo, Plugin> tuple : this.plugins) {
             jvmPlugins.put(tuple.v2().name(), tuple.v2());
@@ -143,7 +158,7 @@ public class PluginsService extends AbstractComponent {
         // Checking expected plugins
         String[] mandatoryPlugins = settings.getAsArray("plugin.mandatory", null);
         if (mandatoryPlugins != null) {
-            Set<String> missingPlugins = Sets.newHashSet();
+            Set<String> missingPlugins = new HashSet<>();
             for (String mandatoryPlugin : mandatoryPlugins) {
                 if (!jvmPlugins.containsKey(mandatoryPlugin) && !sitePlugins.contains(mandatoryPlugin) && !missingPlugins.contains(mandatoryPlugin)) {
                     missingPlugins.add(mandatoryPlugin);
@@ -158,7 +173,7 @@ public class PluginsService extends AbstractComponent {
 
         MapBuilder<Plugin, List<OnModuleReference>> onModuleReferences = MapBuilder.newMapBuilder();
         for (Plugin plugin : jvmPlugins.values()) {
-            List<OnModuleReference> list = Lists.newArrayList();
+            List<OnModuleReference> list = new ArrayList<>();
             for (Method method : plugin.getClass().getDeclaredMethods()) {
                 if (!method.getName().equals("onModule")) {
                     continue;
@@ -223,7 +238,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Class<? extends Module>> modules() {
-        List<Class<? extends Module>> modules = Lists.newArrayList();
+        List<Class<? extends Module>> modules = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             modules.addAll(plugin.v2().modules());
         }
@@ -231,7 +246,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Module> modules(Settings settings) {
-        List<Module> modules = Lists.newArrayList();
+        List<Module> modules = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             modules.addAll(plugin.v2().modules(settings));
         }
@@ -239,7 +254,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Class<? extends LifecycleComponent>> services() {
-        List<Class<? extends LifecycleComponent>> services = Lists.newArrayList();
+        List<Class<? extends LifecycleComponent>> services = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             services.addAll(plugin.v2().services());
         }
@@ -247,7 +262,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Class<? extends Module>> indexModules() {
-        List<Class<? extends Module>> modules = Lists.newArrayList();
+        List<Class<? extends Module>> modules = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             modules.addAll(plugin.v2().indexModules());
         }
@@ -255,7 +270,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Module> indexModules(Settings settings) {
-        List<Module> modules = Lists.newArrayList();
+        List<Module> modules = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             modules.addAll(plugin.v2().indexModules(settings));
         }
@@ -263,7 +278,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Class<? extends Closeable>> indexServices() {
-        List<Class<? extends Closeable>> services = Lists.newArrayList();
+        List<Class<? extends Closeable>> services = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             services.addAll(plugin.v2().indexServices());
         }
@@ -271,7 +286,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Class<? extends Module>> shardModules() {
-        List<Class<? extends Module>> modules = Lists.newArrayList();
+        List<Class<? extends Module>> modules = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             modules.addAll(plugin.v2().shardModules());
         }
@@ -279,7 +294,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Module> shardModules(Settings settings) {
-        List<Module> modules = Lists.newArrayList();
+        List<Module> modules = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             modules.addAll(plugin.v2().shardModules(settings));
         }
@@ -287,7 +302,7 @@ public class PluginsService extends AbstractComponent {
     }
 
     public Collection<Class<? extends Closeable>> shardServices() {
-        List<Class<? extends Closeable>> services = Lists.newArrayList();
+        List<Class<? extends Closeable>> services = new ArrayList<>();
         for (Tuple<PluginInfo, Plugin> plugin : plugins) {
             services.addAll(plugin.v2().shardServices());
         }
@@ -384,7 +399,7 @@ public class PluginsService extends AbstractComponent {
                     // add the root
                     addURL.invoke(classLoader, plugin.toUri().toURL());
                     // gather files to add
-                    List<Path> libFiles = Lists.newArrayList();
+                    List<Path> libFiles = new ArrayList<>();
                     libFiles.addAll(Arrays.asList(files(plugin)));
                     Path libLocation = plugin.resolve("lib");
                     if (Files.isDirectory(libLocation)) {
