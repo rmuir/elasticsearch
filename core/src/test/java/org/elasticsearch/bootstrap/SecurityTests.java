@@ -182,7 +182,6 @@ public class SecurityTests extends ElasticsearchTestCase {
     }
 
     /** We only grant this to special jars */
-    @AwaitsFix(bugUrl = "this very issue")
     public void testUnsafeAccess() throws Exception {
         assumeTrue("test requires security manager", System.getSecurityManager() != null);
         try {
