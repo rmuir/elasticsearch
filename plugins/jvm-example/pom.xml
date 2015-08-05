@@ -16,10 +16,9 @@
 
     <properties>
         <elasticsearch.plugin.classname>org.elasticsearch.plugin.example.ExampleJvmPlugin</elasticsearch.plugin.classname>
-        <amazonaws.version>1.10.0</amazonaws.version>
-        <tests.jvms>1</tests.jvms>
-        <tests.rest.suite>example_jvm</tests.rest.suite>
-        <tests.rest.load_packaged>false</tests.rest.load_packaged>
+        <!-- <tests.rest.suite>example_jvm</tests.rest.suite>
+        <tests.rest.load_packaged>false</tests.rest.load_packaged> -->
+        <skip.unit.tests>true</skip.unit.tests>
     </properties>
 
     <dependencies>
