@@ -64,10 +64,6 @@ public class ExampleJvmPlugin implements Plugin {
     @Override
     public Collection<Class<? extends LifecycleComponent>> services() {
         Collection<Class<? extends LifecycleComponent>> services = new ArrayList<>();
-        if (settings.getAsBoolean("cloud.enabled", true)) {
-            services.add(AwsModule.getS3ServiceClass(settings));
-            services.add(AwsEc2Service.class);
-        }
         return services;
     }
 
@@ -112,9 +108,6 @@ public class ExampleJvmPlugin implements Plugin {
     }
 
     public void onModule(RepositoriesModule repositoriesModule) {
-        if (settings.getAsBoolean("cloud.enabled", true)) {
-            repositoriesModule.registerRepository(S3Repository.TYPE, S3RepositoryModule.class);
-        }
     }
 
 
