@@ -76,6 +76,14 @@ import java.util.regex.Pattern;
  * <pre>
  * es.security.manager.enabled = false
  * </pre>
+ * <p>
+ * <h1>Debugging Security</h1>
+ * A good place to start when there is a problem is to turn on security debugging:
+ * <pre>
+ * JAVA_OPTS="-Djava.security.debug=access:failure" bin/elasticsearch
+ * </pre>
+ * See <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/troubleshooting-security.html">
+ * Troubleshooting Security</a> for information.
  */
 final class Security {
     /** no instantiation */
