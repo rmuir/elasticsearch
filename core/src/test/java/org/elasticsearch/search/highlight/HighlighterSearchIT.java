@@ -85,6 +85,9 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
+import org.apache.lucene.util.LuceneTestCase.AwaitsFix;
+
+@AwaitsFix(bugUrl = "dumps hundreds of threads when it fails")
 public class HighlighterSearchIT extends ESIntegTestCase {
 
     @Test

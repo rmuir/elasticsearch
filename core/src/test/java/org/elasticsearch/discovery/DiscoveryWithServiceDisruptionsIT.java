@@ -116,6 +116,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
+import org.apache.lucene.util.LuceneTestCase.AwaitsFix;
+
+@AwaitsFix(bugUrl = "stalls for minutes")
 @ClusterScope(scope = Scope.TEST, numDataNodes = 0, transportClientRatio = 0)
 @ESIntegTestCase.SuppressLocalMode
 public class DiscoveryWithServiceDisruptionsIT extends ESIntegTestCase {

@@ -46,6 +46,9 @@ import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertAllS
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertHitCount;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertNoTimeout;
 
+import org.apache.lucene.util.LuceneTestCase.AwaitsFix;
+
+@AwaitsFix(bugUrl = "stalls for minutes")
 public class RecoveryWhileUnderLoadIT extends ESIntegTestCase {
 
     private final ESLogger logger = Loggers.getLogger(RecoveryWhileUnderLoadIT.class);

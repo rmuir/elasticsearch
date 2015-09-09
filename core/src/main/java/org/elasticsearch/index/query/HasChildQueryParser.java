@@ -222,6 +222,9 @@ public class HasChildQueryParser implements QueryParser {
 
         @Override
         public Query rewrite(IndexReader reader) throws IOException {
+            if (getBoost() != 1.0F) {
+                return super.rewrite(reader);
+            }
             SearchContext searchContext = SearchContext.current();
             if (searchContext == null) {
                 throw new IllegalArgumentException("Search context is required to be set");

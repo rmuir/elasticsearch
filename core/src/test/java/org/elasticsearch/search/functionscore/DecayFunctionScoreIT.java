@@ -53,6 +53,9 @@ import static org.elasticsearch.search.builder.SearchSourceBuilder.searchSource;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.*;
 import static org.hamcrest.Matchers.*;
 
+import org.apache.lucene.util.LuceneTestCase.AwaitsFix;
+
+@AwaitsFix(bugUrl = "dumps hundreds of threads when it fails")
 public class DecayFunctionScoreIT extends ESIntegTestCase {
 
     @Test

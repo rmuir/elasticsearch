@@ -58,10 +58,13 @@ import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertNoFa
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
+import org.apache.lucene.util.LuceneTestCase.AwaitsFix;
+
 /**
  * Note, when talking to tribe client, no need to set the local flag on master read operations, it
  * does it by default.
  */
+@AwaitsFix(bugUrl = "stalls for minutes")
 @LuceneTestCase.SuppressFileSystems("ExtrasFS") // doesn't work with potential multi data path from test cluster yet
 public class TribeIT extends ESIntegTestCase {
 
