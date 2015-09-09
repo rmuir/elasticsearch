@@ -140,8 +140,9 @@ public class SimpleIndexQueryParserTests extends ESSingleNodeTestCase {
         IndexQueryParserService queryParser = queryParser();
         QueryStringQueryBuilder builder = queryStringQuery("field:boosted^2");
         Query parsedQuery = queryParser.parse(builder).query();
-        assertThat(parsedQuery, instanceOf(TermQuery.class));
-        assertThat(((TermQuery) parsedQuery).getTerm(), equalTo(new Term("field", "boosted")));
+        assertThat(parsedQuery, instanceOf(BoostQuery.class));
+        Query innerQuery = ((BoostQuery)parsedQuery).getQuery();
+        assertThat(((TermQuery) innerQuery).getTerm(), equalTo(new Term("field", "boosted")));
         assertThat(parsedQuery.getBoost(), equalTo(2.0f));
         builder.boost(2.0f);
         parsedQuery = queryParser.parse(builder).query();
