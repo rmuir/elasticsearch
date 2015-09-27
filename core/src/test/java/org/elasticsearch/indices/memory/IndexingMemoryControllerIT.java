@@ -31,6 +31,8 @@ import org.elasticsearch.node.internal.InternalSettingsPreparer;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.junit.Test;
 
+import java.util.concurrent.ExecutionException;
+
 
 @ESIntegTestCase.ClusterScope(scope = ESIntegTestCase.Scope.TEST, numDataNodes = 0)
 public class IndexingMemoryControllerIT extends ESIntegTestCase {
@@ -86,15 +88,21 @@ public class IndexingMemoryControllerIT extends ESIntegTestCase {
     }
 
     @Test
-    public void testIndexBufferSizeUpdateInactiveShard() throws InterruptedException {
+    public void testIndexBufferSizeUpdateInactiveShard() throws InterruptedException, ExecutionException {
 
-        createNode(Settings.builder().put("indices.memory.shard_inactive_time", "100ms").build());
+        createNode(Settings.builder().put(IndexingMemoryController.SHARD_INACTIVE_TIME_SETTING, "100ms").build());
 
         prepareCreate("test1").setSettings(IndexMetaData.SETTING_NUMBER_OF_SHARDS, 1, IndexMetaData.SETTING_NUMBER_OF_REPLICAS, 0).get();
 
         ensureGreen();
 
         final IndexShard shard1 = internalCluster().getInstance(IndicesService.class).indexService("test1").shard(0);
+
+        if (randomBoolean()) {
+            logger.info("--> indexing some pending operations");
+            indexRandom(false, client().prepareIndex("test1", "type", "0").setSource("f", "0"));
+        }
+
         boolean success = awaitBusy(new Predicate<Object>() {
             @Override
             public boolean apply(Object input) {
@@ -116,12 +124,15 @@ public class IndexingMemoryControllerIT extends ESIntegTestCase {
             }
         });
         if (!success) {
-            fail("failed to update shard indexing buffer size due to inactive state. expected something larger then [" + EngineConfig.INACTIVE_SHARD_INDEXING_BUFFER + "] got [" +
+            fail("failed to update shard indexing buffer size due to active state. expected something larger then [" + EngineConfig.INACTIVE_SHARD_INDEXING_BUFFER + "] got [" +
                             shard1.engine().config().getIndexingBufferSize().bytes() + "]"
             );
         }
 
-        flush(); // clean translogs
+        if (randomBoolean()) {
+            logger.info("--> flushing translogs");
+            flush(); // clean translogs
+        }
 
         success = awaitBusy(new Predicate<Object>() {
             @Override
@@ -134,6 +145,55 @@ public class IndexingMemoryControllerIT extends ESIntegTestCase {
                             shard1.engine().config().getIndexingBufferSize().bytes() + "]"
             );
         }
+
+        // Make sure we also pushed the tiny indexing buffer down to the underlying IndexWriter:
+        assertEquals(EngineConfig.INACTIVE_SHARD_INDEXING_BUFFER.bytes(), getIWBufferSize("test1"));
+    }
+
+    private long getIWBufferSize(String indexName) {
+        return client().admin().indices().prepareStats(indexName).get().getTotal().getSegments().getIndexWriterMaxMemoryInBytes();
+    }
+
+    @Test
+    public void testIndexBufferSizeTwoShards() throws InterruptedException {
+        createNode(Settings.builder().put(IndexingMemoryController.SHARD_INACTIVE_TIME_SETTING, "100000h",
+                                          IndexingMemoryController.INDEX_BUFFER_SIZE_SETTING, "32mb",
+                                          IndexShard.INDEX_REFRESH_INTERVAL, "-1").build());
+
+        // Create two active indices, sharing 32 MB indexing buffer:
+        prepareCreate("test3").setSettings(IndexMetaData.SETTING_NUMBER_OF_SHARDS, 1, IndexMetaData.SETTING_NUMBER_OF_REPLICAS, 0).get();
+        prepareCreate("test4").setSettings(IndexMetaData.SETTING_NUMBER_OF_SHARDS, 1, IndexMetaData.SETTING_NUMBER_OF_REPLICAS, 0).get();
+
+        ensureGreen();
+
+        index("test3", "type", "1", "f", 1);
+        index("test4", "type", "1", "f", 1);
+
+        // .. then make sure we really pushed the update (16 MB for each) down to the IndexWriter, even if refresh nor flush occurs:
+        if (awaitBusy(new Predicate<Object>() {
+                    @Override
+                    public boolean apply(Object input) {
+                        return getIWBufferSize("test3") == 16*1024*1024;
+                    }
+                }) == false) {
+            fail("failed to update shard indexing buffer size for test3 index to 16 MB; got: " + getIWBufferSize("test3"));
+        }
+        if (awaitBusy(new Predicate<Object>() {
+                    @Override
+                    public boolean apply(Object input) {
+                        return getIWBufferSize("test4") == 16*1024*1024;
+                    }
+                }) == false) {
+            fail("failed to update shard indexing buffer size for test4 index to 16 MB; got: " + getIWBufferSize("test4"));
+        }
+    }
+
+    @Test
+    public void testIndexBufferNotPercent() throws InterruptedException {
+        // #13487: Make sure you can specify non-percent sized index buffer and not hit NPE
+        createNode(Settings.builder().put(IndexingMemoryController.INDEX_BUFFER_SIZE_SETTING, "32mb").build());
+        // ... and that it took:
+        assertEquals(32*1024*1024, internalCluster().getInstance(IndexingMemoryController.class).indexingBufferSize().bytes());
     }
 
     private void createNode(Settings settings) {
@@ -145,7 +205,7 @@ public class IndexingMemoryControllerIT extends ESIntegTestCase {
                         .put(EsExecutors.PROCESSORS, 1) // limit the number of threads created
                         .put("http.enabled", false)
                         .put(InternalSettingsPreparer.IGNORE_SYSTEM_PROPERTIES_SETTING, true) // make sure we get what we set :)
-                        .put("indices.memory.interval", "100ms")
+                        .put(IndexingMemoryController.SHARD_INACTIVE_INTERVAL_TIME_SETTING, "100ms")
                         .put(settings)
         );
     }

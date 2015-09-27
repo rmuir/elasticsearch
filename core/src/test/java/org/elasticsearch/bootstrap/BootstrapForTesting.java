@@ -52,7 +52,7 @@ public class BootstrapForTesting {
 
     static {
         // just like bootstrap, initialize natives, then SM
-        Bootstrap.initializeNatives(true, true);
+        Bootstrap.initializeNatives(true, true, true);
 
         // initialize probes
         Bootstrap.initializeProbes();
@@ -61,13 +61,7 @@ public class BootstrapForTesting {
         try {
             JarHell.checkJarHell();
         } catch (Exception e) {
-            if (Boolean.parseBoolean(System.getProperty("tests.maven"))) {
-                throw new RuntimeException("found jar hell in test classpath", e);
-            } else {
-                Loggers.getLogger(BootstrapForTesting.class)
-                    .warn("Your ide or custom test runner has jar hell issues, " +
-                          "you might want to look into that", e);
-            }
+            throw new RuntimeException("found jar hell in test classpath", e);
         }
 
         // make sure java.io.tmpdir exists always (in case code uses it in a static initializer)
@@ -97,6 +91,7 @@ public class BootstrapForTesting {
                     String filename = path.getFileName().toString();
                     if (filename.contains("jython") && filename.endsWith(".jar")) {
                         // just enough so it won't fail when it does not exist
+                        perms.add(new FilePermission(path.getParent().toString(), "read,readlink"));
                         perms.add(new FilePermission(path.getParent().resolve("Lib").toString(), "read,readlink"));
                     }
                 }
