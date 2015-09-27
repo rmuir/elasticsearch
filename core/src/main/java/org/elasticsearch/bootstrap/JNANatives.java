@@ -173,7 +173,7 @@ class JNANatives {
     }
 
     static void trySeccomp() {
-        if (Constants.LINUX && "amd64".equals(Constants.OS_ARCH)) {
+        if (Constants.LINUX) {
             try {
                 Seccomp.installFilter();
                 LOCAL_SECCOMP = true;
