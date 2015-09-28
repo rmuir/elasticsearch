@@ -93,7 +93,7 @@ final class Natives {
     
     static void trySeccomp(Path tmpFile) {
         if (!JNA_AVAILABLE) {
-            logger.warn("cannot install seccomp filters because JNA is not available");
+            logger.warn("cannot install syscall filters because JNA is not available");
             return;
         }
         JNANatives.trySeccomp(tmpFile);

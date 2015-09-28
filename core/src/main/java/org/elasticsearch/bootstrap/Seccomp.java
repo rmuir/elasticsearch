@@ -320,7 +320,7 @@ final class Seccomp {
             throw new UnsupportedOperationException("seccomp filter installation did not really succeed. seccomp(PR_GET_SECCOMP): " + JNACLibrary.strerror(Native.getLastError()));
         }
 
-        logger.debug("seccomp filter installation successful");
+        logger.debug("Linux seccomp filter installation successful");
     }
 
     // OS X implementation via sandbox(7)
@@ -373,7 +373,7 @@ final class Seccomp {
                 libc_mac.sandbox_free_error(errorBuf);
                 throw e;
             }
-            logger.debug("seatbelt initialization successful");
+            logger.debug("OS X seatbelt initialization successful");
             success = true;
         } finally {
             if (success) {
