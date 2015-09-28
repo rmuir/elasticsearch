@@ -24,13 +24,18 @@ import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
+import com.sun.jna.ptr.PointerByReference;
 
 import org.apache.lucene.util.Constants;
+import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,34 +43,49 @@ import java.util.List;
 import java.util.Map;
 
 /** 
- * Installs a limited form of Linux secure computing mode (filter mode).
- * This filters system calls to block process execution.
+ * Installs a limited form of secure computing mode,
+ * to filters system calls to block process execution.
  * <p>
- * This is only supported on the amd64 and aarch64 architectures, on Linux kernels 3.5 or above, and requires
+ * This is only supported on the Linux and Mac OS X operating systems.
+ * <p>
+ * On Linux it currently supports the amd64 and aarch64 (arm64) architectures, 
+ * requires Linux kernel 3.5 or above, and requires
  * {@code CONFIG_SECCOMP} and {@code CONFIG_SECCOMP_FILTER} compiled into the kernel.
  * <p>
- * Filters are installed using either {@code seccomp(2)} (3.17+) or {@code prctl(2)} (3.5+). {@code seccomp(2)}
+ * On Linux BPF Filters are installed using either {@code seccomp(2)} (3.17+) or {@code prctl(2)} (3.5+). {@code seccomp(2)}
  * is preferred, as it allows filters to be applied to any existing threads in the process, and one motivation
  * here is to protect against bugs in the JVM. Otherwise, code will fall back to the {@code prctl(2)} method 
  * which will at least protect elasticsearch application threads.
  * <p>
- * The filters will return {@code EACCES} (Access Denied) for the following system calls:
+ * Linux BPF filters will return {@code EACCES} (Access Denied) for the following system calls:
  * <ul>
  *   <li>{@code execve}</li>
  *   <li>{@code fork}</li>
  *   <li>{@code vfork}</li>
+ *   <li>{@code execveat}</li>
+ * </ul>
+ * <p>
+ * On Mac OS X Leopard or above, a custom {@code sandbox(7)} ("Seatbelt") profile is installed that
+ * denies the following rules:
+ * <ul>
+ *   <li>{@code process-fork}</li>
+ *   <li>{@code process-exec}</li>
  * </ul>
  * <p>
  * This is not intended as a sandbox. It is another level of security, mostly intended to annoy
  * security researchers and make their lives more difficult in achieving "remote execution" exploits.
  * @see <a href="http://www.kernel.org/doc/Documentation/prctl/seccomp_filter.txt">
  *      http://www.kernel.org/doc/Documentation/prctl/seccomp_filter.txt</a>
+ * @see <a href="https://reverse.put.as/wp-content/uploads/2011/06/The-Apple-Sandbox-BHDC2011-Paper.pdf">
+ *      https://reverse.put.as/wp-content/uploads/2011/06/The-Apple-Sandbox-BHDC2011-Paper.pdf</a>
  */
 // not an example of how to write code!!!
 final class Seccomp {
     private static final ESLogger logger = Loggers.getLogger(Seccomp.class);
 
-    /** we use an explicit interface for native methods, for varargs support */
+    // Linux implementation, based on seccomp(2) or prctl(2) with bpf filtering
+
+    /** Access to non-standard Linux libc methods */
     static interface LinuxLibrary extends Library {
         /** 
          * maps to prctl(2) 
@@ -73,24 +93,25 @@ final class Seccomp {
         int prctl(int option, long arg2, long arg3, long arg4, long arg5);
         /** 
          * used to call seccomp(2), its too new... 
-         * this is the only way, DONT use it on some other architecture unless you know wtf you are doing 
          */
         long syscall(long number, Object... args);
     };
 
-    // null if something goes wrong.
-    static final LinuxLibrary libc;
+    // null if unavailable, or something goes wrong.
+    static final LinuxLibrary libc_linux;
 
     static {
         LinuxLibrary lib = null;
-        try {
-            lib = (LinuxLibrary) Native.loadLibrary("c", LinuxLibrary.class);
-        } catch (UnsatisfiedLinkError e) {
-            logger.warn("unable to link C library. native methods (seccomp) will be disabled.", e);
+        if (Constants.LINUX) {
+            try {
+                lib = (LinuxLibrary) Native.loadLibrary("c", LinuxLibrary.class);
+            } catch (UnsatisfiedLinkError e) {
+                logger.warn("unable to link C library. native methods (seccomp) will be disabled.", e);
+            }
         }
-        libc = lib;
+        libc_linux = lib;
     }
-    
+
     /** the preferred method is seccomp(2), since we can apply to all threads of the process */
     static final int SECCOMP_SET_MODE_FILTER   =   1;   // since Linux 3.17
     static final int SECCOMP_FILTER_FLAG_TSYNC =   1;   // since Linux 3.17
@@ -205,8 +226,8 @@ final class Seccomp {
         SUPPORTED_ARCHITECTURES = Collections.unmodifiableMap(m);
     }
 
-    /** try to install our filters */
-    static void installFilter() {
+    /** try to install our BPF filters via seccomp() or prctl() to block execution */
+    private static void linuxImpl() {
         // first be defensive: we can give nice errors this way, at the very least.
         // also, some of these security features get backported to old versions, checking kernel version here is a big no-no! 
         boolean supported = Constants.LINUX;
@@ -214,6 +235,7 @@ final class Seccomp {
             throw new IllegalStateException("bug: should not be trying to initialize seccomp for an unsupported OS");
         }
 
+        // retrieve architecture-specific implementation
         final Arch arch = SUPPORTED_ARCHITECTURES.get(Constants.OS_ARCH);
         if (arch == null) {
             throw new UnsupportedOperationException("seccomp unavailable: architecture '" + Constants.OS_ARCH + "' is not supported");
@@ -226,12 +248,12 @@ final class Seccomp {
         }
 
         // we couldn't link methods, could be some really ancient kernel (e.g. < 2.1.57) or some bug
-        if (libc == null) {
+        if (libc_linux == null) {
             throw new UnsupportedOperationException("seccomp unavailable: could not link methods. requires kernel 3.5+ with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER compiled in");
         }
 
         // check for kernel version
-        if (libc.prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) < 0) {
+        if (libc_linux.prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) < 0) {
             int errno = Native.getLastError();
             switch (errno) {
                 case ENOSYS: throw new UnsupportedOperationException("seccomp unavailable: requires kernel 3.5+ with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER compiled in");
@@ -239,7 +261,7 @@ final class Seccomp {
             }
         }
         // check for SECCOMP
-        if (libc.prctl(PR_GET_SECCOMP, 0, 0, 0, 0) < 0) {
+        if (libc_linux.prctl(PR_GET_SECCOMP, 0, 0, 0, 0) < 0) {
             int errno = Native.getLastError();
             switch (errno) {
                 case EINVAL: throw new UnsupportedOperationException("seccomp unavailable: CONFIG_SECCOMP not compiled into kernel, CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER are needed");
@@ -247,7 +269,7 @@ final class Seccomp {
             }
         }
         // check for SECCOMP_MODE_FILTER
-        if (libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 0, 0, 0) < 0) {
+        if (libc_linux.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 0, 0, 0) < 0) {
             int errno = Native.getLastError();
             switch (errno) {
                 case EFAULT: break; // available
@@ -257,7 +279,7 @@ final class Seccomp {
         }
 
         // ok, now set PR_SET_NO_NEW_PRIVS, needed to be able to set a seccomp filter as ordinary user
-        if (libc.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0) {
+        if (libc_linux.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0) {
             throw new UnsupportedOperationException("prctl(PR_SET_NO_NEW_PRIVS): " + JNACLibrary.strerror(Native.getLastError()));
         }
         
@@ -281,12 +303,12 @@ final class Seccomp {
 
         // install filter, if this works, after this there is no going back!
         // first try it with seccomp(SECCOMP_SET_MODE_FILTER), falling back to prctl()
-        if (libc.syscall(arch.SYS_seccomp, SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC, pointer) != 0) {
+        if (libc_linux.syscall(arch.SYS_seccomp, SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC, pointer) != 0) {
             int errno1 = Native.getLastError();
             if (logger.isDebugEnabled()) {
                 logger.debug("seccomp(SECCOMP_SET_MODE_FILTER): " + JNACLibrary.strerror(errno1) + ", falling back to prctl(PR_SET_SECCOMP)...");
             }
-            if (libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, pointer, 0, 0) < 0) {
+            if (libc_linux.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, pointer, 0, 0) < 0) {
                 int errno2 = Native.getLastError();
                 throw new UnsupportedOperationException("seccomp(SECCOMP_SET_MODE_FILTER): " + JNACLibrary.strerror(errno1) + 
                                                         ", prctl(PR_SET_SECCOMP): " + JNACLibrary.strerror(errno2));
@@ -294,10 +316,84 @@ final class Seccomp {
         }
         
         // now check that the filter was really installed, we should be in filter mode.
-        if (libc.prctl(PR_GET_SECCOMP, 0, 0, 0, 0) != 2) {
+        if (libc_linux.prctl(PR_GET_SECCOMP, 0, 0, 0, 0) != 2) {
             throw new UnsupportedOperationException("seccomp filter installation did not really succeed. seccomp(PR_GET_SECCOMP): " + JNACLibrary.strerror(Native.getLastError()));
         }
 
         logger.debug("seccomp filter installation successful");
+    }
+
+    // OS X implementation via sandbox(7)
+
+    /** Access to non-standard OS X libc methods */
+    static interface MacLibrary extends Library {
+        /**
+         * maps to sandbox_init(3), since Leopard
+         */
+        int sandbox_init(String profile, long flags, PointerByReference errorbuf);
+
+        /**
+         * releases memory when an error occurs during initialization (e.g. syntax bug)
+         */
+        void sandbox_free_error(Pointer errorbuf);
+    }
+
+    // null if unavailable, or something goes wrong.
+    static final MacLibrary libc_mac;
+
+    static {
+        MacLibrary lib = null;
+        if (Constants.MAC_OS_X) {
+            try {
+                lib = (MacLibrary) Native.loadLibrary("c", MacLibrary.class);
+            } catch (UnsatisfiedLinkError e) {
+                logger.warn("unable to link C library. native methods (seatbelt) will be disabled.", e);
+            }
+        }
+        libc_mac = lib;
+    }
+
+    /** The only supported flag... */
+    static final int SANDBOX_NAMED = 1;
+    /** Allow everything except process fork and execution */
+    static final String SANDBOX_RULES = "(version 1) (allow default) (deny process-fork) (deny process-exec)";
+
+    /** try to install our custom rule profile into sandbox_init() to block execution */
+    private static void macImpl(Path tmpFile) throws IOException {
+        Path rules = Files.createTempFile(tmpFile, "es", "sb");
+        Files.write(rules, Collections.singleton(SANDBOX_RULES));
+
+        boolean success = false;
+        try {
+            PointerByReference errorRef = new PointerByReference();
+            int ret = libc_mac.sandbox_init(rules.toAbsolutePath().toString(), SANDBOX_NAMED, errorRef);
+            if (ret != 0) {
+                Pointer errorBuf = errorRef.getValue();
+                RuntimeException e = new UnsupportedOperationException("sandbox_init(): " + errorBuf.getString(0));
+                libc_mac.sandbox_free_error(errorBuf);
+                throw e;
+            }
+            logger.debug("seatbelt initialization successful");
+            success = true;
+        } finally {
+            if (success) {
+                Files.delete(rules);
+            } else {
+                IOUtils.deleteFilesIgnoringExceptions(rules);
+            }
+        }
+    }
+
+    /**
+     * Attempt to drop the capability to execute for the process.
+     * <p>
+     * This is best effort and OS and architecture dependent. and may throw any Throwable.
+     */
+    static void init(Path tmpFile) throws Throwable {
+        if (Constants.LINUX) {
+            linuxImpl();
+        } else if (Constants.MAC_OS_X) {
+            macImpl(tmpFile);
+        }
     }
 }

@@ -21,10 +21,13 @@ package org.elasticsearch.bootstrap;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+
 import org.apache.lucene.util.Constants;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.monitor.jvm.JvmInfo;
+
+import java.nio.file.Path;
 
 import static org.elasticsearch.bootstrap.JNAKernel32Library.SizeT;
 
@@ -172,18 +175,18 @@ class JNANatives {
         }
     }
 
-    static void trySeccomp() {
-        if (Constants.LINUX) {
+    static void trySeccomp(Path tmpFile) {
+        if (Constants.LINUX || Constants.MAC_OS_X) {
             try {
-                Seccomp.installFilter();
+                Seccomp.init(tmpFile);
                 LOCAL_SECCOMP = true;
-            } catch (Exception e) {
-                // this is likely to happen unless the kernel is newish, its a best effort at the moment
+            } catch (Throwable t) {
+                // this is likely to happen for some systems, its a best effort at the moment
                 // so we log stacktrace at debug for now...
                 if (logger.isDebugEnabled()) {
-                    logger.debug("unable to install seccomp filter", e);
+                    logger.debug("unable to install syscall filter", t);
                 }
-                logger.warn("unable to install seccomp filter: " + e.getMessage());
+                logger.warn("unable to install syscall filter: " + t.getMessage());
             }
         }
     }
