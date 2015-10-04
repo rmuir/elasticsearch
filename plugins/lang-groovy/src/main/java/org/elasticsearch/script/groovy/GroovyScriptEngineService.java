@@ -25,6 +25,7 @@ import com.google.common.hash.Hashing;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 
 import org.apache.lucene.index.LeafReaderContext;
@@ -41,6 +42,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.elasticsearch.SpecialPermission;
+import org.elasticsearch.bootstrap.BootstrapInfo;
 import org.elasticsearch.ExceptionsHelper;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.component.AbstractComponent;
@@ -172,7 +174,13 @@ public class GroovyScriptEngineService extends AbstractComponent implements Scri
             if (sm != null) {
                 sm.checkPermission(new SpecialPermission());
             }
-            return loader.parseClass(script, Hashing.sha1().hashString(script, StandardCharsets.UTF_8).toString());
+            // same logic as GroovyClassLoader.parseClass() but with a different codesource string:
+            GroovyCodeSource gcs = AccessController.doPrivileged(new PrivilegedAction<GroovyCodeSource>() {
+                public GroovyCodeSource run() {
+                    return new GroovyCodeSource(script, Hashing.sha1().hashString(script, StandardCharsets.UTF_8).toString(), BootstrapInfo.UNTRUSTED_CODEBASE);
+                }
+            });
+            return loader.parseClass(gcs);
         } catch (Throwable e) {
             if (logger.isTraceEnabled()) {
                 logger.trace("exception compiling Groovy script:", e);

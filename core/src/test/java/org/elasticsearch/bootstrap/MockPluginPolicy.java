@@ -99,8 +99,8 @@ final class MockPluginPolicy extends Policy {
         excludedSources.add(RandomizedRunner.class.getProtectionDomain().getCodeSource());
         // junit library
         excludedSources.add(Assert.class.getProtectionDomain().getCodeSource());
-        // groovy scripts
-        excludedSources.add(new CodeSource(new URL("file:/groovy/script"), (Certificate[])null));
+        // scripts
+        excludedSources.add(new CodeSource(new URL("file:" + BootstrapInfo.UNTRUSTED_CODEBASE), (Certificate[])null));
 
         Loggers.getLogger(getClass()).debug("Apply permissions [{}] excluding codebases [{}]", extraPermissions, excludedSources);
     }
