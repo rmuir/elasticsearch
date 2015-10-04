@@ -180,6 +180,7 @@ public class GroovyScriptEngineService extends AbstractComponent implements Scri
                     return new GroovyCodeSource(script, Hashing.sha1().hashString(script, StandardCharsets.UTF_8).toString(), BootstrapInfo.UNTRUSTED_CODEBASE);
                 }
             });
+            gcs.setCachable(false);
             return loader.parseClass(gcs);
         } catch (Throwable e) {
             if (logger.isTraceEnabled()) {
