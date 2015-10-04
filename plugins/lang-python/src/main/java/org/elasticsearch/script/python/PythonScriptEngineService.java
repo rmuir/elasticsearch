@@ -20,22 +20,16 @@
 package org.elasticsearch.script.python;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.AccessControlContext;
 import java.security.AccessController;
-import java.security.CodeSource;
-import java.security.PermissionCollection;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
-import java.security.cert.Certificate;
 import java.util.Map;
 
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.search.Scorer;
 import org.elasticsearch.SpecialPermission;
-import org.elasticsearch.bootstrap.BootstrapInfo;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.inject.Inject;
@@ -135,7 +129,7 @@ public class PythonScriptEngineService extends AbstractComponent implements Scri
         PyObject pyVars = Py.java2py(vars);
         interp.setLocals(pyVars);
         // eval the script with reduced privileges
-        PyObject ret = eval((PyCode) compiledScript.compiled());
+        PyObject ret = evalRestricted((PyCode) compiledScript.compiled());
         if (ret == null) {
             return null;
         }
@@ -182,7 +176,7 @@ public class PythonScriptEngineService extends AbstractComponent implements Scri
         public Object run() {
             interp.setLocals(pyVars);
             // eval the script with reduced privileges
-            PyObject ret = eval(code);
+            PyObject ret = evalRestricted(code);
             if (ret == null) {
                 return null;
             }
@@ -241,7 +235,7 @@ public class PythonScriptEngineService extends AbstractComponent implements Scri
         public Object run() {
             interp.setLocals(pyVars);
             // eval the script with reduced privileges
-            PyObject ret = eval(code);
+            PyObject ret = evalRestricted(code);
             if (ret == null) {
                 return null;
             }
@@ -273,19 +267,15 @@ public class PythonScriptEngineService extends AbstractComponent implements Scri
     // so we just run them with a special context to reduce privileges
     private static final AccessControlContext PY_CONTEXT;
     static {
-        CodeSource untrusted;
-        try {
-            untrusted = new CodeSource(new URL("file:" + BootstrapInfo.UNTRUSTED_CODEBASE), (Certificate[]) null);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        Permissions none = new Permissions();
+        none.setReadOnly();
         PY_CONTEXT = new AccessControlContext(new ProtectionDomain[] {
-                new ProtectionDomain(untrusted, null)
+                new ProtectionDomain(null, none)
         });
     }
 
     /** Evaluates with reduced privileges */
-    private final PyObject eval(final PyCode code) {
+    private final PyObject evalRestricted(final PyCode code) {
         // eval the script with reduced privileges
         return AccessController.doPrivileged(new PrivilegedAction<PyObject>() {
             @Override
