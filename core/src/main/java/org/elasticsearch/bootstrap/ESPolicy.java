@@ -26,11 +26,9 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
-import java.security.Permissions;
 import java.security.Policy;
 import java.security.ProtectionDomain;
 import java.security.URIParameter;
-import java.util.PropertyPermission;
 
 /** custom policy for union of static and dynamic permissions */
 final class ESPolicy extends Policy {
