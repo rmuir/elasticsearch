@@ -185,7 +185,8 @@ public class NetworkService extends AbstractComponent {
                 throw new IllegalArgumentException("publish address: {" + NetworkAddress.format(address) + "} is invalid: multicast address");
             }
             // check if its a wildcard address: this is only ok if its the only address!
-            if (address.isAnyLocalAddress() && addresses.length > 1) {
+            // (if it was a single wildcard address, it was replaced by step 1 above)
+            if (address.isAnyLocalAddress()) {
                 throw new IllegalArgumentException("publish address: {" + NetworkAddress.format(address) + "} is wildcard, but multiple addresses specified: this makes no sense");
             }
         }
