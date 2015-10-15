@@ -120,7 +120,7 @@ final class Seccomp {
     static final int PR_SET_NO_NEW_PRIVS       =  38;   // since Linux 3.5
     static final int PR_GET_SECCOMP            =  21;   // since Linux 2.6.23
     static final int PR_SET_SECCOMP            =  22;   // since Linux 2.6.23
-    static final int SECCOMP_MODE_FILTER       =   2;   // since Linux Linux 3.5
+    static final long SECCOMP_MODE_FILTER      =   2;   // since Linux Linux 3.5
     
     /** corresponds to struct sock_filter */
     static final class SockFilter {
@@ -209,11 +209,10 @@ final class Seccomp {
     static final int NR_SYSCALL_FORK     = 57;
     static final int NR_SYSCALL_EXECVE   = 59;
     static final int NR_SYSCALL_EXECVEAT = 322;  // since Linux 3.19
-    static final int NR_SYSCALL_UNIMPL   = 999;
+    static final int NR_SYSCALL_TUXCALL  = 184;  // should return ENOSYS
 
     /** try to install our BPF filters via seccomp() or prctl() to block execution */
-    private static void linuxImpl() {
-        logger.error("number of threads: " + Thread.activeCount());
+    private static int linuxImpl() {
         // first be defensive: we can give nice errors this way, at the very least.
         // also, some of these security features get backported to old versions, checking kernel version here is a big no-no! 
         boolean supported = Constants.LINUX && "amd64".equals(Constants.OS_ARCH);
@@ -230,7 +229,7 @@ final class Seccomp {
 
         // check that unimplemented syscalls actually return ENOSYS
         // you never know (e.g. https://code.google.com/p/chromium/issues/detail?id=439795)
-        if (linux_libc.syscall(NR_SYSCALL_UNIMPL) >= 0 || Native.getLastError() != ENOSYS) {
+        if (linux_libc.syscall(NR_SYSCALL_TUXCALL) >= 0 || Native.getLastError() != ENOSYS) {
             throw new UnsupportedOperationException("seccomp unavailable: your kernel is buggy and you should upgrade");
         }
 
@@ -340,12 +339,14 @@ final class Seccomp {
         prog.write();
         long pointer = Pointer.nativeValue(prog.getPointer());
 
+        int method = 1;
         // install filter, if this works, after this there is no going back!
         // first try it with seccomp(SECCOMP_SET_MODE_FILTER), falling back to prctl()
         if (linux_libc.syscall(SECCOMP_SYSCALL_NR, SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC, pointer) != 0) {
+            method = 0;
             int errno1 = Native.getLastError();
-            if (logger.isErrorEnabled()) {
-                logger.error("seccomp(SECCOMP_SET_MODE_FILTER): " + JNACLibrary.strerror(errno1) + ", falling back to prctl(PR_SET_SECCOMP)...");
+            if (logger.isDebugEnabled()) {
+                logger.debug("seccomp(SECCOMP_SET_MODE_FILTER): " + JNACLibrary.strerror(errno1) + ", falling back to prctl(PR_SET_SECCOMP)...");
             }
             if (linux_libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, pointer, 0, 0) != 0) {
                 int errno2 = Native.getLastError();
@@ -359,7 +360,8 @@ final class Seccomp {
             throw new UnsupportedOperationException("seccomp filter installation did not really succeed. seccomp(PR_GET_SECCOMP): " + JNACLibrary.strerror(Native.getLastError()));
         }
 
-        logger.error("Linux seccomp filter installation successful");
+        logger.debug("Linux seccomp filter installation successful, threads: [{}]", method == 1 ? "all" : "app" );
+        return method;
     }
 
     // OS X implementation via sandbox(7)
@@ -440,12 +442,14 @@ final class Seccomp {
      * Attempt to drop the capability to execute for the process.
      * <p>
      * This is best effort and OS and architecture dependent. It may throw any Throwable.
+     * @return 0 if we can do this for application threads, 1 for the entire process
      */
-    static void init(Path tmpFile) throws Throwable {
+    static int init(Path tmpFile) throws Throwable {
         if (Constants.LINUX) {
-            linuxImpl();
+            return linuxImpl();
         } else if (Constants.MAC_OS_X) {
             macImpl(tmpFile);
+            return 1;
         } else {
             throw new UnsupportedOperationException("syscall filtering not supported for OS: '" + Constants.OS_NAME + "'");
         }
