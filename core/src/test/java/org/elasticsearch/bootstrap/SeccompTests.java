@@ -37,7 +37,7 @@ public class SeccompTests extends ESTestCase {
             try {
                 Seccomp.init(createTempDir());
             } catch (Throwable e) {
-                assumeNoException("unable to forcefully apply seccomp to test thread", new RuntimeException(e));
+                throw new RuntimeException("unable to forcefully apply seccomp to test thread", e);
             }
         }
     }
