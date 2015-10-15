@@ -209,6 +209,7 @@ final class Seccomp {
     static final int NR_SYSCALL_FORK     = 57;
     static final int NR_SYSCALL_EXECVE   = 59;
     static final int NR_SYSCALL_EXECVEAT = 322;  // since Linux 3.19
+    static final int NR_SYSCALL_UNIMPL   = 999;
 
     /** try to install our BPF filters via seccomp() or prctl() to block execution */
     private static void linuxImpl() {
@@ -224,24 +225,85 @@ final class Seccomp {
             throw new UnsupportedOperationException("seccomp unavailable: could not link methods. requires kernel 3.5+ with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER compiled in");
         }
 
-        // check for kernel version
-        if (linux_libc.prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) < 0) {
+        // pure paranoia:
+
+        // check that unimplemented syscalls actually return ENOSYS
+        // you never know (e.g. https://code.google.com/p/chromium/issues/detail?id=439795)
+        if (linux_libc.syscall(NR_SYSCALL_UNIMPL) >= 0 || Native.getLastError() != ENOSYS) {
+            throw new UnsupportedOperationException("seccomp unavailable: your kernel is buggy and you should upgrade");
+        }
+
+        // try to check system calls really are who they claim
+        // you never know (e.g. https://chromium.googlesource.com/chromium/src.git/+/master/sandbox/linux/seccomp-bpf/sandbox_bpf.cc#57)
+        final int bogusArg = 0xf7a46a5c;
+
+        // test seccomp(BOGUS)
+        long ret = linux_libc.syscall(SECCOMP_SYSCALL_NR, bogusArg);
+        if (ret != -1) {
+            throw new UnsupportedOperationException("seccomp unavailable: seccomp(BOGUS_OPERATION) returned " + ret);
+        } else {
             int errno = Native.getLastError();
             switch (errno) {
-                case ENOSYS: throw new UnsupportedOperationException("seccomp unavailable: requires kernel 3.5+ with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER compiled in");
-                default: throw new UnsupportedOperationException("prctl(PR_GET_NO_NEW_PRIVS): " + JNACLibrary.strerror(errno));
+                case ENOSYS: break; // ok
+                case EINVAL: break; // ok
+                default: throw new UnsupportedOperationException("seccomp(BOGUS_OPERATION): " + JNACLibrary.strerror(errno));
             }
+        }
+
+        // test seccomp(VALID, BOGUS)
+        ret = linux_libc.syscall(SECCOMP_SYSCALL_NR, SECCOMP_SET_MODE_FILTER, bogusArg);
+        if (ret != -1) {
+            throw new UnsupportedOperationException("seccomp unavailable: seccomp(SECCOMP_SET_MODE_FILTER, BOGUS_FLAG) returned " + ret);
+        } else {
+            int errno = Native.getLastError();
+            switch (errno) {
+                case ENOSYS: break; // ok
+                case EINVAL: break; // ok
+                default: throw new UnsupportedOperationException("seccomp(SECCOMP_SET_MODE_FILTER, BOGUS_FLAG): " + JNACLibrary.strerror(errno));
+            }
+        }
+
+        // test prctl(BOGUS)
+        ret = linux_libc.prctl(bogusArg, 0, 0, 0, 0);
+        if (ret != -1) {
+            throw new UnsupportedOperationException("seccomp unavailable: prctl(BOGUS_OPTION) returned " + ret);
+        } else {
+            int errno = Native.getLastError();
+            switch (errno) {
+                case ENOSYS: break; // ok
+                case EINVAL: break; // ok
+                default: throw new UnsupportedOperationException("prctl(BOGUS_OPTION): " + JNACLibrary.strerror(errno));
+            }
+        }
+
+        // now just normal defensive checks
+
+        // check for GET_NO_NEW_PRIVS
+        switch (linux_libc.prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0)) {
+            case 0: break; // not yet set
+            case 1: break; // already set by caller
+            default:
+                int errno = Native.getLastError();
+                if (errno == ENOSYS) {
+                    throw new UnsupportedOperationException("seccomp unavailable: requires kernel 3.5+ with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER compiled in");
+                } else {
+                    throw new UnsupportedOperationException("prctl(PR_GET_NO_NEW_PRIVS): " + JNACLibrary.strerror(errno));
+                }
         }
         // check for SECCOMP
-        if (linux_libc.prctl(PR_GET_SECCOMP, 0, 0, 0, 0) < 0) {
-            int errno = Native.getLastError();
-            switch (errno) {
-                case EINVAL: throw new UnsupportedOperationException("seccomp unavailable: CONFIG_SECCOMP not compiled into kernel, CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER are needed");
-                default: throw new UnsupportedOperationException("prctl(PR_GET_SECCOMP): " + JNACLibrary.strerror(errno));
-            }
+        switch (linux_libc.prctl(PR_GET_SECCOMP, 0, 0, 0, 0)) {
+            case 0: break; // not yet set
+            case 2: break; // already in filter mode by caller
+            default:
+                int errno = Native.getLastError();
+                if (errno == EINVAL) {
+                    throw new UnsupportedOperationException("seccomp unavailable: CONFIG_SECCOMP not compiled into kernel, CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER are needed");
+                } else {
+                    throw new UnsupportedOperationException("prctl(PR_GET_SECCOMP): " + JNACLibrary.strerror(errno));
+                }
         }
         // check for SECCOMP_MODE_FILTER
-        if (linux_libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 0, 0, 0) < 0) {
+        if (linux_libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, 0, 0, 0) != 0) {
             int errno = Native.getLastError();
             switch (errno) {
                 case EFAULT: break; // available
@@ -251,7 +313,7 @@ final class Seccomp {
         }
 
         // ok, now set PR_SET_NO_NEW_PRIVS, needed to be able to set a seccomp filter as ordinary user
-        if (linux_libc.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0) {
+        if (linux_libc.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0) {
             throw new UnsupportedOperationException("prctl(PR_SET_NO_NEW_PRIVS): " + JNACLibrary.strerror(Native.getLastError()));
         }
         
@@ -279,7 +341,7 @@ final class Seccomp {
             if (logger.isDebugEnabled()) {
                 logger.debug("seccomp(SECCOMP_SET_MODE_FILTER): " + JNACLibrary.strerror(errno1) + ", falling back to prctl(PR_SET_SECCOMP)...");
             }
-            if (linux_libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, pointer, 0, 0) < 0) {
+            if (linux_libc.prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, pointer, 0, 0) != 0) {
                 int errno2 = Native.getLastError();
                 throw new UnsupportedOperationException("seccomp(SECCOMP_SET_MODE_FILTER): " + JNACLibrary.strerror(errno1) + 
                                                         ", prctl(PR_SET_SECCOMP): " + JNACLibrary.strerror(errno2));
@@ -334,7 +396,7 @@ final class Seccomp {
         // first be defensive: we can give nice errors this way, at the very least.
         boolean supported = Constants.MAC_OS_X;
         if (supported == false) {
-            throw new IllegalStateException("bug: should not be trying to initialize seccomp for an unsupported OS");
+            throw new IllegalStateException("bug: should not be trying to initialize seatbelt for an unsupported OS");
         }
 
         // we couldn't link methods, could be some really ancient OS X (< Leopard) or some bug
