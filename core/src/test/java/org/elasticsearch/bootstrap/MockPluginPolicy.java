@@ -60,7 +60,7 @@ final class MockPluginPolicy extends Policy {
     MockPluginPolicy(PermissionCollection standard, PermissionCollection extra) throws Exception {
         // the hack begins!
 
-        this.standardPolicy = new ESPolicy(standard, Collections.emptyMap());
+        this.standardPolicy = new ESPolicy(standard, Collections.<String,PermissionCollection>emptyMap());
         this.extraPermissions = extra;
 
         excludedSources = new HashSet<CodeSource>();

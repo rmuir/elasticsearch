@@ -142,7 +142,7 @@ public class BootstrapForTesting {
                     // TODO: try to get rid of this class now that the world is simpler?
                     policy = new MockPluginPolicy(perms, extra);
                 } else {
-                    policy = new ESPolicy(perms, Collections.emptyMap());
+                    policy = new ESPolicy(perms, Collections.<String,PermissionCollection>emptyMap());
                 }
                 Policy.setPolicy(policy);
                 System.setSecurityManager(new TestSecurityManager());
