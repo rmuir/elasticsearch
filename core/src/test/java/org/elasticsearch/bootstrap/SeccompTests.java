@@ -21,6 +21,12 @@ package org.elasticsearch.bootstrap;
 
 import org.elasticsearch.test.ESTestCase;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.lang.ProcessBuilder.Redirect;
+
 /** Simple tests seccomp filter is working. */
 public class SeccompTests extends ESTestCase {
     
@@ -34,7 +40,7 @@ public class SeccompTests extends ESTestCase {
     
     public void testNoExecution() throws Exception {
         try {
-            Runtime.getRuntime().exec("ls");
+            execute("ls");
             fail("should not have been able to execute!");
         } catch (Exception expected) {
             // we can't guarantee how its converted, currently its an IOException, like this:
@@ -60,7 +66,7 @@ public class SeccompTests extends ESTestCase {
             @Override
             public void run() {
                 try {
-                    Runtime.getRuntime().exec("ls");
+                    execute("ls");
                     fail("should not have been able to execute!");
                 } catch (Exception expected) {
                     // ok
@@ -69,5 +75,42 @@ public class SeccompTests extends ESTestCase {
         };
         t.start();
         t.join();
+    }
+    
+    static void execute(String cmd) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder(cmd);
+        pb.redirectInput(Redirect.INHERIT);
+        pb.redirectErrorStream(true);
+
+        Process p = pb.start();
+        // We pump everything to stderr.
+        PrintStream childOut = System.err; 
+        Thread stdoutPumper = ThreadPumper.start(p.getInputStream(), childOut);
+        childOut.println(">>> Begin subprocess output");
+        p.waitFor();
+        stdoutPumper.join();
+        childOut.println("<<< End subprocess output");
+    }
+    
+    /** A pipe thread. */
+    static class ThreadPumper {
+      public static Thread start(final InputStream from, final OutputStream to) {
+        Thread t = new Thread() {
+          @Override
+          public void run() {
+            try {
+              byte[] buffer = new byte [1024];
+              int len;
+              while ((len = from.read(buffer)) != -1) {
+                to.write(buffer, 0, len);
+              }
+            } catch (IOException e) {
+              System.err.println("Couldn't pipe from the forked process: " + e.toString());
+            }
+          }
+        };
+        t.start();
+        return t;
+      }
     }
 }
