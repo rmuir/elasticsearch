@@ -450,18 +450,8 @@ final class Seccomp {
 
     /** Access to non-standard Solaris libc methods */
     static interface SolarisLibrary extends Library {
-        
-        /** priv_allocset() */
-        Pointer priv_allocset();
-        
-        /** priv_addset() */
-        int priv_addset(Pointer set, String priv);
-        
-        /** priv_freeset() */
-        void priv_freeset(Pointer set);
-        
-        /** setppriv() */
-        int setppriv(int op, String which, Pointer set);
+        /** see priv_set(3C) */
+        int priv_set(int op, String which, String... privs);
     }
 
     // null if unavailable, or something goes wrong.
@@ -479,8 +469,10 @@ final class Seccomp {
         libc_solaris = lib;
     }
     
+    // constants for setppriv(2)
     static final int PRIV_OFF = 1;
     static final String PRIV_PERMITTED = "Permitted";
+    // see privileges(5) for complete list of these
     static final String PRIV_PROC_FORK = "proc_fork";
     static final String PRIV_PROC_EXEC = "proc_exec";
 
@@ -490,29 +482,16 @@ final class Seccomp {
         if (supported == false) {
             throw new IllegalStateException("bug: should not be trying to initialize setppriv for an unsupported OS");
         }
-        
+
         // we couldn't link methods, could be some really ancient Solaris or some bug
         if (libc_solaris == null) {
-            throw new UnsupportedOperationException("setppriv unavailable: could not link methods.");
+            throw new UnsupportedOperationException("setppriv unavailable: could not link methods. requires Solaris 10+");
         }
-        
-        Pointer set = libc_solaris.priv_allocset();
-        if (set == null) {
-            throw new UnsupportedOperationException("setppriv unavailable: priv_allocset(): " + JNACLibrary.strerror(Native.getLastError()));
+
+        if (libc_solaris.priv_set(PRIV_OFF, PRIV_PERMITTED, PRIV_PROC_FORK, PRIV_PROC_EXEC) != 0) {
+            throw new UnsupportedOperationException("setppriv unavailable: priv_set(): " + JNACLibrary.strerror(Native.getLastError()));
         }
-        try {
-            if (libc_solaris.priv_addset(set, PRIV_PROC_FORK) != 0) {
-                throw new UnsupportedOperationException("setppriv unavailable: priv_addset(): " + JNACLibrary.strerror(Native.getLastError()));
-            }
-            if (libc_solaris.priv_addset(set, PRIV_PROC_EXEC) != 0) {
-                throw new UnsupportedOperationException("setppriv unavailable: priv_addset(): " + JNACLibrary.strerror(Native.getLastError()));
-            }
-            if (libc_solaris.setppriv(PRIV_OFF, PRIV_PERMITTED, set) != 0) {
-                throw new UnsupportedOperationException("setppriv unavailable: setppriv(): " + JNACLibrary.strerror(Native.getLastError()));
-            }
-        } finally {
-            libc_solaris.priv_freeset(set);
-        }
+
         logger.debug("Solaris setppriv initialization successful");
     }
 
