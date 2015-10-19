@@ -62,7 +62,7 @@ import java.util.List;
  *   <li>{@code execveat}</li>
  * </ul>
  * <p>
- * On Solaris, the following privileges are dropped with {@code setppriv(2)}:
+ * On Solaris, the following privileges are dropped with {@code priv_set(3C)}:
  * <ul>
  *   <li>{@code PROC_FORK}</li>
  *   <li>{@code PROC_EXEC}</li>
@@ -446,7 +446,7 @@ final class Seccomp {
         }
     }
     
-    // Solaris implementation via setppriv(2)
+    // Solaris implementation via priv_set(2)
 
     /** Access to non-standard Solaris libc methods */
     static interface SolarisLibrary extends Library {
@@ -463,15 +463,15 @@ final class Seccomp {
             try {
                 lib = (SolarisLibrary) Native.loadLibrary("c", SolarisLibrary.class);
             } catch (UnsatisfiedLinkError e) {
-                logger.warn("unable to link C library. native methods (setppriv) will be disabled.", e);
+                logger.warn("unable to link C library. native methods (priv_set) will be disabled.", e);
             }
         }
         libc_solaris = lib;
     }
     
-    // constants for setppriv(2)
+    // constants for priv_set(2)
     static final int PRIV_OFF = 1;
-    static final String PRIV_PERMITTED = "Permitted";
+    static final String PRIV_ALLSETS = null;
     // see privileges(5) for complete list of these
     static final String PRIV_PROC_FORK = "proc_fork";
     static final String PRIV_PROC_EXEC = "proc_exec";
@@ -480,19 +480,19 @@ final class Seccomp {
         // first be defensive: we can give nice errors this way, at the very least.
         boolean supported = Constants.SUN_OS;
         if (supported == false) {
-            throw new IllegalStateException("bug: should not be trying to initialize setppriv for an unsupported OS");
+            throw new IllegalStateException("bug: should not be trying to initialize priv_set for an unsupported OS");
         }
 
         // we couldn't link methods, could be some really ancient Solaris or some bug
         if (libc_solaris == null) {
-            throw new UnsupportedOperationException("setppriv unavailable: could not link methods. requires Solaris 10+");
+            throw new UnsupportedOperationException("priv_set unavailable: could not link methods. requires Solaris 10+");
         }
 
-        if (libc_solaris.priv_set(PRIV_OFF, PRIV_PERMITTED, PRIV_PROC_FORK, PRIV_PROC_EXEC, null) != 0) {
-            throw new UnsupportedOperationException("setppriv unavailable: priv_set(): " + JNACLibrary.strerror(Native.getLastError()));
+        if (libc_solaris.priv_set(PRIV_OFF, PRIV_ALLSETS, PRIV_PROC_FORK, PRIV_PROC_EXEC, null) != 0) {
+            throw new UnsupportedOperationException("priv_set unavailable: priv_set(): " + JNACLibrary.strerror(Native.getLastError()));
         }
 
-        logger.debug("Solaris setppriv initialization successful");
+        logger.debug("Solaris priv_set initialization successful");
     }
 
     /**
