@@ -64,8 +64,8 @@ import java.util.List;
  * <p>
  * On Solaris 10 or higher, the following privileges are dropped with {@code priv_set(3C)}:
  * <ul>
- *   <li>{@code PROC_FORK}</li>
- *   <li>{@code PROC_EXEC}</li>
+ *   <li>{@code PRIV_PROC_FORK}</li>
+ *   <li>{@code PRIV_PROC_EXEC}</li>
  * </ul>
  * <p>
  * On Mac OS X Leopard or above, a custom {@code sandbox(7)} ("Seatbelt") profile is installed that
