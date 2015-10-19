@@ -488,7 +488,7 @@ final class Seccomp {
             throw new UnsupportedOperationException("setppriv unavailable: could not link methods. requires Solaris 10+");
         }
 
-        if (libc_solaris.priv_set(PRIV_OFF, PRIV_PERMITTED, PRIV_PROC_FORK, PRIV_PROC_EXEC) != 0) {
+        if (libc_solaris.priv_set(PRIV_OFF, PRIV_PERMITTED, PRIV_PROC_FORK, PRIV_PROC_EXEC, null) != 0) {
             throw new UnsupportedOperationException("setppriv unavailable: priv_set(): " + JNACLibrary.strerror(Native.getLastError()));
         }
 
