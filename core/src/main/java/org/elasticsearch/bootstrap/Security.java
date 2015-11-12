@@ -109,11 +109,13 @@ final class Security {
     /** 
      * Initializes SecurityManager for the environment
      * Can only happen once!
+     * @param environment configuration for generating dynamic permissions
+     * @param filterBadDefaults true if we should filter out bad java defaults in the system policy.
      */
-    static void configure(Environment environment) throws Exception {
+    static void configure(Environment environment, boolean filterBadDefaults) throws Exception {
 
         // enable security policy: union of template and environment-based paths, and possibly plugin permissions
-        Policy.setPolicy(new ESPolicy(createPermissions(environment), getPluginPermissions(environment)));
+        Policy.setPolicy(new ESPolicy(createPermissions(environment), getPluginPermissions(environment), filterBadDefaults));
 
         // enable security manager
         System.setSecurityManager(new SecureSM());
@@ -233,7 +235,9 @@ final class Security {
         String httpRange = settings.get("http.netty.port", 
                                settings.get("http.port", 
                                        NettyHttpServerTransport.DEFAULT_PORT_RANGE));
-        policy.add(new SocketPermission("localhost:" + httpRange, "listen,resolve"));
+        // listen is always called with 'localhost' but use wildcard to be sure, no name service is consulted.
+        // see SocketPermission implies() code
+        policy.add(new SocketPermission("*:" + httpRange, "listen,resolve"));
         // transport is waaaay overengineered
         Map<String, Settings> profiles = settings.getGroups("transport.profiles", true);
         if (!profiles.containsKey(NettyTransport.DEFAULT_PROFILE)) {
@@ -253,7 +257,9 @@ final class Security {
             // a profile is only valid if its the default profile, or if it has an actual name and specifies a port
             boolean valid = NettyTransport.DEFAULT_PROFILE.equals(name) || (Strings.hasLength(name) && profileSettings.get("port") != null);
             if (valid) {
-                policy.add(new SocketPermission("localhost:" + transportRange, "listen,resolve"));
+                // listen is always called always called with 'localhost' but use wildcard to be sure, no name service is consulted.
+                // see SocketPermission implies() code
+                policy.add(new SocketPermission("*:" + transportRange, "listen,resolve"));
             }
         }
     }

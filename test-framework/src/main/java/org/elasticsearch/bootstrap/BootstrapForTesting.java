@@ -141,7 +141,7 @@ public class BootstrapForTesting {
                 
                 // read test-framework permissions
                 final Policy testFramework = Security.readPolicy(Bootstrap.class.getResource("test-framework.policy"), JarHell.parseClassPath());
-                final Policy esPolicy = new ESPolicy(perms, getPluginPermissions());
+                final Policy esPolicy = new ESPolicy(perms, getPluginPermissions(), true);
                 Policy.setPolicy(new Policy() {
                     @Override
                     public boolean implies(ProtectionDomain domain, Permission permission) {
