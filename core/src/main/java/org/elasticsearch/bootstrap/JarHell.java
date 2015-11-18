@@ -179,10 +179,11 @@ public class JarHell {
                     // inspect entries
                     Enumeration<JarEntry> elements = file.entries();
                     while (elements.hasMoreElements()) {
-                        String entry = elements.nextElement().getName();
-                        if (entry.endsWith(".class")) {
+                        JarEntry jarEntry = elements.nextElement();
+                        String entry = jarEntry.getName();
+                        if (entry.startsWith("META-INF") == false && jarEntry.isDirectory() == false) {
                             // for jar format, the separator is defined as /
-                            entry = entry.replace('/', '.').substring(0, entry.length() - 6);
+                            entry = entry.replace('/', '.');
                             checkClass(clazzes, entry, path);
                         }
                     }
@@ -196,9 +197,9 @@ public class JarHell {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                         String entry = root.relativize(file).toString();
-                        if (entry.endsWith(".class")) {
+                        if (entry.startsWith("META-INF") == false && attrs.isDirectory() == false) {
                             // normalize with the os separator
-                            entry = entry.replace(sep, ".").substring(0,  entry.length() - 6);
+                            entry = entry.replace(sep, ".");
                             checkClass(clazzes, entry, path);
                         }
                         return super.visitFile(file, attrs);
@@ -274,8 +275,11 @@ public class JarHell {
                 if (clazz.startsWith("org.apache.log4j")) {
                     return; // go figure, jar hell for what should be System.out.println...
                 }
-                if (clazz.equals("org.joda.time.base.BaseDateTime")) {
+                if (clazz.equals("org.joda.time.base.BaseDateTime.class")) {
                     return; // apparently this is intentional... clean this up
+                }
+                if (clazz.equals("LICENSE.txt")) {
+                    return; // besides being useless, hamcrest has jar hell with junit
                 }
                 throw new IllegalStateException("jar hell!" + System.lineSeparator() +
                         "class: " + clazz + System.lineSeparator() +
