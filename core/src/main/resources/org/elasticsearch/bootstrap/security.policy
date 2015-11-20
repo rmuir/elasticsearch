@@ -48,8 +48,24 @@ grant {
   // Allow connecting to the internet anywhere
   permission java.net.SocketPermission "*", "accept,connect,resolve";
 
-  // Allow read/write to all system properties
-  permission java.util.PropertyPermission "*", "read,write";
+  // Allow read to all system properties
+  permission java.util.PropertyPermission "*", "read";
+  
+  // TODO: clean all these up, but don't allow any more in. these are all bogus!
+  // lucene-test-framework
+  permission java.util.PropertyPermission "user.language", "write";
+  permission java.util.PropertyPermission "user.timezone", "write";
+  permission java.util.PropertyPermission "solr.solr.home", "write";
+  permission java.util.PropertyPermission "solr.data.dir", "write";
+  permission java.util.PropertyPermission "solr.directoryFactory", "write";
+  permission java.util.PropertyPermission "lucene.cms.override_core_count", "write";
+  permission java.util.PropertyPermission "lucene.cms.override_spins", "write";
+  
+  // elasticsearch-test-framework
+  permission java.util.PropertyPermission "es.processors.override", "write";
+
+  // set by NettyTransport/NettyHttpServerTransport based on another parameter
+  permission java.util.PropertyPermission "org.jboss.netty.epollBugWorkaround", "write";
 
   // needed by lucene SPI currently 
   permission java.lang.RuntimePermission "getClassLoader";

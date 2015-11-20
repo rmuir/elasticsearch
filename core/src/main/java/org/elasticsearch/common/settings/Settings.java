@@ -1028,7 +1028,7 @@ public final class Settings implements ToXContent {
         /**
          * Sets all the provided settings.
          */
-        public Builder put(Properties properties) {
+        public Builder putProperties(Map<?,?> properties) {
             for (Map.Entry entry : properties.entrySet()) {
                 map.put((String) entry.getKey(), (String) entry.getValue());
             }
@@ -1096,10 +1096,10 @@ public final class Settings implements ToXContent {
          * @param properties The properties to put
          * @return The builder
          */
-        public Builder putProperties(String prefix, Properties properties) {
+        public Builder putProperties(String prefix, Map<?,?> properties) {
             for (Object key1 : properties.keySet()) {
                 String key = (String) key1;
-                String value = properties.getProperty(key);
+                String value = properties.get(key).toString();
                 if (key.startsWith(prefix)) {
                     map.put(key.substring(prefix.length()), value);
                 }
@@ -1114,10 +1114,10 @@ public final class Settings implements ToXContent {
          * @param properties The properties to put
          * @return The builder
          */
-        public Builder putProperties(String prefix, Properties properties, String[] ignorePrefixes) {
+        public Builder putProperties(String prefix, Map<?,?> properties, String[] ignorePrefixes) {
             for (Object key1 : properties.keySet()) {
                 String key = (String) key1;
-                String value = properties.getProperty(key);
+                String value = properties.get(key).toString();
                 if (key.startsWith(prefix)) {
                     boolean ignore = false;
                     for (String ignorePrefix : ignorePrefixes) {

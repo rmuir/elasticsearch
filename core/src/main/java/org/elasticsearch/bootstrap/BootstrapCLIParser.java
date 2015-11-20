@@ -23,6 +23,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.elasticsearch.Build;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.cli.CliTool;
 import org.elasticsearch.common.cli.CliToolConfig;
 import org.elasticsearch.common.cli.Terminal;
@@ -100,6 +101,8 @@ final class BootstrapCLIParser extends CliTool {
                 .stopAtNonOption(true) // needed to parse the --foo.bar options, so this parser must be lenient
                 .build();
 
+        @SuppressForbidden(reason = "Sets system properties passed as CLI parameters")
+        // TODO: why mess with sysprops? shouldn't we just create an immutable initial Settings or something?
         public static Command parse(Terminal terminal, CommandLine cli) {
             if (cli.hasOption("V")) {
                 return Version.parse(terminal, cli);

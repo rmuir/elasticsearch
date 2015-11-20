@@ -17,15 +17,15 @@
  * under the License.
  */
 
-package org.elasticsearch.node.internal;
+package org.elasticsearch.bootstrap;
 
 import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.common.cli.CliToolTestCase;
 import org.elasticsearch.common.cli.Terminal;
-import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.SettingsException;
 import org.elasticsearch.env.Environment;
+import org.elasticsearch.node.internal.InternalSettingsPreparer;
 import org.elasticsearch.test.ESTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -55,7 +55,7 @@ public class InternalSettingsPreparerTests extends ESTestCase {
         for (Object propObj : System.getProperties().keySet()) {
             String property = (String)propObj;
             // NOTE: these prefixes are prefixes of the defaults, so both are handled here
-            for (String prefix : InternalSettingsPreparer.PROPERTY_PREFIXES) {
+            for (String prefix : new String[] {"es.", "elasticsearch."}) {
                 if (property.startsWith(prefix)) {
                     savedProperties.put(property, System.getProperty(property));
                 }

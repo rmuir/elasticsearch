@@ -26,6 +26,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.test.ESTestCase;
+import org.elasticsearch.test.ESTestUtil;
 import org.junit.Before;
 
 import java.io.IOException;
@@ -318,7 +319,7 @@ public class PluginManagerPermissionTests extends ESTestCase {
 
     private URL createPlugin(boolean withBinDir, boolean withConfigDir) throws IOException {
         final Path structure = createTempDir().resolve("fake-plugin");
-        PluginTestUtil.writeProperties(structure, "description", "fake desc",
+        ESTestUtil.writeProperties(structure, "description", "fake desc",
                 "version", "1.0",
                 "elasticsearch.version", Version.CURRENT.toString(),
                 "jvm", "true",

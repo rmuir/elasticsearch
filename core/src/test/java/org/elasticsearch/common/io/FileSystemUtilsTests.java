@@ -32,7 +32,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertFileNotExists;
-import static org.elasticsearch.common.io.FileTestUtils.assertFileContent;
+import static org.elasticsearch.test.ESTestUtil.assertFileContent;
 
 /**
  * Unit tests for {@link org.elasticsearch.common.io.FileSystemUtils}.

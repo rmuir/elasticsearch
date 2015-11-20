@@ -19,6 +19,8 @@
 
 package org.elasticsearch.bootstrap;
 
+import java.util.Map;
+
 /** 
  * Exposes system startup information 
  */
@@ -57,4 +59,17 @@ public final class BootstrapInfo {
      * This is not a full URL, just a path.
      */
     public static final String UNTRUSTED_CODEBASE = "/untrusted";
+    
+    /**
+     * Returns an immutable snapshot of initial system properties.
+     * @return initial system property key-value mapping (unmodifiable)
+     * @throws SecurityException if {@code checkPropertyAccess("*")} denies read access
+     */
+    public static Map<String,String> getSystemProperties() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPropertyAccess("*");
+        }
+        return Bootstrap.INITIAL_PROPERTIES;
+    }
 }

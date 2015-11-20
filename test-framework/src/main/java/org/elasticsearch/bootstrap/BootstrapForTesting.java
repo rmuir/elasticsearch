@@ -77,6 +77,9 @@ public class BootstrapForTesting {
         } catch (Exception e) {
             throw new RuntimeException("unable to create test temp directory", e);
         }
+        
+        // initialize sysprop snapshot
+        Bootstrap.snapshotSystemProperties();
 
         // just like bootstrap, initialize natives, then SM
         Bootstrap.initializeNatives(javaTmpDir, true, true, true);
