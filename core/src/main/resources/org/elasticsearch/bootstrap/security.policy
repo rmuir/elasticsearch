@@ -63,6 +63,10 @@ grant {
   
   // elasticsearch-test-framework
   permission java.util.PropertyPermission "es.processors.override", "write";
+  
+  // randomized runner (not strictly needed, and only by it)
+  permission java.util.PropertyPermission "junit4.childvm.count", "write";
+  permission java.util.PropertyPermission "junit4.childvm.id", "write";
 
   // set by NettyTransport/NettyHttpServerTransport based on another parameter
   permission java.util.PropertyPermission "org.jboss.netty.epollBugWorkaround", "write";

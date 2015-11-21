@@ -60,16 +60,14 @@ public final class BootstrapInfo {
      */
     public static final String UNTRUSTED_CODEBASE = "/untrusted";
     
-    /**
-     * Returns an immutable snapshot of initial system properties.
-     * @return initial system property key-value mapping (unmodifiable)
-     * @throws SecurityException if {@code checkPropertyAccess("*")} denies read access
+    /** 
+     * Returns system properties from startup
      */
     public static Map<String,String> getSystemProperties() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPropertyAccess("*");
         }
-        return Bootstrap.INITIAL_PROPERTIES;
+        return SystemProperties.getInitialProperties();
     }
 }

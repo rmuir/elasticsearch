@@ -43,12 +43,7 @@ import org.elasticsearch.node.internal.InternalSettingsPreparer;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import static org.elasticsearch.common.settings.Settings.Builder.EMPTY_SETTINGS;
@@ -236,21 +231,6 @@ final class Bootstrap {
         }
     }
 
-    // take an immutable snapshot of system properties after commandline processing
-    static Map<String,String> INITIAL_PROPERTIES;
-
-    // you can put any object you want... lets make sure we are truly immutable
-    @SuppressForbidden(reason = "snapshots system properties for settings, monitoring, etc")
-    static void snapshotSystemProperties() {
-        // for JVM info, etc
-        Properties sysprops = System.getProperties();
-        Map<String,String> m = new HashMap<>();
-        for (Map.Entry<Object,Object> entry : sysprops.entrySet()) {
-            m.put(Objects.toString(entry.getKey()), Objects.toString(entry.getValue()));
-        }
-        INITIAL_PROPERTIES = Collections.unmodifiableMap(m);
-    }
-
     /** Set the system property before anything has a chance to trigger its use */
     // TODO: why? is it just a bad default somewhere?
     @SuppressForbidden(reason = "sets logger prefix on initialization")
@@ -272,7 +252,8 @@ final class Bootstrap {
             exit(status.status());
         }
         
-        snapshotSystemProperties();
+        // our parser modifies sysprops set via -D, snapshot final sysprops now
+        SystemProperties.snapshotSystemProperties();
 
         INSTANCE = new Bootstrap();
 

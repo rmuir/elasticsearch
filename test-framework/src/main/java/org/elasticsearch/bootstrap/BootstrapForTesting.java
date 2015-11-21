@@ -22,7 +22,6 @@ package org.elasticsearch.bootstrap;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 
 import org.apache.lucene.util.LuceneTestCase;
-import org.apache.lucene.util.TestSecurityManager;
 import org.elasticsearch.SecureSM;
 import org.elasticsearch.bootstrap.Bootstrap;
 import org.elasticsearch.bootstrap.ESPolicy;
@@ -79,7 +78,7 @@ public class BootstrapForTesting {
         }
         
         // initialize sysprop snapshot
-        Bootstrap.snapshotSystemProperties();
+        SystemProperties.getInitialProperties();
 
         // just like bootstrap, initialize natives, then SM
         Bootstrap.initializeNatives(javaTmpDir, true, true, true);
