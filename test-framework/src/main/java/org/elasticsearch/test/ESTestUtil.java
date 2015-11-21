@@ -23,13 +23,16 @@ import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertFile
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
+import java.io.FilePermission;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.PermissionCollection;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -90,5 +93,36 @@ public class ESTestUtil {
             // trim the string content to prevent different handling on windows vs. unix and CR chars...
             Assert.assertThat(fileContent.trim(), equalTo(expected.trim()));
         }
+    }
+    
+    /** 
+     * checks exact file permissions, meaning those and only those for that path.
+     */
+    public static void assertExactPermissions(FilePermission expected, PermissionCollection actual) {
+        String target = expected.getName(); // see javadocs
+        Set<String> permissionSet = ESTestCase.asSet(expected.getActions().split(","));
+        boolean read = permissionSet.remove("read");
+        boolean readlink = permissionSet.remove("readlink");
+        boolean write = permissionSet.remove("write");
+        boolean delete = permissionSet.remove("delete");
+        boolean execute = permissionSet.remove("execute");
+        ESTestCase.assertTrue("unrecognized permission: " + permissionSet, permissionSet.isEmpty());
+        ESTestCase.assertEquals(read, actual.implies(new FilePermission(target, "read")));
+        ESTestCase.assertEquals(readlink, actual.implies(new FilePermission(target, "readlink")));
+        ESTestCase.assertEquals(write, actual.implies(new FilePermission(target, "write")));
+        ESTestCase.assertEquals(delete, actual.implies(new FilePermission(target, "delete")));
+        ESTestCase.assertEquals(execute, actual.implies(new FilePermission(target, "execute")));
+    }
+
+    /**
+     * checks that this path has no permissions
+     */
+    public static void assertNoPermissions(Path path, PermissionCollection actual) {
+        String target = path.toString();
+        ESTestCase.assertFalse(actual.implies(new FilePermission(target, "read")));
+        ESTestCase.assertFalse(actual.implies(new FilePermission(target, "readlink")));
+        ESTestCase.assertFalse(actual.implies(new FilePermission(target, "write")));
+        ESTestCase.assertFalse(actual.implies(new FilePermission(target, "delete")));
+        ESTestCase.assertFalse(actual.implies(new FilePermission(target, "execute")));
     }
 }

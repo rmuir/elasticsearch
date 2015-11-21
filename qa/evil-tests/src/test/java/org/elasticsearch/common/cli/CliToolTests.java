@@ -22,17 +22,18 @@ package org.elasticsearch.common.cli;
 import org.apache.commons.cli.CommandLine;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.cli.CliToolTestCase.CaptureOutputTerminal;
+import org.elasticsearch.common.cli.CliToolTestCase.MockTerminal;
+import org.elasticsearch.common.cli.CliToolTestCase.NamedCommand;
+import org.elasticsearch.common.cli.CliToolTestCase.SingleCmdTool;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.internal.InternalSettingsPreparer;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Collections.unmodifiableMap;
 import static org.elasticsearch.common.cli.CliTool.ExitStatus.OK;
 import static org.elasticsearch.common.cli.CliTool.ExitStatus.USAGE;
 import static org.elasticsearch.common.cli.CliToolConfig.Builder.cmd;
@@ -224,33 +225,6 @@ public class CliToolTests extends CliToolTestCase {
         assertThat(terminal.getTerminalOutput(), hasItem(containsString("cmd1 help")));
     }
 
-    public void testThatThrowExceptionCanBeLogged() throws Exception {
-        CaptureOutputTerminal terminal = new CaptureOutputTerminal();
-        NamedCommand cmd = new NamedCommand("cmd", terminal) {
-            @Override
-            public CliTool.ExitStatus execute(Settings settings, Environment env) throws Exception {
-                throw new ElasticsearchException("error message");
-            }
-        };
-        SingleCmdTool tool = new SingleCmdTool("tool", terminal, cmd);
-        assertStatus(tool.execute(), CliTool.ExitStatus.CODE_ERROR);
-        assertThat(terminal.getTerminalOutput(), hasSize(1));
-        assertThat(terminal.getTerminalOutput(), hasItem(containsString("error message")));
-
-        // set env... and log stack trace
-        try {
-            System.setProperty(Terminal.DEBUG_SYSTEM_PROPERTY, "true");
-            terminal = new CaptureOutputTerminal();
-            assertStatus(new SingleCmdTool("tool", terminal, cmd).execute(), CliTool.ExitStatus.CODE_ERROR);
-            assertThat(terminal.getTerminalOutput(), hasSize(2));
-            assertThat(terminal.getTerminalOutput(), hasItem(containsString("error message")));
-            // This class must be part of the stack strace
-            assertThat(terminal.getTerminalOutput(), hasItem(containsString(getClass().getName())));
-        } finally {
-            System.clearProperty(Terminal.DEBUG_SYSTEM_PROPERTY);
-        }
-    }
-
     public void testMultipleLaunch() throws Exception {
         Terminal terminal = new MockTerminal();
         final AtomicReference<Boolean> executed = new AtomicReference<>(false);
@@ -265,48 +239,6 @@ public class CliToolTests extends CliToolTestCase {
         tool.parse("cmd", Strings.splitStringByCommaToArray("--verbose"));
         tool.parse("cmd", Strings.splitStringByCommaToArray("--silent"));
         tool.parse("cmd", Strings.splitStringByCommaToArray("--help"));
-    }
-
-    public void testPromptForSetting() throws Exception {
-        final AtomicInteger counter = new AtomicInteger();
-        final AtomicReference<String> promptedSecretValue = new AtomicReference<>(null);
-        final AtomicReference<String> promptedTextValue = new AtomicReference<>(null);
-        final Terminal terminal = new MockTerminal() {
-            @Override
-            public char[] readSecret(String text, Object... args) {
-                counter.incrementAndGet();
-                assertThat(args, arrayContaining((Object) "foo.password"));
-                return "changeit".toCharArray();
-            }
-
-            @Override
-            public String readText(String text, Object... args) {
-                counter.incrementAndGet();
-                assertThat(args, arrayContaining((Object) "replace"));
-                return "replaced";
-            }
-        };
-        final NamedCommand cmd = new NamedCommand("noop", terminal) {
-            @Override
-            public CliTool.ExitStatus execute(Settings settings, Environment env) {
-                promptedSecretValue.set(settings.get("foo.password"));
-                promptedTextValue.set(settings.get("replace"));
-                return OK;
-            }
-        };
-
-        System.setProperty("es.foo.password", InternalSettingsPreparer.SECRET_PROMPT_VALUE);
-        System.setProperty("es.replace", InternalSettingsPreparer.TEXT_PROMPT_VALUE);
-        try {
-            new SingleCmdTool("tool", terminal, cmd).execute();
-        } finally {
-            System.clearProperty("es.foo.password");
-            System.clearProperty("es.replace");
-        }
-
-        assertThat(counter.intValue(), is(2));
-        assertThat(promptedSecretValue.get(), is("changeit"));
-        assertThat(promptedTextValue.get(), is("replaced"));
     }
 
     public void testStopAtNonOptionParsing() throws Exception {
@@ -343,68 +275,73 @@ public class CliToolTests extends CliToolTestCase {
         assertStatus(cliTool.execute(args("strict -u")), USAGE);
         assertThat(terminal.getTerminalOutput(), hasItem(containsString("Unrecognized option: -u")));
     }
+    
+    public void testThatThrowExceptionCanBeLogged() throws Exception {
+      CaptureOutputTerminal terminal = new CaptureOutputTerminal();
+      NamedCommand cmd = new NamedCommand("cmd", terminal) {
+          @Override
+          public CliTool.ExitStatus execute(Settings settings, Environment env) throws Exception {
+              throw new ElasticsearchException("error message");
+          }
+      };
+      SingleCmdTool tool = new SingleCmdTool("tool", terminal, cmd);
+      assertStatus(tool.execute(), CliTool.ExitStatus.CODE_ERROR);
+      assertThat(terminal.getTerminalOutput(), hasSize(1));
+      assertThat(terminal.getTerminalOutput(), hasItem(containsString("error message")));
+      
+      // set env... and log stack trace
+      try {
+          System.setProperty(Terminal.DEBUG_SYSTEM_PROPERTY, "true");
+          terminal = new CaptureOutputTerminal();
+          assertStatus(new SingleCmdTool("tool", terminal, cmd).execute(), CliTool.ExitStatus.CODE_ERROR);
+          assertThat(terminal.getTerminalOutput(), hasSize(2));
+          assertThat(terminal.getTerminalOutput(), hasItem(containsString("error message")));
+          // This class must be part of the stack strace
+          assertThat(terminal.getTerminalOutput(), hasItem(containsString(getClass().getName())));
+      } finally {
+          System.clearProperty(Terminal.DEBUG_SYSTEM_PROPERTY);
+      }
+  }
+  
+  public void testPromptForSetting() throws Exception {
+      final AtomicInteger counter = new AtomicInteger();
+      final AtomicReference<String> promptedSecretValue = new AtomicReference<>(null);
+      final AtomicReference<String> promptedTextValue = new AtomicReference<>(null);
+      final Terminal terminal = new MockTerminal() {
+          @Override
+          public char[] readSecret(String text, Object... args) {
+              counter.incrementAndGet();
+              assertThat(args, arrayContaining((Object) "foo.password"));
+              return "changeit".toCharArray();
+          }
 
-    private void assertStatus(CliTool.ExitStatus status, CliTool.ExitStatus expectedStatus) {
-        assertThat(status, is(expectedStatus));
-    }
+          @Override
+          public String readText(String text, Object... args) {
+              counter.incrementAndGet();
+              assertThat(args, arrayContaining((Object) "replace"));
+              return "replaced";
+          }
+      };
+      final NamedCommand cmd = new NamedCommand("noop", terminal) {
+          @Override
+          public CliTool.ExitStatus execute(Settings settings, Environment env) {
+              promptedSecretValue.set(settings.get("foo.password"));
+              promptedTextValue.set(settings.get("replace"));
+              return OK;
+          }
+      };
 
-    private void assertCommandHasBeenExecuted(AtomicReference<Boolean> executed) {
-        assertThat("Expected command atomic reference counter to be set to true", executed.get(), is(Boolean.TRUE));
-    }
+      System.setProperty("es.foo.password", InternalSettingsPreparer.SECRET_PROMPT_VALUE);
+      System.setProperty("es.replace", InternalSettingsPreparer.TEXT_PROMPT_VALUE);
+      try {
+          new SingleCmdTool("tool", terminal, cmd).execute();
+      } finally {
+          System.clearProperty("es.foo.password");
+          System.clearProperty("es.replace");
+      }
 
-    private static class SingleCmdTool extends CliTool {
-
-        private final Command command;
-
-        private SingleCmdTool(String name, Terminal terminal, NamedCommand command) {
-            super(CliToolConfig.config(name, SingleCmdTool.class)
-                    .cmds(cmd(command.name, command.getClass()))
-                    .build(), terminal);
-            this.command = command;
-        }
-
-        @Override
-        protected Command parse(String cmdName, CommandLine cli) throws Exception {
-            return command;
-        }
-    }
-
-    private static class MultiCmdTool extends CliTool {
-
-        private final Map<String, Command> commands;
-
-        private MultiCmdTool(String name, Terminal terminal, NamedCommand... commands) {
-            super(CliToolConfig.config(name, MultiCmdTool.class)
-                    .cmds(cmds(commands))
-                    .build(), terminal);
-            Map<String, Command> commandByName = new HashMap<>();
-            for (int i = 0; i < commands.length; i++) {
-                commandByName.put(commands[i].name, commands[i]);
-            }
-            this.commands = unmodifiableMap(commandByName);
-        }
-
-        @Override
-        protected Command parse(String cmdName, CommandLine cli) throws Exception {
-            return commands.get(cmdName);
-        }
-
-        private static CliToolConfig.Cmd[] cmds(NamedCommand... commands) {
-            CliToolConfig.Cmd[] cmds = new CliToolConfig.Cmd[commands.length];
-            for (int i = 0; i < commands.length; i++) {
-                cmds[i] = cmd(commands[i].name, commands[i].getClass()).build();
-            }
-            return cmds;
-        }
-    }
-
-    private static abstract class NamedCommand extends CliTool.Command {
-
-        private final String name;
-
-        private NamedCommand(String name, Terminal terminal) {
-            super(terminal);
-            this.name = name;
-        }
-    }
+      assertThat(counter.intValue(), is(2));
+      assertThat(promptedSecretValue.get(), is("changeit"));
+      assertThat(promptedTextValue.get(), is("replaced"));
+  }
 }

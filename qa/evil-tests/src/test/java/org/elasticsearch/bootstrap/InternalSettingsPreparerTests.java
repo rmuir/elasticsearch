@@ -309,4 +309,29 @@ public class InternalSettingsPreparerTests extends ESTestCase {
             assertTrue(e.getMessage(), e.getMessage().contains(".properties"));
         }
     }
+    
+    public void testReplacePropertiesPlaceholderSystemProperty() {
+        System.setProperty("sysProp1", "sysVal1");
+        try {
+            Settings settings = settingsBuilder()
+                    .put("setting1", "${sysProp1}")
+                    .replacePropertyPlaceholders()
+                    .build();
+            assertThat(settings.get("setting1"), equalTo("sysVal1"));
+        } finally {
+            System.clearProperty("sysProp1");
+        }
+
+        Settings settings = settingsBuilder()
+                .put("setting1", "${sysProp1:defaultVal1}")
+                .replacePropertyPlaceholders()
+                .build();
+        assertThat(settings.get("setting1"), equalTo("defaultVal1"));
+
+        settings = settingsBuilder()
+                .put("setting1", "${sysProp1:}")
+                .replacePropertyPlaceholders()
+                .build();
+        assertThat(settings.get("setting1"), is(nullValue()));
+    }
 }

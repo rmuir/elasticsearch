@@ -80,6 +80,64 @@ public class BootstrapCliParserTests extends CliToolTestCase {
         assertThatTerminalOutput(containsString(JvmInfo.jvmInfo().version()));
     }
 
+    public void testParsingErrors() {
+        BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
+
+        // unknown params
+        ExitStatus status = parser.execute(args("version --unknown-param /tmp/pid"));
+        assertStatus(status, USAGE);
+        assertThatTerminalOutput(containsString("Unrecognized option: --unknown-param"));
+
+        // single dash in extra params
+        terminal = new CaptureOutputTerminal();
+        parser = new BootstrapCLIParser(terminal);
+        status = parser.execute(args("start -network.host 127.0.0.1"));
+        assertStatus(status, USAGE);
+        assertThatTerminalOutput(containsString("Parameter [-network.host]does not start with --"));
+
+        // never ended parameter
+        terminal = new CaptureOutputTerminal();
+        parser = new BootstrapCLIParser(terminal);
+        status = parser.execute(args("start --network.host"));
+        assertStatus(status, USAGE);
+        assertThatTerminalOutput(containsString("Parameter [network.host] needs value"));
+
+        // free floating value
+        terminal = new CaptureOutputTerminal();
+        parser = new BootstrapCLIParser(terminal);
+        status = parser.execute(args("start 127.0.0.1"));
+        assertStatus(status, USAGE);
+        assertThatTerminalOutput(containsString("Parameter [127.0.0.1]does not start with --"));
+    }
+
+    public void testHelpWorks() throws Exception {
+        List<Tuple<String, String>> tuples = new ArrayList<>();
+        tuples.add(new Tuple<>("version --help", "elasticsearch-version.help"));
+        tuples.add(new Tuple<>("version -h", "elasticsearch-version.help"));
+        tuples.add(new Tuple<>("start --help", "elasticsearch-start.help"));
+        tuples.add(new Tuple<>("start -h", "elasticsearch-start.help"));
+        tuples.add(new Tuple<>("--help", "elasticsearch.help"));
+        tuples.add(new Tuple<>("-h", "elasticsearch.help"));
+
+        for (Tuple<String, String> tuple : tuples) {
+            terminal = new CaptureOutputTerminal();
+            BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
+            ExitStatus status = parser.execute(args(tuple.v1()));
+            assertStatus(status, OK_AND_EXIT);
+            assertTerminalOutputContainsHelpFile(terminal, "/org/elasticsearch/bootstrap/" + tuple.v2());
+        }
+    }
+
+    public void testThatHelpfulErrorMessageIsGivenWhenParametersAreOutOfOrder() throws Exception {
+        BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
+        try {
+            parser.parse("start", new String[]{"--foo=bar", "-Dbaz=qux"});
+            fail("expected IllegalArgumentException for out-of-order parameters");
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), containsString("must be before any parameters starting with --"));
+        }
+    }
+    
     public void testThatPidFileCanBeConfigured() throws Exception {
         BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
         registerProperties("es.pidfile");
@@ -160,54 +218,6 @@ public class BootstrapCliParserTests extends CliToolTestCase {
         assertThatTerminalOutput(containsString("Parameter [network.host] needs value"));
     }
 
-    public void testParsingErrors() {
-        BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
-
-        // unknown params
-        ExitStatus status = parser.execute(args("version --unknown-param /tmp/pid"));
-        assertStatus(status, USAGE);
-        assertThatTerminalOutput(containsString("Unrecognized option: --unknown-param"));
-
-        // single dash in extra params
-        terminal = new CaptureOutputTerminal();
-        parser = new BootstrapCLIParser(terminal);
-        status = parser.execute(args("start -network.host 127.0.0.1"));
-        assertStatus(status, USAGE);
-        assertThatTerminalOutput(containsString("Parameter [-network.host]does not start with --"));
-
-        // never ended parameter
-        terminal = new CaptureOutputTerminal();
-        parser = new BootstrapCLIParser(terminal);
-        status = parser.execute(args("start --network.host"));
-        assertStatus(status, USAGE);
-        assertThatTerminalOutput(containsString("Parameter [network.host] needs value"));
-
-        // free floating value
-        terminal = new CaptureOutputTerminal();
-        parser = new BootstrapCLIParser(terminal);
-        status = parser.execute(args("start 127.0.0.1"));
-        assertStatus(status, USAGE);
-        assertThatTerminalOutput(containsString("Parameter [127.0.0.1]does not start with --"));
-    }
-
-    public void testHelpWorks() throws Exception {
-        List<Tuple<String, String>> tuples = new ArrayList<>();
-        tuples.add(new Tuple<>("version --help", "elasticsearch-version.help"));
-        tuples.add(new Tuple<>("version -h", "elasticsearch-version.help"));
-        tuples.add(new Tuple<>("start --help", "elasticsearch-start.help"));
-        tuples.add(new Tuple<>("start -h", "elasticsearch-start.help"));
-        tuples.add(new Tuple<>("--help", "elasticsearch.help"));
-        tuples.add(new Tuple<>("-h", "elasticsearch.help"));
-
-        for (Tuple<String, String> tuple : tuples) {
-            terminal = new CaptureOutputTerminal();
-            BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
-            ExitStatus status = parser.execute(args(tuple.v1()));
-            assertStatus(status, OK_AND_EXIT);
-            assertTerminalOutputContainsHelpFile(terminal, "/org/elasticsearch/bootstrap/" + tuple.v2());
-        }
-    }
-
     public void testThatSpacesInParametersAreSupported() throws Exception {
         // emulates: bin/elasticsearch --node.name "'my node with spaces'" --pidfile "'/tmp/my pid.pid'"
         BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
@@ -217,19 +227,8 @@ public class BootstrapCliParserTests extends CliToolTestCase {
         assertStatus(status, OK);
         assertSystemProperty("es.pidfile", "foo with space");
         assertSystemProperty("es.my.param", "my awesome neighbour");
-
     }
-
-    public void testThatHelpfulErrorMessageIsGivenWhenParametersAreOutOfOrder() throws Exception {
-        BootstrapCLIParser parser = new BootstrapCLIParser(terminal);
-        try {
-            parser.parse("start", new String[]{"--foo=bar", "-Dbaz=qux"});
-            fail("expected IllegalArgumentException for out-of-order parameters");
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), containsString("must be before any parameters starting with --"));
-        }
-    }
-
+    
     private void registerProperties(String ... systemProperties) {
         propertiesToClear.addAll(Arrays.asList(systemProperties));
     }
@@ -237,10 +236,6 @@ public class BootstrapCliParserTests extends CliToolTestCase {
     private void assertSystemProperty(String name, String expectedValue) {
         String msg = String.format(Locale.ROOT, "Expected property %s to be %s, terminal output was %s", name, expectedValue, terminal.getTerminalOutput());
         assertThat(msg, System.getProperty(name), is(expectedValue));
-    }
-
-    private void assertStatus(ExitStatus status, ExitStatus expectedStatus) {
-        assertThat(String.format(Locale.ROOT, "Expected status to be [%s], but was [%s], terminal output was %s", expectedStatus, status, terminal.getTerminalOutput()), status, is(expectedStatus));
     }
 
     private void assertThatTerminalOutput(Matcher<String> matcher) {

@@ -66,31 +66,6 @@ public class SettingsTests extends ESTestCase {
         assertThat(settings.toDelimitedString(';'), equalTo("key1=value1;key2=value2;"));
     }
 
-    public void testReplacePropertiesPlaceholderSystemProperty() {
-        System.setProperty("sysProp1", "sysVal1");
-        try {
-            Settings settings = settingsBuilder()
-                    .put("setting1", "${sysProp1}")
-                    .replacePropertyPlaceholders()
-                    .build();
-            assertThat(settings.get("setting1"), equalTo("sysVal1"));
-        } finally {
-            System.clearProperty("sysProp1");
-        }
-
-        Settings settings = settingsBuilder()
-                .put("setting1", "${sysProp1:defaultVal1}")
-                .replacePropertyPlaceholders()
-                .build();
-        assertThat(settings.get("setting1"), equalTo("defaultVal1"));
-
-        settings = settingsBuilder()
-                .put("setting1", "${sysProp1:}")
-                .replacePropertyPlaceholders()
-                .build();
-        assertThat(settings.get("setting1"), is(nullValue()));
-    }
-
     public void testReplacePropertiesPlaceholderIgnoreEnvUnset() {
         Settings settings = settingsBuilder()
                 .put("setting1", "${env.UNSET_ENV_VAR}")

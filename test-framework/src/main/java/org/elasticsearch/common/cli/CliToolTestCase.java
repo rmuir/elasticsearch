@@ -19,6 +19,7 @@
 
 package org.elasticsearch.common.cli;
 
+import org.apache.commons.cli.CommandLine;
 import org.elasticsearch.ExceptionsHelper;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.test.ESTestCase;
@@ -30,12 +31,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Collections.unmodifiableMap;
+import static org.elasticsearch.common.cli.CliToolConfig.Builder.cmd;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 public abstract class CliToolTestCase extends ESTestCase {
 
@@ -54,6 +61,15 @@ public abstract class CliToolTestCase extends ESTestCase {
             return Strings.EMPTY_ARRAY;
         }
         return command.split("\\s+");
+    }
+    
+
+    public static void assertStatus(CliTool.ExitStatus status, CliTool.ExitStatus expectedStatus) {
+        assertThat(status, is(expectedStatus));
+    }
+
+    public static void assertCommandHasBeenExecuted(AtomicReference<Boolean> executed) {
+        assertThat("Expected command atomic reference counter to be set to true", executed.get(), is(Boolean.TRUE));
     }
 
     /**
@@ -120,7 +136,7 @@ public abstract class CliToolTestCase extends ESTestCase {
      */
     public static class CaptureOutputTerminal extends MockTerminal {
 
-        List<String> terminalOutput = new ArrayList();
+        List<String> terminalOutput = new ArrayList<>();
 
         public CaptureOutputTerminal() {
             super(Verbosity.NORMAL);
@@ -163,6 +179,64 @@ public abstract class CliToolTestCase extends ESTestCase {
         String expectedDocs = StreamsUtils.copyToStringFromClasspath(classPath);
         for (String nonEmptyLine : nonEmptyLines) {
             assertThat(expectedDocs, containsString(nonEmptyLine.replaceAll(System.lineSeparator(), "")));
+        }
+    }
+    
+
+    public static abstract class NamedCommand extends CliTool.Command {
+
+        public final String name;
+
+        public NamedCommand(String name, Terminal terminal) {
+            super(terminal);
+            this.name = name;
+        }
+    }
+    
+
+    public static class SingleCmdTool extends CliTool {
+
+        public final Command command;
+
+        public SingleCmdTool(String name, Terminal terminal, NamedCommand command) {
+            super(CliToolConfig.config(name, SingleCmdTool.class)
+                    .cmds(cmd(command.name, command.getClass()))
+                    .build(), terminal);
+            this.command = command;
+        }
+
+        @Override
+        protected Command parse(String cmdName, CommandLine cli) throws Exception {
+            return command;
+        }
+    }
+
+    public static class MultiCmdTool extends CliTool {
+
+        public final Map<String, Command> commands;
+
+        public MultiCmdTool(String name, Terminal terminal, NamedCommand... commands) {
+            super(CliToolConfig.config(name, MultiCmdTool.class)
+                    .cmds(cmds(commands))
+                    .build(), terminal);
+            Map<String, Command> commandByName = new HashMap<>();
+            for (int i = 0; i < commands.length; i++) {
+                commandByName.put(commands[i].name, commands[i]);
+            }
+            this.commands = unmodifiableMap(commandByName);
+        }
+
+        @Override
+        protected Command parse(String cmdName, CommandLine cli) throws Exception {
+            return commands.get(cmdName);
+        }
+
+        private static CliToolConfig.Cmd[] cmds(NamedCommand... commands) {
+            CliToolConfig.Cmd[] cmds = new CliToolConfig.Cmd[commands.length];
+            for (int i = 0; i < commands.length; i++) {
+                cmds[i] = cmd(commands[i].name, commands[i].getClass()).build();
+            }
+            return cmds;
         }
     }
 }
