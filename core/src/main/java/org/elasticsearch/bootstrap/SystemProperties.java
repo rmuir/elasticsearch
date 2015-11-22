@@ -21,17 +21,15 @@ package org.elasticsearch.bootstrap;
 
 import org.elasticsearch.common.SuppressForbidden;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Properties;
 
 final class SystemProperties {
-    private static Map<String,String> INITIAL_PROPERTIES = null;
+    private static Dictionary<Object,Object> INITIAL_PROPERTIES = null;
     private static final Object LOCK = new Object();
     
-    static Map<String,String> getInitialProperties() {
+    static Dictionary<Object,Object> getInitialProperties() {
         synchronized (LOCK) {
             if (INITIAL_PROPERTIES == null) {
                 snapshotSystemProperties();
@@ -45,12 +43,44 @@ final class SystemProperties {
     static void snapshotSystemProperties() {
         synchronized (LOCK) {
             // for JVM info, etc
-            Properties sysprops = System.getProperties();
-            Map<String,String> m = new HashMap<>();
-            for (Map.Entry<Object,Object> entry : sysprops.entrySet()) {
-                m.put(Objects.toString(entry.getKey()), Objects.toString(entry.getValue()));
-            }
-            INITIAL_PROPERTIES = Collections.unmodifiableMap(m);
+            final Properties sysprops = System.getProperties();
+            INITIAL_PROPERTIES = new Dictionary<Object,Object>() {
+
+                @Override
+                public int size() {
+                    return sysprops.size();
+                }
+
+                @Override
+                public boolean isEmpty() {
+                    return sysprops.isEmpty();
+                }
+
+                @Override
+                public Enumeration<Object> keys() {
+                    return sysprops.keys();
+                }
+
+                @Override
+                public Enumeration<Object> elements() {
+                    return sysprops.elements();
+                }
+
+                @Override
+                public Object get(Object key) {
+                    return sysprops.get(key);
+                }
+
+                @Override
+                public Object put(Object key, Object value) {
+                    throw new UnsupportedOperationException("collection is read-only");
+                }
+
+                @Override
+                public Object remove(Object key) {
+                    throw new UnsupportedOperationException("collection is read-only");
+                }
+            };
         }
     }
 }

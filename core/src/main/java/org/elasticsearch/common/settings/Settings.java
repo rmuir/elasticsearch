@@ -46,6 +46,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1096,8 +1097,8 @@ public final class Settings implements ToXContent {
          * @param properties The properties to put
          * @return The builder
          */
-        public Builder putProperties(String prefix, Map<?,?> properties) {
-            for (Object key1 : properties.keySet()) {
+        public Builder putProperties(String prefix, Dictionary<Object,Object> properties) {
+            for (Object key1 : Collections.list(properties.keys())) {
                 String key = (String) key1;
                 String value = properties.get(key).toString();
                 if (key.startsWith(prefix)) {
@@ -1114,8 +1115,8 @@ public final class Settings implements ToXContent {
          * @param properties The properties to put
          * @return The builder
          */
-        public Builder putProperties(String prefix, Map<?,?> properties, String[] ignorePrefixes) {
-            for (Object key1 : properties.keySet()) {
+        public Builder putProperties(String prefix, Dictionary<Object,Object> properties, String[] ignorePrefixes) {
+            for (Object key1 : Collections.list(properties.keys())) {
                 String key = (String) key1;
                 String value = properties.get(key).toString();
                 if (key.startsWith(prefix)) {

@@ -63,6 +63,7 @@ grant {
   
   // elasticsearch-test-framework
   permission java.util.PropertyPermission "es.processors.override", "write";
+  permission java.util.PropertyPermission "es.default.path.home", "write";
   
   // randomized runner (not strictly needed, and only by it)
   permission java.util.PropertyPermission "junit4.childvm.count", "write";

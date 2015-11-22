@@ -19,7 +19,7 @@
 
 package org.elasticsearch.bootstrap;
 
-import java.util.Map;
+import java.util.Dictionary;
 
 /** 
  * Exposes system startup information 
@@ -63,7 +63,7 @@ public final class BootstrapInfo {
     /** 
      * Returns system properties from startup
      */
-    public static Map<String,String> getSystemProperties() {
+    public static Dictionary<Object,Object> getSystemProperties() {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPropertyAccess("*");
