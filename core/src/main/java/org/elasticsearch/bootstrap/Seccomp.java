@@ -45,9 +45,9 @@ import java.util.Map;
 
 /** 
  * Installs a limited form of secure computing mode,
- * to filters system calls to block process execution.
+ * to filter system calls to block process execution.
  * <p>
- * This is only supported on the Linux, Solaris, and Mac OS X operating systems.
+ * This is only supported on the Linux, Solaris, OpenBSD, and Mac OS X operating systems.
  * <p>
  * On Linux it currently supports amd64 and i386 architectures, requires Linux kernel 3.5 or above, and requires
  * {@code CONFIG_SECCOMP} and {@code CONFIG_SECCOMP_FILTER} compiled into the kernel.
@@ -71,6 +71,11 @@ import java.util.Map;
  *   <li>{@code PRIV_PROC_EXEC}</li>
  * </ul>
  * <p>
+ * On OpenBSD 5.9 or higher, the following privileges are dropped with {@code pledge(2)}:
+ * <ul>
+ *   <li>{@code exec}</li>
+ * </ul>
+ * <p>
  * On Mac OS X Leopard or above, a custom {@code sandbox(7)} ("Seatbelt") profile is installed that
  * denies the following rules:
  * <ul>
@@ -86,6 +91,8 @@ import java.util.Map;
  *      https://reverse.put.as/wp-content/uploads/2011/06/The-Apple-Sandbox-BHDC2011-Paper.pdf</a>
  * @see <a href="https://docs.oracle.com/cd/E23824_01/html/821-1456/prbac-2.html">
  *      https://docs.oracle.com/cd/E23824_01/html/821-1456/prbac-2.html</a>
+ * @see <a href="http://www.openbsd.org/papers/hackfest2015-pledge/mgp00001.html">
+ *      http://www.openbsd.org/papers/hackfest2015-pledge/mgp00001.html</a>
  */
 // not an example of how to write code!!!
 final class Seccomp {
@@ -534,6 +541,69 @@ final class Seccomp {
         logger.debug("Solaris priv_set initialization successful");
     }
 
+    // OpenBSD implementation via pledge(2)
+
+    // TODO: add this to Lucene Constants
+    static final boolean OPENBSD = Constants.OS_NAME.startsWith("OpenBSD");
+
+    /** Access to non-standard OpenBSD libc methods */
+    static interface OpenBSDLibrary extends Library {
+        /**
+         * see pledge(2)
+         */
+        int pledge(String promises, String paths[]);
+    }
+
+    // null if unavailable, or something goes wrong.
+    private static final OpenBSDLibrary libc_openbsd;
+
+    static {
+        OpenBSDLibrary lib = null;
+        if (OPENBSD) {
+            try {
+                lib = (OpenBSDLibrary) Native.loadLibrary("c", OpenBSDLibrary.class);
+            } catch (UnsatisfiedLinkError e) {
+                logger.warn("unable to link C library. native methods (pledge) will be disabled.", e);
+            }
+        }
+        libc_openbsd = lib;
+    }
+
+    // promise everything except 'exec': OpenBSD will send SIGABRT on a violation (somewhat brutal)
+    // so we intentionally allow 'proc', this way the child process, not us, gets killed.
+    // and we set maximum core size to 0 bytes.
+    static final int RLIMIT_CORE = 4;
+    static final String PROMISES = "stdio rpath wpath cpath tmppath inet fattr flock unix dns getpw " +
+                                   "sendfd recvfd ioctl tty proc prot_exec settime ps vminfo id";
+
+    static void openBSDImpl() {
+        // first be defensive: we can give nice errors this way, at the very least.
+        boolean supported = OPENBSD;
+        if (supported == false) {
+            throw new IllegalStateException("bug: should not be trying to initialize pledge for an unsupported OS");
+        }
+
+        // we couldn't link methods, could be some older OpenBSD or some bug
+        if (libc_openbsd == null) {
+            throw new UnsupportedOperationException("pledge unavailable: could not link methods. requires OpenBSD 5.9+");
+        }
+
+        // disable core dumps when pledge'ing
+        JNACLibrary.Rlimit coreLimit = new JNACLibrary.Rlimit();
+        coreLimit.rlim_cur.setValue(0);
+        coreLimit.rlim_max.setValue(0);
+
+        if (JNACLibrary.setrlimit(RLIMIT_CORE, coreLimit) != 0) {
+            throw new UnsupportedOperationException("pledge unavailable: setrlimit(): " + JNACLibrary.strerror(Native.getLastError()));
+        }
+
+        if (libc_openbsd.pledge(PROMISES, null) != 0) {
+            throw new UnsupportedOperationException("pledge unavailable: pledge(): " + JNACLibrary.strerror(Native.getLastError()));
+        }
+
+        logger.debug("OpenBSD pledge initialization successful");
+    }
+
     /**
      * Attempt to drop the capability to execute for the process.
      * <p>
@@ -548,6 +618,9 @@ final class Seccomp {
             return 1;
         } else if (Constants.SUN_OS) {
             solarisImpl();
+            return 1;
+        } else if (OPENBSD) {
+            openBSDImpl();
             return 1;
         } else {
             throw new UnsupportedOperationException("syscall filtering not supported for OS: '" + Constants.OS_NAME + "'");
