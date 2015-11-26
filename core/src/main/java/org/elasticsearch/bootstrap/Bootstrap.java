@@ -93,12 +93,7 @@ final class Bootstrap {
                 throw new RuntimeException("don't run elasticsearch as root.");
             }
         }
-        
-        // enable secure computing mode
-        if (seccomp) {
-            Natives.trySeccomp(tmpFile);
-        }
-        
+
         // mlockall if requested
         if (mlockAll) {
             if (Constants.WINDOWS) {
@@ -106,6 +101,11 @@ final class Bootstrap {
             } else {
                Natives.tryMlockall();
             }
+        }
+
+        // enable secure computing mode
+        if (seccomp) {
+            Natives.trySeccomp(tmpFile);
         }
 
         // listener for windows close event
