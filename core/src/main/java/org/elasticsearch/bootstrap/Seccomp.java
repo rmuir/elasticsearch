@@ -586,7 +586,7 @@ final class Seccomp {
                 throw new UnsupportedOperationException("QueryInformationJobObject: " + Native.getLastError());
             }
             limits.read();
-            limits.ActiveProcessLimit = 1;
+            limits.ActiveProcessLimit = 0;
             limits.write();
             if (!lib.SetInformationJobObject(job, clazz, limits.getPointer(), limits.size())) {
                 throw new UnsupportedOperationException("SetInformationJobObject: " + Native.getLastError());
