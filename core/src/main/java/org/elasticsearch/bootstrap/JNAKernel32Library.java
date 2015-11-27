@@ -282,7 +282,7 @@ final class JNAKernel32Library {
      * @param returnLength
      * @return true if the function succeeds
      */
-    native boolean QueryInformationJobObject(Pointer job, int infoClass, JOBOBJECT_BASIC_LIMIT_INFORMATION info, int infoLength, Pointer returnLength);
+    native boolean QueryInformationJobObject(Pointer job, int infoClass, Pointer info, int infoLength, Pointer returnLength);
     
     /**
      * Set job limit and state information
@@ -295,5 +295,5 @@ final class JNAKernel32Library {
      * @param infoLength
      * @return true if the function succeeds
      */
-    native boolean SetInformationJobObject(Pointer job, int infoClass, JOBOBJECT_BASIC_LIMIT_INFORMATION info, int infoLength);
+    native boolean SetInformationJobObject(Pointer job, int infoClass, Pointer info, int infoLength);
 }

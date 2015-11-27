@@ -582,11 +582,14 @@ final class Seccomp {
             }
             int clazz = JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION_CLASS;
             JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION limits = new JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION();
-            if (!lib.QueryInformationJobObject(job, clazz, limits, 0, null)) {
+            limits.write();
+            if (!lib.QueryInformationJobObject(job, clazz, limits.getPointer(), 0, null)) {
                 throw new UnsupportedOperationException("QueryInformationJobObject: " + JNACLibrary.strerror(Native.getLastError()));
             }
+            limits.read();
             limits.ActiveProcessLimit = 1;
-            if (!lib.SetInformationJobObject(job, clazz, limits, 0)) {
+            limits.write();
+            if (!lib.SetInformationJobObject(job, clazz, limits.getPointer(), 0)) {
                 throw new UnsupportedOperationException("SetInformationJobObject: " + JNACLibrary.strerror(Native.getLastError()));
             }
         } finally {
