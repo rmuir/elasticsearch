@@ -230,7 +230,7 @@ final class JNAKernel32Library {
      * @param name job name
      * @return job handle if the function succeeds
      */
-    native Pointer CreateJobObject(Pointer jobAttributes, String name);
+    native Pointer CreateJobObjectW(Pointer jobAttributes, String name);
 
     /**
      * Associates a process with an existing job
