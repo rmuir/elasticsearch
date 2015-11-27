@@ -571,7 +571,7 @@ final class Seccomp {
 
         JNAKernel32Library lib = JNAKernel32Library.getInstance();
 
-        Pointer job = lib.CreateJobObject(null, null);
+        Pointer job = lib.CreateJobObjectW(null, null);
         if (job == null) {
             throw new UnsupportedOperationException("CreateJobObject: " + JNACLibrary.strerror(Native.getLastError()));
         }
