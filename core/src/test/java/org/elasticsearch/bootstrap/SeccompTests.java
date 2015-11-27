@@ -47,6 +47,7 @@ public class SeccompTests extends ESTestCase {
             Runtime.getRuntime().exec("ls");
             fail("should not have been able to execute!");
         } catch (Exception expected) {
+            expected.printStackTrace();
             // we can't guarantee how its converted, currently its an IOException, like this:
             /*
             java.io.IOException: Cannot run program "ls": error=13, Permission denied

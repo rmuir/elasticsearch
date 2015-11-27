@@ -564,8 +564,7 @@ final class Seccomp {
     }
 
     static void windowsImpl() {
-        boolean supported = Constants.WINDOWS;
-        if (supported == false) {
+        if (!Constants.WINDOWS) {
             throw new IllegalStateException("bug: should not be trying to initialize ActiveProcessLimit for an unsupported OS");
         }
 
