@@ -573,24 +573,24 @@ final class Seccomp {
 
         Pointer job = lib.CreateJobObjectW(null, null);
         if (job == null) {
-            throw new UnsupportedOperationException("CreateJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+            throw new UnsupportedOperationException("CreateJobObject: " + Native.getLastError());
         }
 
         try {
             if (!lib.AssignProcessToJobObject(job, lib.GetCurrentProcess())) {
-                throw new UnsupportedOperationException("AssignProcessToJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+                throw new UnsupportedOperationException("AssignProcessToJobObject: " + Native.getLastError());
             }
             int clazz = JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION_CLASS;
             JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION limits = new JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION();
             limits.write();
             if (!lib.QueryInformationJobObject(job, clazz, limits.getPointer(), 0, null)) {
-                throw new UnsupportedOperationException("QueryInformationJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+                throw new UnsupportedOperationException("QueryInformationJobObject: " + Native.getLastError());
             }
             limits.read();
             limits.ActiveProcessLimit = 1;
             limits.write();
             if (!lib.SetInformationJobObject(job, clazz, limits.getPointer(), 0)) {
-                throw new UnsupportedOperationException("SetInformationJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+                throw new UnsupportedOperationException("SetInformationJobObject: " + Native.getLastError());
             }
         } finally {
             lib.CloseHandle(job);
