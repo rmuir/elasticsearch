@@ -576,9 +576,6 @@ final class Seccomp {
         }
 
         try {
-            if (!lib.AssignProcessToJobObject(job, lib.GetCurrentProcess())) {
-                throw new UnsupportedOperationException("AssignProcessToJobObject: " + Native.getLastError());
-            }
             int clazz = JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION_CLASS;
             JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION limits = new JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION();
             limits.write();
@@ -586,10 +583,14 @@ final class Seccomp {
                 throw new UnsupportedOperationException("QueryInformationJobObject: " + Native.getLastError());
             }
             limits.read();
-            limits.ActiveProcessLimit = 0;
+            limits.ActiveProcessLimit = 1;
+            limits.LimitFlags = JNAKernel32Library.JOB_OBJECT_LIMIT_ACTIVE_PROCESS;
             limits.write();
             if (!lib.SetInformationJobObject(job, clazz, limits.getPointer(), limits.size())) {
                 throw new UnsupportedOperationException("SetInformationJobObject: " + Native.getLastError());
+            }
+            if (!lib.AssignProcessToJobObject(job, lib.GetCurrentProcess())) {
+                throw new UnsupportedOperationException("AssignProcessToJobObject: " + Native.getLastError());
             }
         } finally {
             lib.CloseHandle(job);

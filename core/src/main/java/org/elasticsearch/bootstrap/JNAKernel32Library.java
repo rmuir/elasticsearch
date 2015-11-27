@@ -269,6 +269,7 @@ final class JNAKernel32Library {
     }
     
     static final int JOBOBJECT_BASIC_LIMIT_INFORMATION_CLASS = 2;
+    static final int JOB_OBJECT_LIMIT_ACTIVE_PROCESS = 8;
     
     /**
      * Get job limit and state information
