@@ -329,7 +329,8 @@ final class Seccomp {
             case 1: break; // already set by caller
             default:
                 int errno = Native.getLastError();
-                if (errno == ENOSYS) {
+                if (errno == EINVAL) {
+                    // friendly error, this will be the typical case for an old kernel
                     throw new UnsupportedOperationException("seccomp unavailable: requires kernel 3.5+ with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER compiled in");
                 } else {
                     throw new UnsupportedOperationException("prctl(PR_GET_NO_NEW_PRIVS): " + JNACLibrary.strerror(errno));
@@ -561,6 +562,39 @@ final class Seccomp {
         logger.debug("BSD RLIMIT_NPROC initialization successful");
     }
 
+    static void windowsImpl() {
+        boolean supported = Constants.WINDOWS;
+        if (supported == false) {
+            throw new IllegalStateException("bug: should not be trying to initialize ActiveProcessLimit for an unsupported OS");
+        }
+
+        JNAKernel32Library lib = JNAKernel32Library.getInstance();
+
+        Pointer job = lib.CreateJobObject(null, null);
+        if (job == null) {
+            throw new UnsupportedOperationException("CreateJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+        }
+
+        try {
+            if (!lib.AssignProcessToJobObject(job, lib.GetCurrentProcess())) {
+                throw new UnsupportedOperationException("AssignProcessToJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+            }
+            int clazz = JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION_CLASS;
+            JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION limits = new JNAKernel32Library.JOBOBJECT_BASIC_LIMIT_INFORMATION();
+            if (!lib.QueryInformationJobObject(job, clazz, limits, 0, null)) {
+                throw new UnsupportedOperationException("QueryInformationJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+            }
+            limits.ActiveProcessLimit = 1;
+            if (!lib.SetInformationJobObject(job, clazz, limits, 0)) {
+                throw new UnsupportedOperationException("SetInformationJobObject: " + JNACLibrary.strerror(Native.getLastError()));
+            }
+        } finally {
+            lib.CloseHandle(job);
+        }
+        
+        logger.debug("Windows ActiveProcessLimit initialization successful");
+    }
+
     /**
      * Attempt to drop the capability to execute for the process.
      * <p>
@@ -580,6 +614,9 @@ final class Seccomp {
             return 1;
         } else if (Constants.FREE_BSD || OPENBSD) {
             bsdImpl();
+            return 1;
+        } else if (Constants.WINDOWS) {
+            windowsImpl();
             return 1;
         } else {
             throw new UnsupportedOperationException("syscall filtering not supported for OS: '" + Constants.OS_NAME + "'");
