@@ -305,7 +305,7 @@ class ClusterFormationTasks {
             workingDir node.cwd
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 executable 'cmd'
-                args '/C', 'call'
+                args '/C'
             } else {
                 executable 'sh'
             }
@@ -320,7 +320,6 @@ class ClusterFormationTasks {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             executable = 'cmd'
             esArgs.add('/C')
-            esArgs.add('call')
         } else {
             executable = 'sh'
         }
