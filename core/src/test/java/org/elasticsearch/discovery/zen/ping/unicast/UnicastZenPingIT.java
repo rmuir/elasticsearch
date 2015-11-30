@@ -46,9 +46,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class UnicastZenPingIT extends ESTestCase {
     public void testSimplePings() throws InterruptedException {
         Settings settings = Settings.EMPTY;
-        int startPort = 11000 + randomIntBetween(0, 1000);
-        int endPort = startPort + 10;
-        settings = Settings.builder().put(settings).put("transport.tcp.port", startPort + "-" + endPort).build();
+        settings = Settings.builder().put(settings).put("transport.tcp.port", 0).build();
 
         ThreadPool threadPool = new ThreadPool(getClass().getName());
         ClusterName clusterName = new ClusterName("test");
