@@ -21,6 +21,7 @@ List projects = [
   'plugins:lang-expression',
   'plugins:lang-groovy',
   'plugins:lang-javascript',
+  'plugins:lang-plan-a',
   'plugins:lang-python',
   'plugins:mapper-attachments',
   'plugins:mapper-murmur3',
