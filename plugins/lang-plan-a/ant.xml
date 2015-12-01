@@ -53,7 +53,7 @@
         <patternset refid="grammar.@{grammar}.patternset"/>
       </delete>
       <!-- invoke ANTLR4 -->
-      <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" classpathref="regeneration.classpath" taskname="antlr">
+      <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" classpathref="regenerate.classpath" taskname="antlr">
         <sysproperty key="file.encoding" value="UTF-8"/>
         <sysproperty key="user.language" value="en"/>
         <sysproperty key="user.country" value="US"/>
@@ -79,7 +79,7 @@
       </patternset>
       <property name="grammar.path" location="src/main/java/org/elasticsearch/plan/a"/>
       <!-- invoke ANTLR4 -->
-      <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" classpathref="regeneration.classpath" taskname="antlr">
+      <java classname="org.antlr.v4.Tool" fork="true" failonerror="true" classpathref="regenerate.classpath" taskname="antlr">
         <sysproperty key="file.encoding" value="UTF-8"/>
         <sysproperty key="user.language" value="en"/>
         <sysproperty key="user.country" value="US"/>
