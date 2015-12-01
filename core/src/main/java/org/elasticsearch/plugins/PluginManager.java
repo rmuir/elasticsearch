@@ -81,6 +81,7 @@ public class PluginManager {
             "lang-expression",
             "lang-groovy",
             "lang-javascript",
+            "lang-plan-a",
             "lang-python",
             "mapper-attachments",
             "mapper-murmur3",

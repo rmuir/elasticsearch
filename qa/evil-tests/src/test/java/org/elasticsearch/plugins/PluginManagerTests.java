@@ -633,6 +633,7 @@ public class PluginManagerTests extends ESIntegTestCase {
         PluginManager.checkForOfficialPlugins("lang-expression");
         PluginManager.checkForOfficialPlugins("lang-groovy");
         PluginManager.checkForOfficialPlugins("lang-javascript");
+        PluginManager.checkForOfficialPlugins("lang-plan-a");
         PluginManager.checkForOfficialPlugins("lang-python");
         PluginManager.checkForOfficialPlugins("mapper-attachments");
         PluginManager.checkForOfficialPlugins("mapper-murmur3");
