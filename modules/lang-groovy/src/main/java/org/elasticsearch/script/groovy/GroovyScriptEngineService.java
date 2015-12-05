@@ -53,8 +53,12 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides the infrastructure for Groovy as a scripting language for Elasticsearch
@@ -65,16 +69,6 @@ public class GroovyScriptEngineService extends AbstractComponent implements Scri
      * The name of the scripting engine/language.
      */
     public static final String NAME = "groovy";
-    /**
-     * The setting to enable or disable <code>invokedynamic</code> instruction support in Java 7+.
-     * <p>
-     * Note: If this is disabled because <code>invokedynamic</code> is causing issues, then the Groovy
-     * <code>indy</code> jar needs to be replaced by the non-<code>indy</code> variant of it on the classpath (e.g.,
-     * <code>groovy-all-2.4.4-indy.jar</code> should be replaced by <code>groovy-all-2.4.4.jar</code>).
-     * <p>
-     * Defaults to {@code true}.
-     */
-    public static final String GROOVY_INDY_ENABLED = "script.groovy.indy";
     /**
      * The name of the Groovy compiler setting to use associated with activating <code>invokedynamic</code> support.
      */
@@ -96,11 +90,8 @@ public class GroovyScriptEngineService extends AbstractComponent implements Scri
         // Add BigDecimal -> Double transformer
         config.addCompilationCustomizers(new GroovyBigDecimalTransformer(CompilePhase.CONVERSION));
 
-        // Implicitly requires Java 7u60 or later to get valid support
-        if (settings.getAsBoolean(GROOVY_INDY_ENABLED, true)) {
-            // maintain any default optimizations
-            config.getOptimizationOptions().put(GROOVY_INDY_SETTING_NAME, true);
-        }
+        // always enable invokeDynamic, not the crazy softreference-based stuff
+        config.getOptimizationOptions().put(GROOVY_INDY_SETTING_NAME, true);
 
         // Groovy class loader to isolate Groovy-land code
         // classloader created here
@@ -111,10 +102,66 @@ public class GroovyScriptEngineService extends AbstractComponent implements Scri
         this.loader = AccessController.doPrivileged(new PrivilegedAction<GroovyClassLoader>() {
             @Override
             public GroovyClassLoader run() {
-                return new GroovyClassLoader(getClass().getClassLoader(), config);
+                return new GroovyClassLoader(new ClassLoader(getClass().getClassLoader()) {
+                    @Override
+                    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                        if (System.getSecurityManager() == null || ALLOWED_CLASSES.contains(name)) {
+                            return super.loadClass(name, resolve);
+                        } else {
+                            throw new ClassNotFoundException(name);
+                        }
+                    }
+                }, config);
             }
         });
     }
+    
+    private static final Set<String> ALLOWED_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            // groovy runtime
+            org.codehaus.groovy.ast.builder.AstBuilderTransformation.class.getName(),
+            groovy.grape.GrabAnnotationTransformation.class.getName(),
+            org.codehaus.groovy.reflection.ClassInfo.class.getName(),
+            org.codehaus.groovy.runtime.GStringImpl.class.getName(),
+            org.codehaus.groovy.runtime.powerassert.ValueRecorder.class.getName(),
+            org.codehaus.groovy.runtime.powerassert.AssertionRenderer.class.getName(),
+            org.codehaus.groovy.runtime.ScriptBytecodeAdapter.class.getName(),
+            org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation.class.getName(),
+            org.codehaus.groovy.vmplugin.v7.IndyInterface.class.getName(),
+            "sun.reflect.ConstructorAccessorImpl",
+            groovy.lang.Script.class.getName(),
+            groovy.lang.Binding.class.getName(),
+            groovy.lang.GroovyObject.class.getName(),
+            groovy.lang.GString.class.getName(),
+            groovy.util.GroovyCollections.class.getName(),
+            groovy.json.JsonOutput.class.getName(),
+            // jdk classes
+            java.lang.Boolean.class.getName(),
+            java.lang.Byte.class.getName(),
+            java.lang.Character.class.getName(),
+            java.lang.Double.class.getName(),
+            java.lang.Integer.class.getName(),
+            java.lang.Long.class.getName(),
+            java.lang.Math.class.getName(),
+            java.lang.Object.class.getName(),
+            java.lang.Short.class.getName(),
+            java.lang.String.class.getName(),
+            java.math.BigDecimal.class.getName(),
+            java.util.ArrayList.class.getName(),
+            java.util.Arrays.class.getName(),
+            java.util.Date.class.getName(),
+            java.util.HashMap.class.getName(),
+            java.util.HashSet.class.getName(),
+            java.util.Iterator.class.getName(),
+            java.util.List.class.getName(),
+            java.util.Map.class.getName(),
+            java.util.Set.class.getName(),
+            java.util.UUID.class.getName(),
+            // joda-time
+            org.joda.time.DateTime.class.getName(),
+            org.joda.time.DateTimeUtils.class.getName(),
+            org.joda.time.DateTimeZone.class.getName(),
+            org.joda.time.Instant.class.getName()
+    )));
 
     @Override
     public void close() {

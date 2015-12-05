@@ -47,8 +47,12 @@ import org.elasticsearch.search.lookup.SearchLookup;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides the infrastructure for Lucene expressions as a scripting language for Elasticsearch.  Only
@@ -104,13 +108,33 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
             public Expression run() {
                 try {
                     // NOTE: validation is delayed to allow runtime vars, and we don't have access to per index stuff here
-                    return JavascriptCompiler.compile(script);
+                    return JavascriptCompiler.compile(script, JavascriptCompiler.DEFAULT_FUNCTIONS, new ClassLoader(getClass().getClassLoader()) {
+                        @Override
+                        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                            if (System.getSecurityManager() == null || ALLOWED_CLASSES.contains(name)) {
+                                return super.loadClass(name, resolve);
+                            } else {
+                                throw new ClassNotFoundException(name);
+                            }
+                        }
+                    });
                 } catch (ParseException e) {
                     throw new ScriptException("Failed to parse expression: " + script, e);
                 }
             }
         });
     }
+    
+    private static final Set<String> ALLOWED_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            // needed for Expression itself
+            java.lang.String.class.getName(),
+            org.apache.lucene.expressions.Expression.class.getName(),
+            org.apache.lucene.queries.function.FunctionValues.class.getName(),
+            // available functions
+            java.lang.Math.class.getName(),
+            org.apache.lucene.util.MathUtil.class.getName(),
+            org.apache.lucene.util.SloppyMath.class.getName()
+    )));
 
     @Override
     public SearchScript search(CompiledScript compiledScript, SearchLookup lookup, @Nullable Map<String, Object> vars) {
