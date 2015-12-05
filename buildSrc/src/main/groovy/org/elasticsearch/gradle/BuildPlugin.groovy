@@ -266,6 +266,7 @@ class BuildPlugin implements Plugin<Project> {
     static void configureRepositories(Project project) {
         RepositoryHandler repos = project.repositories
         repos.mavenCentral()
+        repos.mavenLocal()
         repos.maven {
             name 'sonatype-snapshots'
             url 'http://oss.sonatype.org/content/repositories/snapshots/'
@@ -273,7 +274,7 @@ class BuildPlugin implements Plugin<Project> {
         String luceneVersion = VersionProperties.lucene
         if (luceneVersion.contains('-snapshot')) {
             // extract the revision number from the version with a regex matcher
-            String revision = (luceneVersion =~ /\w+-snapshot-(\d+)/)[0][1]
+            String revision = (luceneVersion =~ /\w+-snapshot-([\d\w]+)/)[0][1]
             repos.maven {
                 name 'lucene-snapshots'
                 url "http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/${revision}"

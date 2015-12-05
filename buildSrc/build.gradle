@@ -43,6 +43,7 @@ version = props.getProperty('elasticsearch')
 
 repositories {
   mavenCentral()
+  mavenLocal()
   maven {
     name 'sonatype-snapshots'
     url "https://oss.sonatype.org/content/repositories/snapshots/"
