@@ -25,7 +25,11 @@ import java.security.AccessController;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.search.Scorer;
@@ -56,6 +60,36 @@ public class PythonScriptEngineService extends AbstractComponent implements Scri
 
     private final PythonInterpreter interp;
 
+    private static final Set<String> ALLOWED_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        // jdk classes
+        java.lang.Boolean.class.getName(),
+        java.lang.Byte.class.getName(),
+        java.lang.Character.class.getName(),
+        java.lang.Double.class.getName(),
+        java.lang.Integer.class.getName(),
+        java.lang.Long.class.getName(),
+        java.lang.Math.class.getName(),
+        java.lang.Object.class.getName(),
+        java.lang.Short.class.getName(),
+        java.lang.String.class.getName(),
+        java.math.BigDecimal.class.getName(),
+        java.util.ArrayList.class.getName(),
+        java.util.Arrays.class.getName(),
+        java.util.Date.class.getName(),
+        java.util.HashMap.class.getName(),
+        java.util.HashSet.class.getName(),
+        java.util.Iterator.class.getName(),
+        java.util.List.class.getName(),
+        java.util.Map.class.getName(),
+        java.util.Set.class.getName(),
+        java.util.UUID.class.getName(),
+        // joda-time
+        org.joda.time.DateTime.class.getName(),
+        org.joda.time.DateTimeUtils.class.getName(),
+        org.joda.time.DateTimeZone.class.getName(),
+        org.joda.time.Instant.class.getName()
+    )));
+    
     @Inject
     public PythonScriptEngineService(Settings settings) {
         super(settings);
@@ -68,7 +102,18 @@ public class PythonScriptEngineService extends AbstractComponent implements Scri
         this.interp = AccessController.doPrivileged(new PrivilegedAction<PythonInterpreter> () {
             @Override
             public PythonInterpreter run() {
-                return PythonInterpreter.threadLocalStateInterpreter(null);
+                PythonInterpreter interp = PythonInterpreter.threadLocalStateInterpreter(null);
+                interp.getSystemState().setClassLoader(new ClassLoader(getClass().getClassLoader()) {
+                    @Override
+                    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                        if (System.getSecurityManager() == null || ALLOWED_CLASSES.contains(name)) {
+                            return super.loadClass(name, resolve);
+                        } else {
+                            throw new ClassNotFoundException(name);
+                        }
+                    }
+                });
+                return interp;
             }
         });
     }
