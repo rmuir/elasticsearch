@@ -51,14 +51,11 @@ import org.elasticsearch.search.lookup.SearchLookup;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Provides the infrastructure for Groovy as a scripting language for Elasticsearch
@@ -95,73 +92,31 @@ public class GroovyScriptEngineService extends AbstractComponent implements Scri
 
         // Groovy class loader to isolate Groovy-land code
         // classloader created here
-        SecurityManager sm = System.getSecurityManager();
+        final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new SpecialPermission());
         }
         this.loader = AccessController.doPrivileged(new PrivilegedAction<GroovyClassLoader>() {
             @Override
             public GroovyClassLoader run() {
+                // snapshot our context (which has permissions for classes), since the script has none
+                final AccessControlContext engineContext = AccessController.getContext();
                 return new GroovyClassLoader(new ClassLoader(getClass().getClassLoader()) {
                     @Override
                     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                        if (System.getSecurityManager() == null || ALLOWED_CLASSES.contains(name)) {
-                            return super.loadClass(name, resolve);
-                        } else {
-                            throw new ClassNotFoundException(name);
+                        if (sm != null) {
+                            try {
+                                engineContext.checkPermission(new ClassPermission(name));
+                            } catch (SecurityException e) {
+                                throw new ClassNotFoundException(name, e);
+                            }
                         }
+                        return super.loadClass(name, resolve);
                     }
                 }, config);
             }
         });
     }
-    
-    private static final Set<String> ALLOWED_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            // groovy runtime
-            org.codehaus.groovy.ast.builder.AstBuilderTransformation.class.getName(),
-            groovy.grape.GrabAnnotationTransformation.class.getName(),
-            org.codehaus.groovy.reflection.ClassInfo.class.getName(),
-            org.codehaus.groovy.runtime.GStringImpl.class.getName(),
-            org.codehaus.groovy.runtime.powerassert.ValueRecorder.class.getName(),
-            org.codehaus.groovy.runtime.powerassert.AssertionRenderer.class.getName(),
-            org.codehaus.groovy.runtime.ScriptBytecodeAdapter.class.getName(),
-            org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation.class.getName(),
-            org.codehaus.groovy.vmplugin.v7.IndyInterface.class.getName(),
-            "sun.reflect.ConstructorAccessorImpl",
-            groovy.lang.Script.class.getName(),
-            groovy.lang.Binding.class.getName(),
-            groovy.lang.GroovyObject.class.getName(),
-            groovy.lang.GString.class.getName(),
-            groovy.util.GroovyCollections.class.getName(),
-            groovy.json.JsonOutput.class.getName(),
-            // jdk classes
-            java.lang.Boolean.class.getName(),
-            java.lang.Byte.class.getName(),
-            java.lang.Character.class.getName(),
-            java.lang.Double.class.getName(),
-            java.lang.Integer.class.getName(),
-            java.lang.Long.class.getName(),
-            java.lang.Math.class.getName(),
-            java.lang.Object.class.getName(),
-            java.lang.Short.class.getName(),
-            java.lang.String.class.getName(),
-            java.math.BigDecimal.class.getName(),
-            java.util.ArrayList.class.getName(),
-            java.util.Arrays.class.getName(),
-            java.util.Date.class.getName(),
-            java.util.HashMap.class.getName(),
-            java.util.HashSet.class.getName(),
-            java.util.Iterator.class.getName(),
-            java.util.List.class.getName(),
-            java.util.Map.class.getName(),
-            java.util.Set.class.getName(),
-            java.util.UUID.class.getName(),
-            // joda-time
-            org.joda.time.DateTime.class.getName(),
-            org.joda.time.DateTimeUtils.class.getName(),
-            org.joda.time.DateTimeZone.class.getName(),
-            org.joda.time.Instant.class.getName()
-    )));
 
     @Override
     public void close() {

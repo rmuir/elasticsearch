@@ -38,6 +38,7 @@ import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.script.ClassPermission;
 import org.elasticsearch.script.CompiledScript;
 import org.elasticsearch.script.ExecutableScript;
 import org.elasticsearch.script.LeafSearchScript;
@@ -59,60 +60,35 @@ import org.python.util.PythonInterpreter;
 public class PythonScriptEngineService extends AbstractComponent implements ScriptEngineService {
 
     private final PythonInterpreter interp;
-
-    private static final Set<String> ALLOWED_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-        // jdk classes
-        java.lang.Boolean.class.getName(),
-        java.lang.Byte.class.getName(),
-        java.lang.Character.class.getName(),
-        java.lang.Double.class.getName(),
-        java.lang.Integer.class.getName(),
-        java.lang.Long.class.getName(),
-        java.lang.Math.class.getName(),
-        java.lang.Object.class.getName(),
-        java.lang.Short.class.getName(),
-        java.lang.String.class.getName(),
-        java.math.BigDecimal.class.getName(),
-        java.util.ArrayList.class.getName(),
-        java.util.Arrays.class.getName(),
-        java.util.Date.class.getName(),
-        java.util.HashMap.class.getName(),
-        java.util.HashSet.class.getName(),
-        java.util.Iterator.class.getName(),
-        java.util.List.class.getName(),
-        java.util.Map.class.getName(),
-        java.util.Set.class.getName(),
-        java.util.UUID.class.getName(),
-        // joda-time
-        org.joda.time.DateTime.class.getName(),
-        org.joda.time.DateTimeUtils.class.getName(),
-        org.joda.time.DateTimeZone.class.getName(),
-        org.joda.time.Instant.class.getName()
-    )));
     
     @Inject
     public PythonScriptEngineService(Settings settings) {
         super(settings);
 
         // classloader created here
-        SecurityManager sm = System.getSecurityManager();
+        final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(new SpecialPermission());
         }
         this.interp = AccessController.doPrivileged(new PrivilegedAction<PythonInterpreter> () {
             @Override
             public PythonInterpreter run() {
+                // snapshot our context here for checks, as the script has no permissions
+                final AccessControlContext engineContext = AccessController.getContext();
                 PythonInterpreter interp = PythonInterpreter.threadLocalStateInterpreter(null);
-                interp.getSystemState().setClassLoader(new ClassLoader(getClass().getClassLoader()) {
-                    @Override
-                    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                        if (System.getSecurityManager() == null || ALLOWED_CLASSES.contains(name)) {
+                if (sm != null) {
+                    interp.getSystemState().setClassLoader(new ClassLoader(getClass().getClassLoader()) {
+                        @Override
+                        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                            try {
+                                engineContext.checkPermission(new ClassPermission(name));
+                            } catch (SecurityException e) {
+                                throw new ClassNotFoundException(name, e);
+                            }
                             return super.loadClass(name, resolve);
-                        } else {
-                            throw new ClassNotFoundException(name);
                         }
-                    }
-                });
+                    });
+                }
                 return interp;
             }
         });

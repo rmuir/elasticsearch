@@ -39,16 +39,13 @@ import org.mozilla.javascript.Script;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.security.cert.Certificate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -66,44 +63,6 @@ public class JavaScriptScriptEngineService extends AbstractComponent implements 
     private static final CodeSource DOMAIN;
     private static final int OPTIMIZATION_LEVEL = 1;
     
-    private static final Set<String> ALLOWED_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            // rhino runtime
-            org.mozilla.javascript.ContextFactory.class.getName(),
-            org.mozilla.javascript.Callable.class.getName(),
-            org.mozilla.javascript.NativeFunction.class.getName(),
-            org.mozilla.javascript.Script.class.getName(),
-            org.mozilla.javascript.ScriptRuntime.class.getName(),
-            org.mozilla.javascript.Undefined.class.getName(),
-            org.mozilla.javascript.optimizer.OptRuntime.class.getName(),
-            // jdk classes
-            java.lang.Boolean.class.getName(),
-            java.lang.Byte.class.getName(),
-            java.lang.Character.class.getName(),
-            java.lang.Double.class.getName(),
-            java.lang.Integer.class.getName(),
-            java.lang.Long.class.getName(),
-            java.lang.Math.class.getName(),
-            java.lang.Object.class.getName(),
-            java.lang.Short.class.getName(),
-            java.lang.String.class.getName(),
-            java.math.BigDecimal.class.getName(),
-            java.util.ArrayList.class.getName(),
-            java.util.Arrays.class.getName(),
-            java.util.Date.class.getName(),
-            java.util.HashMap.class.getName(),
-            java.util.HashSet.class.getName(),
-            java.util.Iterator.class.getName(),
-            java.util.List.class.getName(),
-            java.util.Map.class.getName(),
-            java.util.Set.class.getName(),
-            java.util.UUID.class.getName(),
-            // joda-time
-            org.joda.time.DateTime.class.getName(),
-            org.joda.time.DateTimeUtils.class.getName(),
-            org.joda.time.DateTimeZone.class.getName(),
-            org.joda.time.Instant.class.getName()
-    )));
-    
     static {
         try {
             DOMAIN = new CodeSource(new URL("file:" + BootstrapInfo.UNTRUSTED_CODEBASE), (Certificate[]) null);
@@ -117,21 +76,26 @@ public class JavaScriptScriptEngineService extends AbstractComponent implements 
                 cx.setOptimizationLevel(OPTIMIZATION_LEVEL);
             }
         };
-        factory.initApplicationClassLoader(AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            @Override
-            public ClassLoader run() {
-                return new ClassLoader(JavaScriptScriptEngineService.class.getClassLoader()) {
-                    @Override
-                    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                        if (System.getSecurityManager() == null || ALLOWED_CLASSES.contains(name)) {
+        if (System.getSecurityManager() != null) {
+            factory.initApplicationClassLoader(AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                @Override
+                public ClassLoader run() {
+                    // snapshot our context (which has permissions for classes), since the script has none
+                    final AccessControlContext engineContext = AccessController.getContext();
+                    return new ClassLoader(JavaScriptScriptEngineService.class.getClassLoader()) {
+                        @Override
+                        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                            try {
+                                engineContext.checkPermission(new ClassPermission(name));
+                            } catch (SecurityException e) {
+                                throw new ClassNotFoundException(name, e);
+                            }
                             return super.loadClass(name, resolve);
-                        } else {
-                            throw new ClassNotFoundException(name);
                         }
-                    }
-                };
-            }
-        }));
+                    };
+                }
+            }));
+        }
         factory.seal();
         ContextFactory.initGlobal(factory);
         SecurityController.initGlobal(new PolicySecurityController() {

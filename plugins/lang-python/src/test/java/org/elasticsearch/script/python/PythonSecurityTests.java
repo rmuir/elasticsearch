@@ -88,4 +88,16 @@ public class PythonSecurityTests extends ESTestCase {
         // no files
         assertFailure("from java.io import File\nFile.createTempFile(\"test\", \"tmp\")");
     }
+    
+    /** Test again from a new thread, python has complex threadlocal configuration */
+    public void testNotOKFromSeparateThread() throws Exception {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                assertFailure("from java.lang import Runtime\nRuntime.availableProcessors()");
+            }
+        };
+        t.start();
+        t.join();
+    }
 }
