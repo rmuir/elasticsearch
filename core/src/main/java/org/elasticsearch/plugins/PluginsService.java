@@ -316,7 +316,8 @@ public class PluginsService extends AbstractComponent {
                 // gather urls for jar files
                 try (DirectoryStream<Path> jarStream = Files.newDirectoryStream(module, "*.jar")) {
                     for (Path jar : jarStream) {
-                        bundle.urls.add(jar.toUri().toURL());
+                        // normalize with toRealPath to get symlinks out of our hair
+                        bundle.urls.add(jar.toRealPath().toUri().toURL());
                     }
                 }
                 bundles.add(bundle);
@@ -347,9 +348,9 @@ public class PluginsService extends AbstractComponent {
                 final PluginInfo info;
                 try {
                     info = PluginInfo.readFromProperties(plugin);
-                } catch (NoSuchFileException e) {
-                    throw new IllegalStateException("Existing plugin [" + plugin.getFileName() + "] missing plugin descriptor. " +
-                        "Was the plugin built before 2.0?", e);
+                } catch (IOException e) {
+                    throw new IllegalStateException("Could not load plugin descriptor for existing plugin ["
+                        + plugin.getFileName() + "]. Was the plugin built before 2.0?", e);
                 }
 
                 List<URL> urls = new ArrayList<>();
@@ -357,7 +358,8 @@ public class PluginsService extends AbstractComponent {
                     // a jvm plugin: gather urls for jar files
                     try (DirectoryStream<Path> jarStream = Files.newDirectoryStream(plugin, "*.jar")) {
                         for (Path jar : jarStream) {
-                            urls.add(jar.toUri().toURL());
+                            // normalize with toRealPath to get symlinks out of our hair
+                            urls.add(jar.toRealPath().toUri().toURL());
                         }
                     }
                 }

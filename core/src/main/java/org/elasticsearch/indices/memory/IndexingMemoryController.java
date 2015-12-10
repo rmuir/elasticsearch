@@ -19,7 +19,6 @@
 
 package org.elasticsearch.indices.memory;
 
-import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
@@ -200,36 +199,32 @@ public class IndexingMemoryController extends AbstractLifecycleComponent<Indexin
     }
 
     protected List<IndexShard> availableShards() {
-        List<IndexShard> activeShards = new ArrayList<>();
+        List<IndexShard> availableShards = new ArrayList<>();
 
         for (IndexService indexService : indicesService) {
             for (IndexShard shard : indexService) {
                 if (shardAvailable(shard)) {
-                    activeShards.add(shard);
+                    availableShards.add(shard);
                 }
             }
         }
-        return activeShards;
+        return availableShards;
     }
 
     /** returns true if shard exists and is availabe for updates */
-    protected boolean shardAvailable(@Nullable IndexShard shard) {
+    protected boolean shardAvailable(IndexShard shard) {
         // shadow replica doesn't have an indexing buffer
-        return shard != null && shard.canIndex() && CAN_UPDATE_INDEX_BUFFER_STATES.contains(shard.state());
+        return shard.canIndex() && CAN_UPDATE_INDEX_BUFFER_STATES.contains(shard.state());
     }
 
     /** set new indexing and translog buffers on this shard.  this may cause the shard to refresh to free up heap. */
     protected void updateShardBuffers(IndexShard shard, ByteSizeValue shardIndexingBufferSize, ByteSizeValue shardTranslogBufferSize) {
-        if (shard != null) {
-            try {
-                shard.updateBufferSize(shardIndexingBufferSize, shardTranslogBufferSize);
-            } catch (EngineClosedException e) {
-                // ignore
-            } catch (FlushNotAllowedEngineException e) {
-                // ignore
-            } catch (Exception e) {
-                logger.warn("failed to set shard {} index buffer to [{}]", e, shard.shardId(), shardIndexingBufferSize);
-            }
+        try {
+            shard.updateBufferSize(shardIndexingBufferSize, shardTranslogBufferSize);
+        } catch (EngineClosedException | FlushNotAllowedEngineException e) {
+            // ignore
+        } catch (Exception e) {
+            logger.warn("failed to set shard {} index buffer to [{}]", e, shard.shardId(), shardIndexingBufferSize);
         }
     }
 
@@ -254,7 +249,6 @@ public class IndexingMemoryController extends AbstractLifecycleComponent<Indexin
             // is actually using (using IW.ramBytesUsed), so that small indices (e.g. Marvel) would not
             // get the same indexing buffer as large indices.  But it quickly gets tricky...
             if (activeShardCount == 0) {
-                logger.debug("no active shards");
                 return;
             }
 
@@ -292,13 +286,7 @@ public class IndexingMemoryController extends AbstractLifecycleComponent<Indexin
      */
     protected boolean checkIdle(IndexShard shard) {
         try {
-            boolean idle = shard.checkIdle();
-            if (idle && logger.isDebugEnabled()) {
-                logger.debug("marking shard {} as inactive (inactive_time[{}]) indexing wise",
-                    shard.shardId(),
-                    shard.getInactiveTime());
-            }
-            return idle;
+            return shard.checkIdle();
         } catch (EngineClosedException | FlushNotAllowedEngineException e) {
             logger.trace("ignore [{}] while marking shard {} as inactive", e.getClass().getSimpleName(), shard.shardId());
             return true;
