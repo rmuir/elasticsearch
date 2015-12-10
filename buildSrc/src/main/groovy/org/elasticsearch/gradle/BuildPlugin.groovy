@@ -266,7 +266,6 @@ class BuildPlugin implements Plugin<Project> {
     static void configureRepositories(Project project) {
         RepositoryHandler repos = project.repositories
         repos.mavenCentral()
-        repos.mavenLocal()
         repos.maven {
             name 'sonatype-snapshots'
             url 'http://oss.sonatype.org/content/repositories/snapshots/'
