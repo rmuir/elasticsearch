@@ -29,6 +29,10 @@ import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import org.junit.runner.Description
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
+
 import static com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus.*
 import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatDurationInSeconds
 import static java.lang.Math.max
@@ -75,6 +79,30 @@ class TestProgressLogger implements AggregatedEventListener {
     volatile boolean suiteFinished = false
     /* Note that we probably overuse volatile here but it isn't hurting us and
       lets us move things around without worying about breaking things. */
+
+    static final OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+    static final Method cpuLoadMethod;
+
+    static {
+      Method m = null;
+      try {
+        m = Class.forName("com.sun.management.OperatingSystemMXBean").getMethod("getSystemCpuLoad");
+      } catch (Exception e) { 
+        // unavailable
+      }
+      cpuLoadMethod = m;
+    }
+
+    private static double getCpuLoad() {
+      if (cpuLoadMethod == null) {
+        return -1;
+      }
+      try {
+        return cpuLoadMethod.invoke(osBean);
+      } catch (Exception e) {
+        return -1;
+      }
+    }
 
     @Subscribe
     void onStart(AggregatedStartEvent e) throws IOException {
@@ -166,6 +194,19 @@ class TestProgressLogger implements AggregatedEventListener {
         }
         log += sprintf("Tests [${testsFormat}|%d|%d], ",
             [testsCompleted, testsFailed, testsIgnored])
+        double cpu = getCpuLoad();
+        if (cpu >= 0) {
+            log += "CPU: "
+            int used = (int) (cpu * 100) / 20;
+             
+            for (int i = 0; i < used; i++) {
+              log += '\u2588';
+            }
+            for (int i = used; i < 5; i++) {
+              log += '\u2591';
+            }
+            log += " "
+        }
         log += "in ${formatDurationInSeconds(eventExecutionTime)} "
         if (totalSlaves > 1) {
             /* Skip printing the slaves if there is only one of them. This is
