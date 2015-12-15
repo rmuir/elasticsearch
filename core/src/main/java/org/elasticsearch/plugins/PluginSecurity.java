@@ -54,42 +54,47 @@ class PluginSecurity {
         Collections.sort(requested, new Comparator<Permission>() {
             @Override
             public int compare(Permission o1, Permission o2) {
-                int cmp = o1.getClass().getName().compareTo(o2.getClass().getName());
+                int cmp = getCategory(o1).compareTo(getCategory(o2));
                 if (cmp == 0) {
-                    String name1 = o1.getName();
-                    String name2 = o2.getName();
-                    if (name1 == null) {
-                        name1 = "";
-                    }
-                    if (name2 == null) {
-                        name2 = "";
-                    }
-                    cmp = name1.compareTo(name2);
-                    if (cmp == 0) {
-                        String actions1 = o1.getActions();
-                        String actions2 = o2.getActions();
-                        if (actions1 == null) {
-                            actions1 = "";
-                        }
-                        if (actions2 == null) {
-                            actions2 = "";
-                        }
-                        cmp = actions1.compareTo(actions2);
-                    }
+                    return getDetail(o1).compareTo(getDetail(o2));
                 }
                 return cmp;
             }
         });
         
-        terminal.println(Verbosity.NORMAL, "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        terminal.println(Verbosity.NORMAL, "@     WARNING: plugin requires additional permissions     @");
-        terminal.println(Verbosity.NORMAL, "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-        // print all permissions:
-        for (Permission permission : requested) {
-            terminal.println(Verbosity.NORMAL, "* %s", formatPermission(permission));
+        if (batch) {
+            terminal.println(Verbosity.NORMAL, "Batch mode, automatically confirming permissions:");
+        } else {
+            terminal.println(Verbosity.NORMAL, "Confirm permissions:");
         }
-        terminal.println(Verbosity.NORMAL, "See http://docs.oracle.com/javase/8/docs/technotes/guides/security/permissions.html");
-        terminal.println(Verbosity.NORMAL, "for descriptions of what these permissions allow and the associated risks.");
+        // print all permissions grouped by permission category
+        String lastCategory = null;
+        // track the amount of permission text per category, too high, and we move to the next line.
+        int detailCharsWritten = 0;
+        for (Permission permission : requested) {
+            String category = getCategory(permission);
+            String detail = getDetail(permission);
+            if (category.equals(lastCategory)) {
+                if (detailCharsWritten > 70) {
+                    terminal.println(Verbosity.NORMAL, ",");
+                    terminal.print(Verbosity.NORMAL, "  %" + category.length() + "s  ", "");
+                    detailCharsWritten = 0;
+                } else {
+                    terminal.print(Verbosity.NORMAL, ", ");
+                }
+            } else {
+                detailCharsWritten = 0;
+                if (lastCategory != null) {
+                    terminal.println();
+                }
+                terminal.print(Verbosity.NORMAL, "* %s: ", category);
+                lastCategory = category;
+            }
+            detailCharsWritten += detail.length();
+            terminal.print(Verbosity.NORMAL, "%s", detail);
+        }
+        terminal.println();
+        terminal.println(Verbosity.NORMAL, "See http://docs.oracle.com/javase/8/docs/technotes/guides/security/permissions.html for details about permissions.");
         if (!batch) {
             terminal.println(Verbosity.NORMAL);
             String text = terminal.readText("Continue with installation? [y/N]");
@@ -98,18 +103,33 @@ class PluginSecurity {
             }
         }
     }
-    
-    /** Format permission type, name, and actions into a string */
-    static String formatPermission(Permission permission) {
-        StringBuilder sb = new StringBuilder();
-        
-        String clazz = null;
+
+    /** Retrieves the logical category for a permission name */
+    static String getCategory(Permission permission) {
+        String clazz;
         if (permission instanceof UnresolvedPermission) {
-            clazz = ((UnresolvedPermission) permission).getUnresolvedType();
+            clazz = ((UnresolvedPermission)permission).getUnresolvedType();
+            try {
+                // see if we can resolve it: is it one of ours?
+                Class.forName(clazz);
+                // mark it as ours so there is no confusion
+                clazz = clazz.replaceFirst("^org\\.elasticsearch\\.", "[ES] ");
+            } catch (ReflectiveOperationException ignored) {
+                // no clue what this permission does, full classname and clearly marked
+                return "[3RD PARTY] " + clazz;
+            }
         } else {
-            clazz = permission.getClass().getName();
+            clazz = permission.getClass().getSimpleName();
         }
-        sb.append(clazz);
+        if (clazz.endsWith("Permission")) {
+            clazz = clazz.substring(0, clazz.length() - "Permission".length());
+        }
+        return clazz;
+    }
+
+    /** Format permission name and actions into a string */
+    static String getDetail(Permission permission) {
+        StringBuilder sb = new StringBuilder();
         
         String name = null;
         if (permission instanceof UnresolvedPermission) {
@@ -118,7 +138,6 @@ class PluginSecurity {
             name = permission.getName();
         }
         if (name != null && name.length() > 0) {
-            sb.append(' ');
             sb.append(name);
         }
         
@@ -129,8 +148,9 @@ class PluginSecurity {
             actions = permission.getActions();
         }
         if (actions != null && actions.length() > 0) {
-            sb.append(' ');
+            sb.append(" (");
             sb.append(actions);
+            sb.append(")");
         }
         return sb.toString();
     }

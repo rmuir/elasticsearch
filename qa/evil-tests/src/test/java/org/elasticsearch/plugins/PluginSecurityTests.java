@@ -57,7 +57,8 @@ public class PluginSecurityTests extends ESTestCase {
     
     /** Test that we can format some simple permissions properly */
     public void testFormatSimplePermission() throws Exception {
-        assertEquals("java.lang.RuntimePermission queuePrintJob", PluginSecurity.formatPermission(new RuntimePermission("queuePrintJob")));
+      assertEquals("Runtime", PluginSecurity.getCategory(new RuntimePermission("queuePrintJob")));
+      assertEquals("queuePrintJob", PluginSecurity.getDetail(new RuntimePermission("queuePrintJob")));
     }
     
     /** Test that we can format an unresolved permission properly */
@@ -68,7 +69,8 @@ public class PluginSecurityTests extends ESTestCase {
         PermissionCollection actual = PluginSecurity.parsePermissions(Terminal.DEFAULT, testFile, scratch);
         List<Permission> permissions = Collections.list(actual.elements());
         assertEquals(1, permissions.size());
-        assertEquals("org.fake.FakePermission fakeName", PluginSecurity.formatPermission(permissions.get(0)));
+        assertEquals("[3RD PARTY] org.fake.FakePermission", PluginSecurity.getCategory(permissions.get(0)));
+        assertEquals("fakeName", PluginSecurity.getDetail(permissions.get(0)));
     }
     
     /** no guaranteed equals on these classes, we assert they contain the same set */
