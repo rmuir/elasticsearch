@@ -43,6 +43,7 @@ class PluginSecurity {
      * Reads plugin policy, prints/confirms exceptions
      */
     static void readPolicy(Path file, Terminal terminal, Environment environment, boolean batch) throws IOException {
+        boolean verbose = terminal.verbosity().enabled(Verbosity.VERBOSE);
         PermissionCollection permissions = parsePermissions(terminal, file, environment.tmpFile());
         List<Permission> requested = Collections.list(permissions.elements());
         if (requested.isEmpty()) {
@@ -67,34 +68,42 @@ class PluginSecurity {
         } else {
             terminal.println(Verbosity.NORMAL, "Confirm permissions:");
         }
-        // print all permissions grouped by permission category
-        String lastCategory = null;
-        // track the amount of permission text per category, too high, and we move to the next line.
-        int detailCharsWritten = 0;
-        for (Permission permission : requested) {
-            String category = getCategory(permission);
-            String detail = getDetail(permission);
-            if (category.equals(lastCategory)) {
-                if (detailCharsWritten > 70) {
-                    terminal.println(Verbosity.NORMAL, ",");
-                    terminal.print(Verbosity.NORMAL, "  %" + category.length() + "s  ", "");
-                    detailCharsWritten = 0;
-                } else {
-                    terminal.print(Verbosity.NORMAL, ", ");
-                }
-            } else {
-                detailCharsWritten = 0;
-                if (lastCategory != null) {
-                    terminal.println();
-                }
-                terminal.print(Verbosity.NORMAL, "* %s: ", category);
-                lastCategory = category;
+        // if the user specifies verbose, just dump the file
+        if (verbose) {
+            for (String line : Files.readAllLines(file)) {
+                terminal.println(Verbosity.VERBOSE, "%s", line);
             }
-            detailCharsWritten += detail.length();
-            terminal.print(Verbosity.NORMAL, "%s", detail);
+            terminal.println(Verbosity.VERBOSE, "See http://docs.oracle.com/javase/8/docs/technotes/guides/security/permissions.html for details about permissions.");
+        } else {
+            // print all permissions grouped by permission category
+            String lastCategory = null;
+            // track the amount of permission text per category, too high, and we move to the next line.
+            int detailCharsWritten = 0;
+            for (Permission permission : requested) {
+                String category = getCategory(permission);
+                String detail = getDetail(permission);
+                if (category.equals(lastCategory)) {
+                    if (detailCharsWritten > 70) {
+                        terminal.println(Verbosity.NORMAL, ",");
+                        terminal.print(Verbosity.NORMAL, "  %" + category.length() + "s  ", "");
+                        detailCharsWritten = 0;
+                    } else {
+                        terminal.print(Verbosity.NORMAL, ", ");
+                    }
+                } else {
+                    detailCharsWritten = 0;
+                    if (lastCategory != null) {
+                        terminal.println();
+                    }
+                    terminal.print(Verbosity.NORMAL, "* %s: ", category);
+                    lastCategory = category;
+                }
+                detailCharsWritten += detail.length();
+                terminal.print(Verbosity.NORMAL, "%s", detail);
+            }
+            terminal.println();
+            terminal.println(Verbosity.NORMAL, "Pass verbose (-v) for full permission details.");
         }
-        terminal.println();
-        terminal.println(Verbosity.NORMAL, "See http://docs.oracle.com/javase/8/docs/technotes/guides/security/permissions.html for details about permissions.");
         if (!batch) {
             terminal.println(Verbosity.NORMAL);
             String text = terminal.readText("Continue with installation? [y/N]");
