@@ -31,6 +31,7 @@ project.rootProject.subprojects.findAll { it.path.startsWith(':plugins:') }.each
   }
   pluginsCount += 1
 }
+assert pluginsCount > 0
 
 ext.expansions = [
   'expected.plugins.count': pluginsCount
