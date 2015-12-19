@@ -71,6 +71,9 @@ public class ThirdPartyAuditTask extends AntTask {
     // yes, we parse Uwe Schindler's errors to find missing classes. Just don't let him know!
     static final Pattern MISSING_CLASS_PATTERN =
         Pattern.compile(/WARNING: The referenced class '(.*)' cannot be loaded\. Please fix the classpath\!/)
+        
+    static final Pattern VIOLATION_PATTERN = 
+        Pattern.compile(/\s\sin ([a-zA-Z0-9\$\.]+) \(.*\)/)
 
     // we log everything (except missing classes warnings). Those we handle ourselves.
     static class EvilLogger extends DefaultLogger {
@@ -78,12 +81,17 @@ public class ThirdPartyAuditTask extends AntTask {
 
         @Override
         public void messageLogged(BuildEvent event) {
-            if (event.getPriority() == Project.MSG_WARN) {
-                if (event.getTask().getClass() == de.thetaphi.forbiddenapis.ant.AntTask.class) {
+            if (event.getTask().getClass() == de.thetaphi.forbiddenapis.ant.AntTask.class) {
+                if (event.getPriority() == Project.MSG_WARN) {
                     Matcher m = MISSING_CLASS_PATTERN.matcher(event.getMessage())
                     if (m.matches()) {
                         missingClasses.add(m.group(1).replace('.', '/') + ".class")
                         return
+                    }
+                } else if (event.getPriority() == Project.MSG_ERR) {
+                    Matcher m = VIOLATION_PATTERN.matcher(event.getMessage())
+                    if (m.matches()) {
+                        System.out.println("got: " + m.group(1).replace('.', '/') + ".class")
                     }
                 }
             }
@@ -156,7 +164,7 @@ public class ThirdPartyAuditTask extends AntTask {
                             failOnUnsupportedJava: false,
                             failOnMissingClasses: false,
                             classpath: project.configurations.testCompile.asPath) {
-            fileset(dir: tmpDir, excludes: excludedFiles.join(','))
+            fileset(dir: tmpDir)
         }
 
         // handle missing classes with excludes whitelist instead of on/off

@@ -59,7 +59,7 @@ public class AntTask extends DefaultTask {
         }
 
         // otherwise groovy replaces System.out, and you have no chance to debug
-        // ant.saveStreams = false
+        ant.saveStreams = false
 
         final int outputLevel = logger.isDebugEnabled() ? Project.MSG_DEBUG : (logger.isInfoEnabled() ? Project.MSG_INFO : Project.MSG_WARN)
         final PrintStream stream = useStdout() ? System.out : new PrintStream(outputBuffer, true, Charset.defaultCharset().name())
