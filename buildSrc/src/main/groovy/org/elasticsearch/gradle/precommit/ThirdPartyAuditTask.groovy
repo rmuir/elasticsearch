@@ -18,6 +18,8 @@
  */
 package org.elasticsearch.gradle.precommit
 
+import org.apache.tools.ant.BuildEvent
+import org.apache.tools.ant.BuildListener
 import org.apache.tools.ant.BuildLogger
 import org.apache.tools.ant.DefaultLogger
 import org.apache.tools.ant.Project
@@ -30,14 +32,13 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 /**
  * Basic static checking to keep tabs on third party JARs
  */
 public class ThirdPartyAuditTask extends AntTask {
-
-    // true to be lenient about MISSING CLASSES
-    private boolean missingClasses;
     
     // patterns for classes to exclude, because we understand their issues
     private String[] excludes = new String[0];
@@ -45,22 +46,6 @@ public class ThirdPartyAuditTask extends AntTask {
     ThirdPartyAuditTask() {
         dependsOn(project.configurations.testCompile)
         description = "Checks third party JAR bytecode for missing classes, use of internal APIs, and other horrors'"
-    }
-
-    /** 
-     * Set to true to be lenient with missing classes. By default this check will fail if it finds
-     * MISSING CLASSES. This means the set of jars is incomplete. However, in some cases
-     * this can be due to intentional exclusions that are well-tested and understood.
-     */      
-    public void setMissingClasses(boolean value) {
-        missingClasses = value;
-    }
-    
-    /**
-     * Returns true if leniency about missing classes is enabled.
-     */
-    public boolean isMissingClasses() {
-        return missingClasses;
     }
     
     /**
@@ -83,13 +68,36 @@ public class ThirdPartyAuditTask extends AntTask {
         return excludes;
     }
 
+    // yes, we parse Uwe Schindler's errors to find missing classes. Just don't let him know!
+    static final Pattern MISSING_CLASS_PATTERN =
+        Pattern.compile(/WARNING: The referenced class '(.*)' cannot be loaded\. Please fix the classpath\!/)
+
+    // we log everything (except missing classes warnings). Those we handle ourselves.
+    static class EvilLogger extends DefaultLogger {
+        final Set<String> missingClasses = new HashSet<>()
+
+        @Override
+        public void messageLogged(BuildEvent event) {
+            if (event.getPriority() == Project.MSG_WARN) {
+                if (event.getTask().getClass() == de.thetaphi.forbiddenapis.ant.AntTask.class) {
+                    Matcher m = MISSING_CLASS_PATTERN.matcher(event.getMessage())
+                    if (m.matches()) {
+                        missingClasses.add(m.group(1).replace('.', '/') + ".class")
+                        return
+                    }
+                }
+            }
+            super.messageLogged(event)
+        }
+    }
+
     @Override
     protected BuildLogger makeLogger(PrintStream stream, int outputLevel) {
-        return new DefaultLogger(
-            errorPrintStream: stream,
-            outputPrintStream: stream,
-            // ignore passed in outputLevel for now, until we are filtering warning messages
-            messageOutputLevel: Project.MSG_ERR)
+        DefaultLogger log = new EvilLogger()
+        log.errorPrintStream = stream
+        log.outputPrintStream = stream
+        log.messageOutputLevel = outputLevel
+        return log
     }
 
     @Override
@@ -113,7 +121,6 @@ public class ThirdPartyAuditTask extends AntTask {
             return;
         }
 
-
         // print which jars we are going to scan, always
         // this is not the time to try to be succinct! Forbidden will print plenty on its own!
         Set<String> names = new HashSet<>()
@@ -121,12 +128,6 @@ public class ThirdPartyAuditTask extends AntTask {
             names.add(jar.getName())
         }
         logger.error("[thirdPartyAudit] Scanning: " + names)
-
-        // warn that classes are missing
-        // TODO: move these to excludes list!
-        if (missingClasses) {
-            logger.warn("[thirdPartyAudit] WARNING: CLASSES ARE MISSING! Expect NoClassDefFoundError in bug reports from users!")
-        }
 
         // TODO: forbidden-apis + zipfileset gives O(n^2) behavior unless we dump to a tmpdir first,
         // and then remove our temp dir afterwards. don't complain: try it yourself.
@@ -145,23 +146,58 @@ public class ThirdPartyAuditTask extends AntTask {
         String[] excludedFiles = new String[excludes.length];
         for (int i = 0; i < excludes.length; i++) {
             excludedFiles[i] = excludes[i].replace('.', '/') + ".class"
-            // check if the excluded file exists, if not, sure sign things are outdated
-            if (! new File(tmpDir, excludedFiles[i]).exists()) {
-                throw new IllegalStateException("bogus thirdPartyAudit exclusion: '" + excludes[i] + "', not found in any dependency")
-            }
         }
+        Set<String> excludedSet = new HashSet<>(Arrays.asList(excludedFiles));
 
         // jarHellReprise
-        checkSheistyClasses(tmpDir.toPath(), new HashSet<>(Arrays.asList(excludedFiles)));
+        checkSheistyClasses(tmpDir.toPath(), excludedSet);
 
         ant.thirdPartyAudit(internalRuntimeForbidden: true,
                             failOnUnsupportedJava: false,
-                            failOnMissingClasses: !missingClasses,
+                            failOnMissingClasses: false,
                             classpath: project.configurations.testCompile.asPath) {
             fileset(dir: tmpDir, excludes: excludedFiles.join(','))
         }
+
+        // handle missing classes with excludes whitelist instead of on/off
+        checkMissingClasses(ant, tmpDir.toPath(), excludedSet);
+
+        // check that excludes are up to date: file exists or was found missing, if not, sure sign things are outdated
+        for (String file : excludedSet) {
+            if (! new File(tmpDir, file).exists()) {
+                throw new IllegalStateException("bogus thirdPartyAudit exclusion: '" + file + "', not a missing class, nor found in any dependency")
+            }
+        }
+
         // clean up our mess (if we succeed)
         ant.delete(dir: tmpDir.getAbsolutePath())
+    }
+    
+    /**
+     * check for missing classes: if classes are missing, the classpath is broken!
+     */
+    // note: removes any missing classes found from excludedSet
+    private void checkMissingClasses(AntBuilder ant, Path root, Set<String> excludedSet) {
+        Set<String> missingClasses = new TreeSet<>();
+
+        // now check if there were missing classes
+        for (BuildListener listener : ant.project.getBuildListeners()) {
+            if (listener instanceof EvilLogger) {
+                missingClasses.addAll(((EvilLogger) listener).missingClasses);
+            }
+        }
+
+        Set<String> toProcess = new TreeSet<>(missingClasses);
+        toProcess.removeAll(excludedSet);
+        if (!toProcess.isEmpty()) {
+            throw new IllegalStateException("CLASSES ARE MISSING! " + toProcess)
+        }
+
+        if (!missingClasses.isEmpty()) {
+            logger.warn("[thirdPartyAudit] WARNING: CLASSES ARE MISSING! Expect NoClassDefFoundError in bug reports from users!")
+        }
+
+        excludedSet.removeAll(missingClasses);
     }
     
     /**

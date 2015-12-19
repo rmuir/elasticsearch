@@ -33,9 +33,20 @@ dependencyLicenses {
   mapping from: /lucene-.*/, to: 'lucene'
 }
 
-// do we or do we not depend on asm-tree, that is the question
-// classes are missing, e.g. org.objectweb.asm.tree.LabelNode
-thirdPartyAudit.missingClasses = true
+thirdPartyAudit.excludes = [
+  // classes are referenced by bytecode but MISSING!
+  // do we or do we not depend on asm-tree, that is the question
+  'org.objectweb.asm.tree.AbstractInsnNode',
+  'org.objectweb.asm.tree.InsnList',
+  'org.objectweb.asm.tree.InsnNode',
+  'org.objectweb.asm.tree.JumpInsnNode',
+  'org.objectweb.asm.tree.LabelNode',
+  'org.objectweb.asm.tree.LocalVariableNode',
+  'org.objectweb.asm.tree.LookupSwitchInsnNode',
+  'org.objectweb.asm.tree.MethodNode',
+  'org.objectweb.asm.tree.TableSwitchInsnNode',
+  'org.objectweb.asm.tree.TryCatchBlockNode',
+]
 
 compileJava.options.compilerArgs << '-Xlint:-rawtypes'
 compileTestJava.options.compilerArgs << '-Xlint:-rawtypes'
