@@ -18,6 +18,11 @@
  */
 
 //apply plugin: 'nebula.provided-base'
+
+import org.apache.tools.ant.taskdefs.condition.Os
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
  
 esplugin {
   description 'The HDFS repository plugin adds support for Hadoop Distributed File-System (HDFS) repositories.'
@@ -59,22 +64,42 @@ dependencyLicenses {
 task hdfsFixture(type: org.elasticsearch.gradle.test.Fixture) {
   dependsOn project.configurations.hdfsFixture
   executable = new File(project.javaHome, 'bin/java')
+  env('PATH', "${ -> System.getProperty('tests.hdfs.path') }" )
   args '-cp', "${ -> project.configurations.hdfsFixture.asPath }",
        'hdfs.MiniHDFS',
        baseDir
 }
 
 integTest {
-  // hdfs fixture will not start without hadoop native libraries on windows
-  // so we can't run integration tests against external hadoop here.
-  if (System.getProperty("os.name").startsWith("Windows")) {
+  boolean fixtureSupported = false;
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    // hdfs fixture will not start without hadoop native libraries on windows
+    String nativePath = System.getProperty("tests.hadoop.native")
+    if (nativePath != null) {
+      Path path = Paths.get(nativePath);
+      if (Files.isDirectory(path) &&
+          Files.exists(path.resolve("hadoop.dll")) &&
+          Files.exists(path.resolve("hdfs.dll"))) {
+        fixtureSupported = true
+        System.setProperty("tests.hdfs.path", path.toString() + ";" + System.getenv("PATH"));
+      } else {
+        throw new IllegalStateException(path.toString() + " is invalid, does not contain hadoop native libraries");
+      }
+    }
+  } else {
+    fixtureSupported = true
+    System.setProperty("tests.hdfs.path", System.getenv("PATH"));
+  }
+
+  if (fixtureSupported) {
+    dependsOn hdfsFixture
+  } else {
+    logger.warn("hdfsFixture unsupported, please set tests.hadoop.native to directory containing native libraries")
     systemProperty 'tests.rest.blacklist', [
       'hdfs_repository/20_repository/*',
       'hdfs_repository/30_snapshot/*',
       'hdfs_repository/40_restore/*'
     ].join(',')
-  } else {
-    dependsOn hdfsFixture
   }
 }
 
