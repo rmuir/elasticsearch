@@ -73,7 +73,7 @@ integTest {
   boolean fixtureSupported = false;
   if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     // hdfs fixture will not start without hadoop native libraries on windows
-    String nativePath = System.getEnv("HADOOP_HOME")
+    String nativePath = System.getenv("HADOOP_HOME")
     if (nativePath != null) {
       Path path = Paths.get(nativePath);
       if (Files.isDirectory(path) &&
