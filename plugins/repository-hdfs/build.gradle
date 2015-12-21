@@ -64,7 +64,6 @@ dependencyLicenses {
 task hdfsFixture(type: org.elasticsearch.gradle.test.Fixture) {
   dependsOn project.configurations.hdfsFixture
   executable = new File(project.javaHome, 'bin/java')
-  env('PATH', "${ -> System.getProperty('tests.hdfs.path') }" )
   args '-cp', "${ -> project.configurations.hdfsFixture.asPath }",
        'hdfs.MiniHDFS',
        baseDir
@@ -74,27 +73,26 @@ integTest {
   boolean fixtureSupported = false;
   if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     // hdfs fixture will not start without hadoop native libraries on windows
-    String nativePath = System.getProperty("tests.hadoop.native")
+    String nativePath = System.getEnv("HADOOP_HOME")
     if (nativePath != null) {
       Path path = Paths.get(nativePath);
       if (Files.isDirectory(path) &&
-          Files.exists(path.resolve("hadoop.dll")) &&
-          Files.exists(path.resolve("hdfs.dll"))) {
+          Files.exists(path.resolve("bin").resolve("winutils.exe")) &&
+          Files.exists(path.resolve("bin").resolve("hadoop.dll")) &&
+          Files.exists(path.resolve("bin").resolve("hdfs.dll"))) {
         fixtureSupported = true
-        System.setProperty("tests.hdfs.path", path.toString() + ";" + System.getenv("PATH"));
       } else {
-        throw new IllegalStateException(path.toString() + " is invalid, does not contain hadoop native libraries");
+        throw new IllegalStateException("HADOOP_HOME: " + path.toString() + " is invalid, does not contain hadoop native libraries in $HADOOP_HOME/bin");
       }
     }
   } else {
     fixtureSupported = true
-    System.setProperty("tests.hdfs.path", System.getenv("PATH"));
   }
 
   if (fixtureSupported) {
     dependsOn hdfsFixture
   } else {
-    logger.warn("hdfsFixture unsupported, please set tests.hadoop.native to directory containing native libraries")
+    logger.warn("hdfsFixture unsupported, please set HADOOP_HOME and put HADOOP_HOME\\bin in PATH")
     systemProperty 'tests.rest.blacklist', [
       'hdfs_repository/20_repository/*',
       'hdfs_repository/30_snapshot/*',
