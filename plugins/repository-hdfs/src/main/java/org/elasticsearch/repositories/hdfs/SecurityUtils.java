@@ -19,30 +19,21 @@
 
 package org.elasticsearch.repositories.hdfs;
 
-import org.apache.hadoop.fs.FileSystem;
-import org.elasticsearch.ElasticsearchException;
+import org.apache.hadoop.fs.FileContext;
 import org.elasticsearch.SpecialPermission;
-import org.elasticsearch.plugin.hadoop.hdfs.Utils;
 
 import java.io.IOException;
-import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 
-class SecurityUtils {
+final class SecurityUtils {
 
-    abstract static class AccBridge extends Utils {
-        static AccessControlContext acc() {
-            return Utils.hadoopACC();
-        }
+    static <V> V execute(FileContextFactory fcf, FcCallback<V> callback) throws IOException {
+        return execute(fcf.getFileContext(), callback);
     }
 
-    static <V> V execute(FileSystemFactory ffs, FsCallback<V> callback) throws IOException {
-        return execute(ffs.getFileSystem(), callback);
-    }
-
-    static <V> V execute(FileSystem fs, FsCallback<V> callback) throws IOException {
+    static <V> V execute(FileContext fc, FcCallback<V> callback) throws IOException {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             // unprivileged code such as scripts do not have SpecialPermission
@@ -53,21 +44,11 @@ class SecurityUtils {
             return AccessController.doPrivileged(new PrivilegedExceptionAction<V>() {
                 @Override
                 public V run() throws IOException {
-                    return callback.doInHdfs(fs);
+                    return callback.doInHdfs(fc);
                 }
-            }, AccBridge.acc());
+            });
         } catch (PrivilegedActionException pae) {
-            Throwable th = pae.getCause();
-            if (th instanceof Error) {
-                throw (Error) th;
-            }
-            if (th instanceof RuntimeException) {
-                throw (RuntimeException) th;
-            }
-            if (th instanceof IOException) {
-                throw (IOException) th;
-            }
-            throw new ElasticsearchException(pae);
+            throw (IOException) pae.getException();
         }
     }
 }
