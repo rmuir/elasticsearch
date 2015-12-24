@@ -16,9 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.elasticsearch.gradle.precommit.PrecommitTasks
 
-apply plugin: 'elasticsearch.build'
+import org.elasticsearch.gradle.precommit.PrecommitTasks;
 
 dependencies {
   compile "org.elasticsearch:elasticsearch:${version}"
