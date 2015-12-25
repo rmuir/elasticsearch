@@ -81,7 +81,9 @@ public class ThirdPartyAuditTask extends AntTask {
     static final Pattern INTERNAL_RUNTIME_PATTERN =
         Pattern.compile(/Forbidden .* use:\s+(.*)\s+\[non-public internal runtime class\]/);
 
-    // we log everything (except missing classes warnings). Those we handle ourselves.
+    // we log everything and capture errors and handle them with our whitelist
+    // this is important, as we detect stale whitelist entries, workaround forbidden apis bugs,
+    // and it also allows whitelisting missing classes!
     static class EvilLogger extends DefaultLogger {
         final Set<String> missingClasses = new TreeSet<>();
         final Map<String,List<String>> violations = new TreeMap<>();
@@ -163,7 +165,6 @@ public class ThirdPartyAuditTask extends AntTask {
         for (File jar : jars) {
             names.add(jar.getName());
         }
-        logger.error("Scanning: " + names);
 
         // TODO: forbidden-apis + zipfileset gives O(n^2) behavior unless we dump to a tmpdir first,
         // and then remove our temp dir afterwards. don't complain: try it yourself.
