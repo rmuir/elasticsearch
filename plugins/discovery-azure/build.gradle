@@ -62,16 +62,7 @@ compileJava.options.compilerArgs << '-Xlint:-deprecation'
 // TODO: and why does this static not show up in maven...
 compileTestJava.options.compilerArgs << '-Xlint:-static'
 
-// TODO: figure out what is happening and fix this!!!!!!!!!!!
-// there might be still some undetected jar hell!
-// we need to fix https://github.com/policeman-tools/forbidden-apis/issues/91 first
 thirdPartyAudit.excludes = [
-  // uses internal java api: com.sun.xml.fastinfoset.stax.StAXDocumentParser
-  'com.sun.xml.bind.v2.runtime.unmarshaller.FastInfosetConnector',
-  'com.sun.xml.bind.v2.runtime.unmarshaller.FastInfosetConnector$CharSequenceImpl',
-  // uses internal java api: com.sun.xml.fastinfoset.stax.StAXDocumentSerializer
-  'com.sun.xml.bind.v2.runtime.output.FastInfosetStreamWriterOutput',
-
   // classes are missing
   'javax.servlet.ServletContextEvent', 
   'javax.servlet.ServletContextListener', 

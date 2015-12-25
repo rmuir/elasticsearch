@@ -78,6 +78,9 @@ public class ThirdPartyAuditTask extends AntTask {
     static final Pattern VIOLATION_PATTERN = 
         Pattern.compile(/\s\sin ([a-zA-Z0-9\$\.]+) \(.*\)/);
 
+    static final Pattern INTERNAL_RUNTIME_PATTERN =
+        Pattern.compile(/Forbidden .* use:\s+(.*)\s+\[non-public internal runtime class\]/);
+
     // we log everything (except missing classes warnings). Those we handle ourselves.
     static class EvilLogger extends DefaultLogger {
         final Set<String> missingClasses = new TreeSet<>();
@@ -95,14 +98,20 @@ public class ThirdPartyAuditTask extends AntTask {
                 } else if (event.getPriority() == Project.MSG_ERR) {
                     Matcher m = VIOLATION_PATTERN.matcher(event.getMessage());
                     if (m.matches()) {
-                        String violation = previousLine + '\n' + event.getMessage();
-                        String clazz = m.group(1).replace('.', '/') + ".class";
-                        List<String> current = violations.get(clazz);
-                        if (current == null) {
-                            current = new ArrayList<>();
-                            violations.put(clazz, current);
+                        // filter out false positives
+                        Matcher m2 = INTERNAL_RUNTIME_PATTERN.matcher(previousLine);
+                        if (m2.matches() && isReallyInternal(m2.group(1)) == false) {
+                            // false positive
+                        } else {
+                            String violation = previousLine + '\n' + event.getMessage();
+                            String clazz = m.group(1).replace('.', '/') + ".class";
+                            List<String> current = violations.get(clazz);
+                            if (current == null) {
+                                current = new ArrayList<>();
+                                violations.put(clazz, current);
+                            }
+                            current.add(violation);
                         }
-                        current.add(violation);
                     }
                     previousLine = event.getMessage();
                 }
@@ -252,5 +261,69 @@ public class ThirdPartyAuditTask extends AntTask {
             }
         });
         return sheistySet;
+    }
+
+    // Forbidden apis has many false positives for internal apis: 
+    // https://github.com/policeman-tools/forbidden-apis/issues/91
+    // TODO: remove this when forbidden-apis is fixed!
+    // generated with Security.getProperty("package.access").split(",") from java 8
+    // (this list can change in minor releases)
+    static final String[] INTERNAL_PACKAGES = [
+      'sun.',
+      'com.sun.xml.internal.',
+      'com.sun.imageio.',
+      'com.sun.istack.internal.',
+      'com.sun.jmx.',
+      'com.sun.media.sound.',
+      'com.sun.naming.internal.',
+      'com.sun.proxy.',
+      'com.sun.corba.se.',
+      'com.sun.org.apache.bcel.internal.',
+      'com.sun.org.apache.regexp.internal.',
+      'com.sun.org.apache.xerces.internal.',
+      'com.sun.org.apache.xpath.internal.',
+      'com.sun.org.apache.xalan.internal.extensions.',
+      'com.sun.org.apache.xalan.internal.lib.',
+      'com.sun.org.apache.xalan.internal.res.',
+      'com.sun.org.apache.xalan.internal.templates.',
+      'com.sun.org.apache.xalan.internal.utils.',
+      'com.sun.org.apache.xalan.internal.xslt.',
+      'com.sun.org.apache.xalan.internal.xsltc.cmdline.',
+      'com.sun.org.apache.xalan.internal.xsltc.compiler.',
+      'com.sun.org.apache.xalan.internal.xsltc.trax.',
+      'com.sun.org.apache.xalan.internal.xsltc.util.',
+      'com.sun.org.apache.xml.internal.res.',
+      'com.sun.org.apache.xml.internal.security.',
+      'com.sun.org.apache.xml.internal.serializer.utils.',
+      'com.sun.org.apache.xml.internal.utils.',
+      'com.sun.org.glassfish.',
+      'com.oracle.xmlns.internal.',
+      'com.oracle.webservices.internal.',
+      'oracle.jrockit.jfr.',
+      'org.jcp.xml.dsig.internal.',
+      'jdk.internal.',
+      'jdk.nashorn.internal.',
+      'jdk.nashorn.tools.',
+      'com.sun.activation.registries.',
+      'apple.',
+      'com.sun.browser.',
+      'com.sun.glass.',
+      'com.sun.javafx.',
+      'com.sun.media.',
+      'com.sun.openpisces.',
+      'com.sun.prism.',
+      'com.sun.scenario.',
+      'com.sun.t2k.',
+      'com.sun.pisces.',
+      'com.sun.webkit.',
+    ];
+
+    private static boolean isReallyInternal(String clazz) {
+        for (String pkg : INTERNAL_PACKAGES) {
+            if (clazz.startsWith(pkg)) {
+                return true;
+            }  
+        }
+        return false;
     }
 }

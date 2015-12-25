@@ -70,9 +70,6 @@ forbiddenPatterns {
 }
 
 thirdPartyAudit.excludes = [
-  // uses internal java api: com.sun.syndication (SyndFeedInput, SyndFeed, SyndEntry, SyndContent)
-  'org.apache.tika.parser.feed.FeedParser',
-
   // classes are missing: some due to our whitelisting of parsers
   'com.coremedia.iso.IsoFile', 
   'com.coremedia.iso.boxes.Box', 
