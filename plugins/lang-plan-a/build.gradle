@@ -28,25 +28,15 @@ dependencies {
   compile 'org.antlr:antlr4-runtime:4.5.1-1'
   compile 'org.ow2.asm:asm:5.0.4'
   compile 'org.ow2.asm:asm-commons:5.0.4'
+  compile 'org.ow2.asm:asm-tree:5.0.4'
+}
+
+dependencyLicenses {
+  mapping from: /asm-.*/, to: 'asm'
 }
 
 compileJava.options.compilerArgs << '-Xlint:-cast,-fallthrough,-rawtypes'
 compileTestJava.options.compilerArgs << '-Xlint:-unchecked'
-
-thirdPartyAudit.excludes = [
-  // classes are missing
-  // do we or do we not depend on asm-tree, that is the question
-  'org.objectweb.asm.tree.AbstractInsnNode', 
-  'org.objectweb.asm.tree.InsnList', 
-  'org.objectweb.asm.tree.InsnNode', 
-  'org.objectweb.asm.tree.JumpInsnNode', 
-  'org.objectweb.asm.tree.LabelNode', 
-  'org.objectweb.asm.tree.LocalVariableNode', 
-  'org.objectweb.asm.tree.LookupSwitchInsnNode', 
-  'org.objectweb.asm.tree.MethodNode', 
-  'org.objectweb.asm.tree.TableSwitchInsnNode', 
-  'org.objectweb.asm.tree.TryCatchBlockNode',
-]
 
 // regeneration logic, comes in via ant right now
 // don't port it to gradle, it works fine.
