@@ -150,6 +150,8 @@ thirdPartyAudit.excludes = [
   'javax.servlet.http.HttpServlet', 
   'javax.servlet.http.HttpServletRequest', 
   'javax.servlet.http.HttpServletResponse', 
+  'org.apache.commons.logging.Log', 
+  'org.apache.commons.logging.LogFactory',
   'org.apache.regexp.CharacterIterator', 
   'org.apache.regexp.RE', 
   'org.apache.regexp.REProgram', 
