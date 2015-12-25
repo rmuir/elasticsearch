@@ -19,6 +19,7 @@
 package org.elasticsearch.gradle.precommit
 
 import org.apache.tools.ant.BuildEvent
+import org.apache.tools.ant.BuildException
 import org.apache.tools.ant.BuildListener
 import org.apache.tools.ant.BuildLogger
 import org.apache.tools.ant.DefaultLogger
@@ -77,7 +78,9 @@ public class ThirdPartyAuditTask extends AntTask {
 
     // we log everything (except missing classes warnings). Those we handle ourselves.
     static class EvilLogger extends DefaultLogger {
-        final Set<String> missingClasses = new HashSet<>()
+        final Set<String> missingClasses = new TreeSet<>()
+        final Map<String,List<String>> violations = new TreeMap<>();
+        String previousLine = null
 
         @Override
         public void messageLogged(BuildEvent event) {
@@ -86,13 +89,20 @@ public class ThirdPartyAuditTask extends AntTask {
                     Matcher m = MISSING_CLASS_PATTERN.matcher(event.getMessage())
                     if (m.matches()) {
                         missingClasses.add(m.group(1).replace('.', '/') + ".class")
-                        return
                     }
                 } else if (event.getPriority() == Project.MSG_ERR) {
                     Matcher m = VIOLATION_PATTERN.matcher(event.getMessage())
                     if (m.matches()) {
-                        System.out.println("got: " + m.group(1).replace('.', '/') + ".class")
+                        String violation = previousLine + '\n' + event.getMessage()
+                        String clazz = m.group(1).replace('.', '/') + ".class"
+                        List<String> current = violations.get(clazz);
+                        if (current == null) {
+                            current = new ArrayList<>();
+                            violations.put(clazz, current);
+                        }
+                        current.add(violation);
                     }
+                    previousLine = event.getMessage()
                 }
             }
             super.messageLogged(event)
@@ -131,11 +141,11 @@ public class ThirdPartyAuditTask extends AntTask {
 
         // print which jars we are going to scan, always
         // this is not the time to try to be succinct! Forbidden will print plenty on its own!
-        Set<String> names = new HashSet<>()
+        Set<String> names = new TreeSet<>()
         for (File jar : jars) {
             names.add(jar.getName())
         }
-        logger.error("[thirdPartyAudit] Scanning: " + names)
+        logger.error("Scanning: " + names)
 
         // TODO: forbidden-apis + zipfileset gives O(n^2) behavior unless we dump to a tmpdir first,
         // and then remove our temp dir afterwards. don't complain: try it yourself.
@@ -155,63 +165,72 @@ public class ThirdPartyAuditTask extends AntTask {
         for (int i = 0; i < excludes.length; i++) {
             excludedFiles[i] = excludes[i].replace('.', '/') + ".class"
         }
-        Set<String> excludedSet = new HashSet<>(Arrays.asList(excludedFiles));
+        Set<String> excludedSet = new TreeSet<>(Arrays.asList(excludedFiles));
 
         // jarHellReprise
-        checkSheistyClasses(tmpDir.toPath(), excludedSet);
+        Set<String> sheistySet = getSheistyClasses(tmpDir.toPath());
 
-        ant.thirdPartyAudit(internalRuntimeForbidden: true,
+        try { 
+            ant.thirdPartyAudit(internalRuntimeForbidden: true,
                             failOnUnsupportedJava: false,
                             failOnMissingClasses: false,
                             classpath: project.configurations.testCompile.asPath) {
-            fileset(dir: tmpDir)
+                fileset(dir: tmpDir)
+            }
+        } catch (BuildException ignore) {}
+
+	EvilLogger evilLogger = null;
+        for (BuildListener listener : ant.project.getBuildListeners()) {
+            if (listener instanceof EvilLogger) {
+                evilLogger = (EvilLogger) listener;
+                break;
+            }
+        }
+        assert evilLogger != null;
+
+        // keep our whitelist up to date
+        Set<String> bogusExclusions = new TreeSet<>(excludedSet);
+        bogusExclusions.removeAll(sheistySet);
+        bogusExclusions.removeAll(evilLogger.missingClasses);
+        bogusExclusions.removeAll(evilLogger.violations.keySet());
+        if (!bogusExclusions.isEmpty()) {
+            throw new IllegalStateException("Invalid exclusions, nothing is wrong with these classes: " + bogusExclusions);
         }
 
-        // handle missing classes with excludes whitelist instead of on/off
-        checkMissingClasses(ant, tmpDir.toPath(), excludedSet);
+        // don't duplicate classes with the JDK
+        sheistySet.removeAll(excludedSet);
+        if (!sheistySet.isEmpty()) {
+            throw new IllegalStateException("JAR HELL WITH JDK! " + sheistySet);
+        }
 
-        // check that excludes are up to date: file exists or was found missing, if not, sure sign things are outdated
-        for (String file : excludedSet) {
-            if (! new File(tmpDir, file).exists()) {
-                throw new IllegalStateException("bogus thirdPartyAudit exclusion: '" + file + "', not a missing class, nor found in any dependency")
-            }
+        // don't allow a broken classpath
+        evilLogger.missingClasses.removeAll(excludedSet);
+        if (!evilLogger.missingClasses.isEmpty()) {
+            throw new IllegalStateException("CLASSES ARE MISSING! " + prettySet(evilLogger.missingClasses));
+        }
+
+        // don't use internal classes
+        evilLogger.violations.keySet().removeAll(excludedSet);
+        if (!evilLogger.violations.isEmpty()) {
+            throw new IllegalStateException("VIOLATIONS WERE FOUND! " + evilLogger.violations);
         }
 
         // clean up our mess (if we succeed)
         ant.delete(dir: tmpDir.getAbsolutePath())
     }
-    
-    /**
-     * check for missing classes: if classes are missing, the classpath is broken!
-     */
-    // note: removes any missing classes found from excludedSet
-    private void checkMissingClasses(AntBuilder ant, Path root, Set<String> excludedSet) {
-        Set<String> missingClasses = new TreeSet<>();
 
-        // now check if there were missing classes
-        for (BuildListener listener : ant.project.getBuildListeners()) {
-            if (listener instanceof EvilLogger) {
-                missingClasses.addAll(((EvilLogger) listener).missingClasses);
-            }
+    private static Set<String> prettySet(Set<String> raw) {
+        Set<String> cooked = new TreeSet<>();
+        for (String element : raw) {
+            cooked.add("\n'" + element.substring(0, element.length() - 6).replace('/', '.') + "'")
         }
-
-        Set<String> toProcess = new TreeSet<>(missingClasses);
-        toProcess.removeAll(excludedSet);
-        if (!toProcess.isEmpty()) {
-            throw new IllegalStateException("CLASSES ARE MISSING! " + toProcess)
-        }
-
-        if (!missingClasses.isEmpty()) {
-            logger.warn("[thirdPartyAudit] WARNING: CLASSES ARE MISSING! Expect NoClassDefFoundError in bug reports from users!")
-        }
-
-        excludedSet.removeAll(missingClasses);
+        return cooked;
     }
     
     /**
      * check for sheisty classes: if they also exist in the extensions classloader, its jar hell with the jdk!
      */
-    private void checkSheistyClasses(Path root, Set<String> excluded) {
+    private Set<String> getSheistyClasses(Path root) {
         // system.parent = extensions loader.
         // note: for jigsaw, this evilness will need modifications (e.g. use jrt filesystem!). 
         // but groovy/gradle needs to work at all first!
@@ -231,19 +250,6 @@ public class ThirdPartyAuditTask extends AntTask {
                 return FileVisitResult.CONTINUE;
             }
         });
-        
-        // check if we are ok
-        if (sheistySet.isEmpty()) {
-            return;
-        }
-        
-        // leniency against exclusions list
-        sheistySet.removeAll(excluded);
-        
-        if (sheistySet.isEmpty()) {
-            logger.warn("[thirdPartyAudit] WARNING: JAR HELL WITH JDK! Expect insanely hard-to-debug problems!")
-        } else {
-            throw new IllegalStateException("JAR HELL WITH JDK! " + sheistySet);
-        }
+        return sheistySet;
     }
 }

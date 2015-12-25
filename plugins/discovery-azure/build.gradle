@@ -103,4 +103,6 @@ thirdPartyAudit.excludes = [
   'org.osgi.framework.BundleContext', 
   'org.osgi.framework.BundleEvent', 
   'org.osgi.framework.SynchronousBundleListener',
+  'com.sun.xml.fastinfoset.stax.StAXDocumentParser', 
+  'com.sun.xml.fastinfoset.stax.StAXDocumentSerializer',
 ]
