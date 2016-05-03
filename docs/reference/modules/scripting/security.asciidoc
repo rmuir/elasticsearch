@@ -1,5 +1,5 @@
 [[modules-scripting-security]]
-=== Scripting and the Java Security Manager
+== Scripting and the Java Security Manager
 
 Elasticsearch runs with the https://docs.oracle.com/javase/tutorial/essential/environment/security.html[Java Security Manager]
 enabled by default.  The security policy in Elasticsearch locks down the
