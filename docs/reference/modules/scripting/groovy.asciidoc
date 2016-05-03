@@ -137,7 +137,8 @@ power of the second argument.
 or underflow.
 |=======================================================================
 
-=== Security Manager
+=== Security Concerns
 
-See <<modules-scripting-security, Scripting and the Java Security Manager>> for
-details on how to customize class whitelisting.
+See <<modules-scripting-security, Scripting and Security>> for
+details on security issues with scripts, including how to customize class 
+whitelisting.
