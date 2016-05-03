@@ -11,7 +11,6 @@ scripts for Elasticsearch. We encourage you to try it out--
 for more information, see <<modules-scripting-painless, Painless Scripting Language>>.
 
 The default scripting language is http://groovy-lang.org/[groovy] 
-(http://mvel.codehaus.org/[mvel] was the default in 1.3.x and earlier). 
 
 Additional `lang` plugins enable you to run scripts written in other languages. 
 Everywhere a script can be used, you can include a `lang` parameter
@@ -23,7 +22,7 @@ to specify the language of the script. Plugins are available for following langu
 |groovy     |no        |built-in
 |expression |yes       |built-in
 |mustache   |yes       |built-in
-|painless   |yes       |built-in (module)
+|painless   |yes       |built-in
 |javascript |no        |{plugins}/lang-javascript.html[elasticsearch-lang-javascript]
 |python     |no        |{plugins}/lang-python.html[elasticsearch-lang-python]
 |=======================================================================
@@ -465,8 +464,7 @@ Variables in `expression` scripts are available to access:
 [cols="<,<",options="header",]
 |=======================================================================
 |Expression |Description
-|`doc['field_name'].value` |The native value of the field. For example,
-if its a short type, it will be short.
+|`doc['field_name'].value` |The value of the field, as a `double`
 
 |`doc['field_name'].empty` |A boolean indicating if the field has no
 values within the doc.
