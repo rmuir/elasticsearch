@@ -47,7 +47,9 @@ class WriterConstants {
     final static Method SCORE_ACCESSOR_FLOAT = getAsmMethod(float.class, "floatValue");
 
     final static Method DEF_METHOD_CALL = getAsmMethod(
-        Object.class, "methodCall", Object.class, String.class, Definition.class, Object[].class, boolean[].class);
+        Object.class, "methodCall", Object.class, String.class, Definition.class);
+    final static Method DEF_METHOD_CALL_WITH_ARGUMENTS = getAsmMethod(
+        Object.class, "methodCallWithArguments", Object.class, String.class, Definition.class, Object[].class, boolean[].class);
     final static Method DEF_ARRAY_STORE = getAsmMethod(
         void.class, "arrayStore", Object.class, Object.class, Object.class, Definition.class, boolean.class, boolean.class);
     final static Method DEF_ARRAY_LOAD = getAsmMethod(

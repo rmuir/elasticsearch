@@ -33,8 +33,27 @@ import java.util.List;
 import java.util.Map;
 
 public class Def {
-    public static Object methodCall(final Object owner, final String name, final Definition definition,
-                                    final Object[] arguments, final boolean[] typesafe) {
+
+    /** Calls dynamic method with no arguments */
+    public static Object methodCall(final Object owner, final String name, final Definition definition) {
+        final Method method = getMethod(owner, name, definition);
+        
+        if (method == null) {
+            throw new IllegalArgumentException("Unable to find dynamic method [" + name + "] " +
+                    "for class [" + owner.getClass().getCanonicalName() + "].");
+        }
+        
+        try {
+            return method.handle.invoke(owner);
+        } catch (Throwable throwable) {
+            throw new IllegalArgumentException("Error invoking method [" + name + "] " +
+                    "with owner class [" + owner.getClass().getCanonicalName() + "].", throwable);
+        }
+    }
+
+    /** Calls dynamic method with argument processing */
+    public static Object methodCallWithArguments(final Object owner, final String name, final Definition definition,
+                                                 final Object[] arguments, final boolean[] typesafe) {
         final Method method = getMethod(owner, name, definition);
 
         if (method == null) {

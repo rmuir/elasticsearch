@@ -56,6 +56,7 @@ import static org.elasticsearch.painless.WriterConstants.DEF_ARRAY_STORE;
 import static org.elasticsearch.painless.WriterConstants.DEF_FIELD_LOAD;
 import static org.elasticsearch.painless.WriterConstants.DEF_FIELD_STORE;
 import static org.elasticsearch.painless.WriterConstants.DEF_METHOD_CALL;
+import static org.elasticsearch.painless.WriterConstants.DEF_METHOD_CALL_WITH_ARGUMENTS;
 import static org.elasticsearch.painless.WriterConstants.TOBYTEEXACT_INT;
 import static org.elasticsearch.painless.WriterConstants.TOBYTEEXACT_LONG;
 import static org.elasticsearch.painless.WriterConstants.TOBYTEWOOVERFLOW_DOUBLE;
@@ -733,27 +734,30 @@ class WriterExternal {
             execute.loadThis();
             execute.getField(CLASS_TYPE, "definition", DEFINITION_TYPE);
 
-            execute.push(arguments.size());
-            execute.newArray(definition.defType.type);
+            if (arguments.size() == 0) {
+                execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL);
+            } else {
+                execute.push(arguments.size());
+                execute.newArray(definition.defType.type);
 
-            for (int argument = 0; argument < arguments.size(); ++argument) {
-                execute.dup();
-                execute.push(argument);
-                writer.visit(arguments.get(argument));
-                execute.arrayStore(definition.defType.type);
+                for (int argument = 0; argument < arguments.size(); ++argument) {
+                    execute.dup();
+                    execute.push(argument);
+                    writer.visit(arguments.get(argument));
+                    execute.arrayStore(definition.defType.type);
+                }
+
+                execute.push(arguments.size());
+                execute.newArray(definition.booleanType.type);
+
+                for (int argument = 0; argument < arguments.size(); ++argument) {
+                    execute.dup();
+                    execute.push(argument);
+                    execute.push(metadata.getExpressionMetadata(arguments.get(argument)).typesafe);
+                    execute.arrayStore(definition.booleanType.type);
+                }
+                execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL_WITH_ARGUMENTS);
             }
-
-            execute.push(arguments.size());
-            execute.newArray(definition.booleanType.type);
-
-            for (int argument = 0; argument < arguments.size(); ++argument) {
-                execute.dup();
-                execute.push(argument);
-                execute.push(metadata.getExpressionMetadata(arguments.get(argument)).typesafe);
-                execute.arrayStore(definition.booleanType.type);
-            }
-
-            execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL);
         }
     }
 }
