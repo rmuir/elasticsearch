@@ -1,0 +1,76 @@
+:buildSrc:compileJava UP-TO-DATE
+:buildSrc:compileGroovy UP-TO-DATE
+:buildSrc:writeVersionProperties UP-TO-DATE
+:buildSrc:processResources UP-TO-DATE
+:buildSrc:classes UP-TO-DATE
+:buildSrc:jar UP-TO-DATE
+:buildSrc:sourcesJar UP-TO-DATE
+:buildSrc:signArchives SKIPPED
+:buildSrc:assemble UP-TO-DATE
+:buildSrc:compileTestJava UP-TO-DATE
+:buildSrc:compileTestGroovy UP-TO-DATE
+:buildSrc:processTestResources UP-TO-DATE
+:buildSrc:testClasses UP-TO-DATE
+:buildSrc:test UP-TO-DATE
+:buildSrc:check UP-TO-DATE
+:buildSrc:build UP-TO-DATE
+=======================================
+Elasticsearch Build Hamster says Hello!
+=======================================
+  Gradle Version        : 2.12
+  OS Info               : Linux 4.2.0-30-generic (amd64)
+  JDK Version           : Oracle Corporation 1.8.0_45 [Java HotSpot(TM) 64-Bit Server VM 25.45-b02]
+  JAVA_HOME             : /usr/local/jdk1.8.0_45
+:core:clean
+:distribution:clean
+:docs:clean
+:rest-api-spec:clean
+:distribution:deb:clean
+:distribution:integ-test-zip:clean
+:distribution:rpm:clean
+:distribution:tar:clean
+:distribution:zip:clean
+:modules:ingest-grok:clean
+:modules:lang-expression:clean
+:modules:lang-groovy:clean
+:modules:lang-mustache:clean
+:modules:lang-painless:clean
+:modules:reindex:clean
+:plugins:analysis-icu:clean
+:plugins:analysis-kuromoji:clean
+:plugins:analysis-phonetic:clean
+:plugins:analysis-smartcn:clean
+:plugins:analysis-stempel:clean
+:plugins:delete-by-query:clean
+:plugins:discovery-azure:clean
+:plugins:discovery-ec2:clean
+:plugins:discovery-gce:clean
+:plugins:ingest-attachment:clean
+:plugins:ingest-geoip:clean
+:plugins:jvm-example:clean
+:plugins:lang-javascript:clean
+:plugins:lang-python:clean
+:plugins:mapper-attachments:clean
+:plugins:mapper-murmur3:clean
+:plugins:mapper-size:clean
+:plugins:repository-azure:clean
+:plugins:repository-hdfs:clean
+:plugins:repository-s3:clean
+:plugins:store-smb:clean
+:qa:backwards-5.0:clean
+:qa:evil-tests:clean
+:qa:smoke-test-client:clean
+:qa:smoke-test-ingest-disabled:clean
+:qa:smoke-test-ingest-with-all-dependencies:clean
+:qa:smoke-test-multinode:clean
+:qa:smoke-test-plugins:clean
+:qa:smoke-test-reindex-with-groovy:clean
+:qa:vagrant:clean UP-TO-DATE
+:test:framework:clean
+:test:logger-usage:clean
+:test:fixtures:example-fixture:clean
+:test:fixtures:hdfs-fixture:clean
+
+BUILD SUCCESSFUL
+
+Total time: 10.895 secs

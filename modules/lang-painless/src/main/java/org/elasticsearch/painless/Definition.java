@@ -21,7 +21,6 @@ package org.elasticsearch.painless;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1815,14 +1814,8 @@ class Definition {
         MethodHandle handle;
 
         try {
-            if (statik) {
-                handle = MethodHandles.publicLookup().in(owner.clazz).findStatic(
-                    owner.clazz, alias == null ? name : alias, MethodType.methodType(rtn.clazz, classes));
-            } else {
-                handle = MethodHandles.publicLookup().in(owner.clazz).findVirtual(
-                    owner.clazz, alias == null ? name : alias, MethodType.methodType(rtn.clazz, classes));
-            }
-        } catch (NoSuchMethodException | IllegalAccessException exception) {
+            handle = MethodHandles.publicLookup().in(owner.clazz).unreflect(reflect);
+        } catch (IllegalAccessException exception) {
             throw new IllegalArgumentException("Method [" + (alias == null ? name : alias) + "]" +
                 " not found for class [" + owner.clazz.getName() + "]" +
                 " with arguments " + Arrays.toString(classes) + ".");
@@ -1907,12 +1900,10 @@ class Definition {
 
         try {
             if (!statik) {
-                getter = MethodHandles.publicLookup().in(owner.clazz).findGetter(
-                    owner.clazz, alias == null ? name : alias, type.clazz);
-                setter = MethodHandles.publicLookup().in(owner.clazz).findSetter(
-                    owner.clazz, alias == null ? name : alias, type.clazz);
+                getter = MethodHandles.publicLookup().unreflectGetter(reflect);
+                setter = MethodHandles.publicLookup().unreflectSetter(reflect);
             }
-        } catch (NoSuchFieldException | IllegalAccessException exception) {
+        } catch (IllegalAccessException exception) {
             throw new IllegalArgumentException("Getter/Setter [" + (alias == null ? name : alias) + "]" +
                 " not found for class [" + owner.clazz.getName() + "].");
         }
@@ -1982,10 +1973,8 @@ class Definition {
                     }
 
                     try {
-                        handle = MethodHandles.publicLookup().in(owner.clazz).findVirtual(
-                            owner.clazz, method.method.getName(),
-                            MethodType.methodType(method.reflect.getReturnType(), method.reflect.getParameterTypes()));
-                    } catch (NoSuchMethodException | IllegalAccessException exception) {
+                        handle = MethodHandles.publicLookup().in(owner.clazz).unreflect(reflect);
+                    } catch (IllegalAccessException exception) {
                         throw new IllegalArgumentException("Method [" + method.method.getName() + "] not found for" +
                             " class [" + owner.clazz.getName() + "] with arguments " +
                             Arrays.toString(method.reflect.getParameterTypes()) + ".");
@@ -2010,11 +1999,9 @@ class Definition {
                     }
 
                     try {
-                        getter = MethodHandles.publicLookup().in(owner.clazz).findGetter(
-                            owner.clazz, field.name, field.type.clazz);
-                        setter = MethodHandles.publicLookup().in(owner.clazz).findSetter(
-                            owner.clazz, field.name, field.type.clazz);
-                    } catch (NoSuchFieldException | IllegalAccessException exception) {
+                        getter = MethodHandles.publicLookup().unreflectGetter(reflect);
+                        setter = MethodHandles.publicLookup().unreflectSetter(reflect);
+                    } catch (IllegalAccessException exception) {
                         throw new IllegalArgumentException("Getter/Setter [" + field.name + "]" +
                             " not found for class [" + owner.clazz.getName() + "].");
                     }

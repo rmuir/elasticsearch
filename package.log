@@ -1,0 +1,81 @@
+:buildSrc:compileJava UP-TO-DATE
+:buildSrc:compileGroovy UP-TO-DATE
+:buildSrc:writeVersionProperties UP-TO-DATE
+:buildSrc:processResources UP-TO-DATE
+:buildSrc:classes UP-TO-DATE
+:buildSrc:jar UP-TO-DATE
+:buildSrc:sourcesJar UP-TO-DATE
+:buildSrc:signArchives SKIPPED
+:buildSrc:assemble UP-TO-DATE
+:buildSrc:compileTestJava UP-TO-DATE
+:buildSrc:compileTestGroovy UP-TO-DATE
+:buildSrc:processTestResources UP-TO-DATE
+:buildSrc:testClasses UP-TO-DATE
+:buildSrc:test UP-TO-DATE
+:buildSrc:check UP-TO-DATE
+:buildSrc:build UP-TO-DATE
+=======================================
+Elasticsearch Build Hamster says Hello!
+=======================================
+  Gradle Version        : 2.12
+  OS Info               : Linux 4.2.0-30-generic (amd64)
+  JDK Version           : Oracle Corporation 1.8.0_45 [Java HotSpot(TM) 64-Bit Server VM 25.45-b02]
+  JAVA_HOME             : /usr/local/jdk1.8.0_45
+:core:compileJavaNote: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+:core:processResources
+:core:classes
+:core:jar
+:modules:ingest-grok:compileJava
+:modules:ingest-grok:processResources
+:modules:ingest-grok:classes
+:modules:ingest-grok:jar
+:modules:ingest-grok:copyPluginPropertiesTemplate
+:modules:ingest-grok:pluginProperties
+:modules:ingest-grok:bundlePlugin
+:modules:lang-expression:compileJava
+:modules:lang-expression:processResources UP-TO-DATE
+:modules:lang-expression:classes
+:modules:lang-expression:jar
+:modules:lang-expression:copyPluginPropertiesTemplate
+:modules:lang-expression:pluginProperties
+:modules:lang-expression:bundlePlugin
+:modules:lang-groovy:compileJava
+:modules:lang-groovy:processResources UP-TO-DATE
+:modules:lang-groovy:classes
+:modules:lang-groovy:jar
+:modules:lang-groovy:copyPluginPropertiesTemplate
+:modules:lang-groovy:pluginProperties
+:modules:lang-groovy:bundlePlugin
+:modules:lang-mustache:compileJava
+:modules:lang-mustache:processResources UP-TO-DATE
+:modules:lang-mustache:classes
+:modules:lang-mustache:jar
+:modules:lang-mustache:copyPluginPropertiesTemplate
+:modules:lang-mustache:pluginProperties
+:modules:lang-mustache:bundlePlugin
+:modules:lang-painless:compileJava
+:modules:lang-painless:processResources UP-TO-DATE
+:modules:lang-painless:classes
+:modules:lang-painless:jar
+:modules:lang-painless:copyPluginPropertiesTemplate
+:modules:lang-painless:pluginProperties
+:modules:lang-painless:bundlePlugin
+:modules:reindex:compileJava
+:modules:reindex:processResources UP-TO-DATE
+:modules:reindex:classes
+:modules:reindex:jar
+:modules:reindex:copyPluginPropertiesTemplate
+:modules:reindex:pluginProperties
+:modules:reindex:bundlePlugin
+:distribution:buildModules
+:distribution:zip:buildZip
+:distribution:zip:signArchives SKIPPED
+:distribution:zip:assemble
+
+BUILD SUCCESSFUL
+
+Total time: 42.222 secs
