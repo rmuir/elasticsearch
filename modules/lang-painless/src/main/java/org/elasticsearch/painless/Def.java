@@ -55,6 +55,7 @@ public class Def {
     public static Object methodCallWithArguments(final Object owner, final String name, final Definition definition,
                                                  final Object[] arguments, final boolean[] typesafe) {
         final Method method = getMethod(owner, name, definition);
+        arguments[0] = owner;
 
         if (method == null) {
             throw new IllegalArgumentException("Unable to find dynamic method [" + name + "] " +
@@ -63,27 +64,24 @@ public class Def {
 
         final MethodHandle handle = method.handle;
         final List<Type> types = method.arguments;
-        final Object[] parameters = new Object[arguments.length + 1];
 
-        parameters[0] = owner;
-
-        if (types.size() != arguments.length) {
+        if (types.size() != arguments.length - 1) {
             throw new IllegalArgumentException("When dynamically calling [" + name + "] from class " +
                     "[" + owner.getClass() + "] expected [" + types.size() + "] arguments," +
-                    " but found [" + arguments.length + "].");
+                    " but found [" + (arguments.length - 1) + "].");
         }
 
         try {
-            for (int count = 0; count < arguments.length; ++count) {
-                if (typesafe[count]) {
-                    parameters[count + 1] = arguments[count];
-                } else {
-                    final Transform transform = getTransform(arguments[count].getClass(), types.get(count).clazz, definition);
-                    parameters[count + 1] = transform == null ? arguments[count] : transform.method.handle.invoke(arguments[count]);
+            for (int count = 1; count < arguments.length; ++count) {
+                if (!typesafe[count]) {
+                    final Transform transform = getTransform(arguments[count].getClass(), types.get(count - 1).clazz, definition);
+                    if (transform != null) {
+                        arguments[count] = transform.method.handle.invoke(arguments[count]);
+                    }
                 }
             }
 
-            return handle.invokeWithArguments(parameters);
+            return handle.invokeWithArguments(arguments);
         } catch (Throwable throwable) {
             throw new IllegalArgumentException("Error invoking method [" + name + "] " +
                     "with owner class [" + owner.getClass().getCanonicalName() + "].", throwable);

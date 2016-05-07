@@ -730,34 +730,46 @@ class WriterExternal {
                 execute.checkCast(target.rtn.type);
             }
         } else {
-            execute.push((String)sourceenmd.target);
-            execute.loadThis();
-            execute.getField(CLASS_TYPE, "definition", DEFINITION_TYPE);
-
-            if (arguments.size() == 0) {
-                execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL);
-            } else {
-                execute.push(arguments.size());
-                execute.newArray(definition.defType.type);
-
-                for (int argument = 0; argument < arguments.size(); ++argument) {
-                    execute.dup();
-                    execute.push(argument);
-                    writer.visit(arguments.get(argument));
-                    execute.arrayStore(definition.defType.type);
-                }
-
-                execute.push(arguments.size());
-                execute.newArray(definition.booleanType.type);
-
-                for (int argument = 0; argument < arguments.size(); ++argument) {
-                    execute.dup();
-                    execute.push(argument);
-                    execute.push(metadata.getExpressionMetadata(arguments.get(argument)).typesafe);
-                    execute.arrayStore(definition.booleanType.type);
-                }
-                execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL_WITH_ARGUMENTS);
-            }
+            writeDynamicCallExternal(source);
         }
+    }
+    
+    private void writeDynamicCallExternal(final ExtcallContext source) {
+      final ExtNodeMetadata sourceenmd = metadata.getExtNodeMetadata(source);
+      final List<ExpressionContext> arguments = source.arguments().expression();
+
+      execute.push((String)sourceenmd.target);
+      execute.loadThis();
+      execute.getField(CLASS_TYPE, "definition", DEFINITION_TYPE);
+
+      if (arguments.size() == 0) {
+          execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL);
+      } else {
+          execute.push(1 + arguments.size());
+          execute.newArray(definition.defType.type);
+
+          for (int argument = 0; argument < arguments.size(); ++argument) {
+              execute.dup();
+              execute.push(1 + argument);
+              writer.visit(arguments.get(argument));
+              execute.arrayStore(definition.defType.type);
+          }
+
+          execute.push(1 + arguments.size());
+          execute.newArray(definition.booleanType.type);
+
+          execute.dup();
+          execute.push(0);
+          execute.push(true);
+          execute.arrayStore(definition.booleanType.type);
+
+          for (int argument = 0; argument < arguments.size(); ++argument) {
+              execute.dup();
+              execute.push(1 + argument);
+              execute.push(metadata.getExpressionMetadata(arguments.get(argument)).typesafe);
+              execute.arrayStore(definition.booleanType.type);
+          }
+          execute.invokeStatic(definition.defobjType.type, DEF_METHOD_CALL_WITH_ARGUMENTS);
+      }
     }
 }
