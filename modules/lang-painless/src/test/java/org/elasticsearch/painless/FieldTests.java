@@ -68,6 +68,7 @@ public class FieldTests extends ScriptTestCase {
             addMethod("FieldClass", "getSi", null, false, intType, new Type[] {}, null, null);
             addMethod("FieldClass", "setSi", null, false, voidType, new Type[] {intType}, null, null);
             addMethod("FieldClass", "test", null, false, floatType, new Type[] {floatType, floatType}, null, null);
+            computeRuntimeClasses();
         }
     }
 

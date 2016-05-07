@@ -322,11 +322,24 @@ class Definition {
             this.downcast = downcast;
         }
     }
+    
+    static class RuntimeClass {
+        final Map<String, Method> methods;
+        final Map<String, MethodHandle> getters;
+        final Map<String, MethodHandle> setters;
+        
+        private RuntimeClass(Map<String, Method> methods, Map<String, MethodHandle> getters, Map<String, MethodHandle> setters) {
+            this.methods = methods;
+            this.getters = getters;
+            this.setters = setters;
+        }
+    }
 
     final Map<String, Struct> structs;
     final Map<Class<?>, Struct> classes;
     final Map<Cast, Transform> transforms;
     final Map<Pair, Type> bounds;
+    final Map<Class<?>, RuntimeClass> runtimeMap; 
 
     final Type voidType;
     final Type booleanType;
@@ -409,6 +422,7 @@ class Definition {
         classes = new HashMap<>();
         transforms = new HashMap<>();
         bounds = new HashMap<>();
+        runtimeMap = new HashMap<>();
 
         addDefaultStructs();
         addDefaultClasses();
@@ -491,6 +505,61 @@ class Definition {
         copyDefaultStructs();
         addDefaultTransforms();
         addDefaultBounds();
+        computeRuntimeClasses();
+    }
+    
+    // precompute a more efficient structure for dynamic method/field access:
+    void computeRuntimeClasses() {
+        this.runtimeMap.clear();
+        for (Class<?> clazz : classes.keySet()) {
+            runtimeMap.put(clazz, computeRuntimeClass(clazz));
+        }
+    }
+    
+    RuntimeClass computeRuntimeClass(Class<?> clazz) {
+        Struct struct = classes.get(clazz);
+        Map<String, Method> methods = struct.methods;
+        Map<String, MethodHandle> getters = new HashMap<>();
+        Map<String, MethodHandle> setters = new HashMap<>();
+        // add all members
+        for (Map.Entry<String,Field> member : struct.members.entrySet()) {
+            getters.put(member.getKey(), member.getValue().getter);
+            setters.put(member.getKey(), member.getValue().setter);
+        }
+        // add all getters/setters
+        for (Map.Entry<String,Method> method : methods.entrySet()) {
+            String name = method.getKey();
+            Method m = method.getValue();
+            
+            if (m.arguments.size() == 0 &&
+                name.startsWith("get") &&
+                name.length() > 3 &&
+                Character.isUpperCase(name.charAt(3))) {
+              StringBuilder newName = new StringBuilder();
+              newName.append(Character.toLowerCase(name.charAt(3)));
+              newName.append(name.substring(4));
+              getters.putIfAbsent(newName.toString(), m.handle);
+            } else if (m.arguments.size() == 0 &&
+                       name.startsWith("is") &&
+                       name.length() > 2 && 
+                       Character.isUpperCase(name.charAt(2))) {
+              StringBuilder newName = new StringBuilder();
+              newName.append(Character.toLowerCase(name.charAt(2)));
+              newName.append(name.substring(3));
+              getters.putIfAbsent(newName.toString(), m.handle);
+            }
+            
+            if (m.arguments.size() == 1 &&
+                name.startsWith("set") &&
+                name.length() > 3 &&
+                Character.isUpperCase(name.charAt(3))) {
+              StringBuilder newName = new StringBuilder();
+              newName.append(Character.toLowerCase(name.charAt(3)));
+              newName.append(name.substring(4));
+              setters.putIfAbsent(newName.toString(), m.handle);
+            }
+        }
+        return new RuntimeClass(methods, getters, setters);
     }
 
     Definition(final Definition definition) {
@@ -512,6 +581,7 @@ class Definition {
 
         transforms = Collections.unmodifiableMap(definition.transforms);
         bounds = Collections.unmodifiableMap(definition.bounds);
+        this.runtimeMap = Collections.unmodifiableMap(definition.runtimeMap);
 
         voidType = definition.voidType;
         booleanType = definition.booleanType;

@@ -21,8 +21,8 @@ package org.elasticsearch.painless;
 
 import org.elasticsearch.index.fielddata.ScriptDocValues;
 import org.elasticsearch.painless.Definition.Cast;
-import org.elasticsearch.painless.Definition.Field;
 import org.elasticsearch.painless.Definition.Method;
+import org.elasticsearch.painless.Definition.RuntimeClass;
 import org.elasticsearch.painless.Definition.Struct;
 import org.elasticsearch.painless.Definition.Transform;
 import org.elasticsearch.painless.Definition.Type;
@@ -74,19 +74,7 @@ public class Def {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void fieldStore(final Object owner, Object value, final String name,
                                   final Definition definition, final boolean typesafe) {
-        final Field field = getField(owner, name, definition);
-        MethodHandle handle = null;
-
-        if (field == null) {
-            final String set = "set" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
-            final Method method = getMethod(owner, set, definition);
-
-            if (method != null) {
-                handle = method.handle;
-            }
-        } else {
-            handle = field.setter;
-        }
+        MethodHandle handle = getFieldSetter(owner, name, definition);
 
         if (handle != null) {
             try {
@@ -125,7 +113,7 @@ public class Def {
             return Array.getLength(owner);
         } else {
             // TODO: remove this fast-path, once we speed up dynamics some more
-            if ("value".equals(name) && owner instanceof ScriptDocValues) {
+            if (false && "value".equals(name) && owner instanceof ScriptDocValues) {
                 if (clazz == ScriptDocValues.Doubles.class) {
                     return ((ScriptDocValues.Doubles)owner).getValue();
                 } else if (clazz == ScriptDocValues.Longs.class) {
@@ -136,16 +124,10 @@ public class Def {
                     return ((ScriptDocValues.GeoPoints)owner).getValue();
                 }
             }
-            final Field field = getField(owner, name, definition);
-            MethodHandle handle;
+            MethodHandle handle = getFieldGetter(owner, name, definition);
 
-            if (field == null) {
-                final String get = "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
-                final Method method = getMethod(owner, get, definition);
-
-                if (method != null) {
-                    handle = method.handle;
-                } else if (owner instanceof Map) {
+            if (handle == null) {
+                if (owner instanceof Map) {
                     return ((Map)owner).get(name);
                 } else if (owner instanceof List) {
                     try {
@@ -159,21 +141,15 @@ public class Def {
                     throw new IllegalArgumentException("Unable to find dynamic field [" + name + "] " +
                             "for class [" + clazz.getCanonicalName() + "].");
                 }
-            } else {
-                handle = field.getter;
             }
 
-            if (handle == null) {
-                throw new IllegalArgumentException(
-                        "Unable to read from field [" + name + "] with owner class [" + clazz + "].");
-            } else {
+
                 try {
                     return handle.invoke(owner);
                 } catch (final Throwable throwable) {
                     throw new IllegalArgumentException("Error loading value from " +
                             "field [" + name + "] with owner class [" + clazz + "].", throwable);
                 }
-            }
         }
     }
 
@@ -260,7 +236,7 @@ public class Def {
         Class<?> clazz = owner.getClass();
 
         while (clazz != null) {
-            Struct struct = definition.classes.get(clazz);
+            RuntimeClass struct = definition.runtimeMap.get(clazz);
 
             if (struct != null) {
                 Method method = struct.methods.get(name);
@@ -271,7 +247,7 @@ public class Def {
             }
 
             for (final Class<?> iface : clazz.getInterfaces()) {
-                struct = definition.classes.get(iface);
+                struct = definition.runtimeMap.get(iface);
 
                 if (struct != null) {
                     Method method = struct.methods.get(name);
@@ -288,15 +264,15 @@ public class Def {
         return null;
     }
 
-    /** Field lookup for owner.name, returns null if no matching field was found */ 
-    private static Field getField(final Object owner, final String name, final Definition definition) {
+    /** Field lookup for owner.name getter, returns null if no matching field was found */ 
+    private static MethodHandle getFieldGetter(final Object owner, final String name, final Definition definition) {
         Class<?> clazz = owner.getClass();
 
         while (clazz != null) {
-            Struct struct = definition.classes.get(clazz);
+            RuntimeClass struct = definition.runtimeMap.get(clazz);
 
             if (struct != null) {
-                Field field = struct.members.get(name);
+                MethodHandle field = struct.getters.get(name);
 
                 if (field != null) {
                     return field;
@@ -304,10 +280,43 @@ public class Def {
             }
 
             for (final Class<?> iface : clazz.getInterfaces()) {
-                struct = definition.classes.get(iface);
+                struct = definition.runtimeMap.get(iface);
 
                 if (struct != null) {
-                    Field field = struct.members.get(name);
+                    MethodHandle field = struct.getters.get(name);
+
+                    if (field != null) {
+                        return field;
+                    }
+                }
+            }
+
+            clazz = clazz.getSuperclass();
+        }
+
+        return null;
+    }
+    
+    /** Field lookup for owner.name setter, returns null if no matching field was found */ 
+    private static MethodHandle getFieldSetter(final Object owner, final String name, final Definition definition) {
+        Class<?> clazz = owner.getClass();
+
+        while (clazz != null) {
+            RuntimeClass struct = definition.runtimeMap.get(clazz);
+
+            if (struct != null) {
+                MethodHandle field = struct.setters.get(name);
+
+                if (field != null) {
+                    return field;
+                }
+            }
+
+            for (final Class<?> iface : clazz.getInterfaces()) {
+                struct = definition.runtimeMap.get(iface);
+
+                if (struct != null) {
+                    MethodHandle field = struct.setters.get(name);
 
                     if (field != null) {
                         return field;
