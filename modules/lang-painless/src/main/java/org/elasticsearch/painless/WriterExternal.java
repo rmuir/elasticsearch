@@ -20,6 +20,7 @@
 package org.elasticsearch.painless;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.elasticsearch.painless.Definition.Cast;
 import org.elasticsearch.painless.Definition.Constructor;
 import org.elasticsearch.painless.Definition.Field;
 import org.elasticsearch.painless.Definition.Method;
@@ -712,7 +713,11 @@ class WriterExternal {
         StringBuilder signature = new StringBuilder();
         signature.append("(Ljava/lang/Object;");
         for (int i = 0; i < arguments.size(); i++) {
-            signature.append("Ljava/lang/Object;");
+            // disable any implicit casts/conversion for arguments, let invokeDynamic take care
+            ExpressionMetadata arg = metadata.getExpressionMetadata(arguments.get(i));
+            arg.to = arg.from;
+            arg.cast = new Cast(arg.from, arg.from);
+            signature.append(arg.from.type.getDescriptor());
             writer.visit(arguments.get(i));
         }
         signature.append(")Ljava/lang/Object;");
