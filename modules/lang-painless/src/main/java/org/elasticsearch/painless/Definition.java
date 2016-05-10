@@ -1060,14 +1060,17 @@ class Definition {
 
         addMethod("List", "set", null, false, objectType, new Type[] {intType, objectType}, defType, new Type[] {intType, defType});
         addMethod("List", "get", null, false, objectType, new Type[] {intType}, defType, null);
-        addMethod("List", "getLength", "size", false, intType, new Type[] {}, null, null);
         addMethod("List", "remove", null, false, objectType, new Type[] {intType}, defType, null);
+        // alias .size() to getLength(), so .length property works
+        addMethod("List", "getLength", "size", false, intType, new Type[] {}, null, null);
 
         addConstructor("ArrayList", "new", new Type[] {}, null);
 
         addMethod("List<Object>", "set", null, false, objectType, new Type[] {intType, objectType}, null, null);
         addMethod("List<Object>", "get", null, false, objectType, new Type[] {intType}, null, null);
         addMethod("List<Object>", "remove", null, false, objectType, new Type[] {intType}, null, null);
+        // alias .size() to getLength(), so .length property works
+        addMethod("List<Object>", "getLength", "size", false, intType, new Type[] {}, null, null);
 
         addConstructor("ArrayList<Object>", "new", new Type[] {}, null);
 
@@ -1075,6 +1078,8 @@ class Definition {
             new Type[] {intType, stringType});
         addMethod("List<String>", "get", null, false, objectType, new Type[] {intType}, stringType, null);
         addMethod("List<String>", "remove", null, false, objectType, new Type[] {intType}, stringType, null);
+        // alias .size() to getLength(), so .length property works
+        addMethod("List<String>", "getLength", "size", false, intType, new Type[] {}, null, null);
 
         addConstructor("ArrayList<String>", "new", new Type[] {}, null);
 
