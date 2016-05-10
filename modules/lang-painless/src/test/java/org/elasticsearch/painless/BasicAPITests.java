@@ -62,6 +62,12 @@ public class BasicAPITests extends ScriptTestCase {
         assertEquals(5, exec("def x = new ArrayList(); x.add(3); x[0] = 5; return x[0];"));
     }
     
+    /** Test .length with a list */
+    public void testListLength() {
+        assertEquals(1, exec("def x = new ArrayList(); x.add(3); return x.length"));
+        assertEquals(1, exec("List x = new ArrayList(); x.add(3); return x.length"));
+    }
+
     /** Test shortcut for getters with isXXXX */
     public void testListEmpty() {
         assertEquals(true, exec("def x = new ArrayList(); return x.empty;"));

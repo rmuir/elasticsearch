@@ -1060,6 +1060,7 @@ class Definition {
 
         addMethod("List", "set", null, false, objectType, new Type[] {intType, objectType}, defType, new Type[] {intType, defType});
         addMethod("List", "get", null, false, objectType, new Type[] {intType}, defType, null);
+        addMethod("List", "getLength", "size", false, intType, new Type[] {}, null, null);
         addMethod("List", "remove", null, false, objectType, new Type[] {intType}, defType, null);
 
         addConstructor("ArrayList", "new", new Type[] {}, null);
