@@ -439,6 +439,18 @@ class Metadata {
      * the doc variable is accessed.
      */
     int docValueSlot = -1;
+    
+    /**
+     * Used to determine what slot the ctx variable is stored in.  This is used in the {@link Writer} whenever
+     * the ctx variable is accessed.
+     */
+    int ctxValueSlot = -1;
+    
+    /**
+     * Used to determine if the ctx variable is actually used.  This is used in the {@link Analyzer} to update
+     * variable slots at the completion of analysis if ctx is not used.
+     */
+    boolean ctxValueUsed = false;
 
     /**
      * Maps the relevant ANTLR node to its metadata.

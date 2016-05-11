@@ -110,6 +110,9 @@ class Analyzer extends PainlessParserBaseVisitor<Void> {
         metadata.loopCounterSlot = utility.addVariable(null, "#loop", definition.intType).slot;
         // document's score as a read-only float.
         metadata.scoreValueSlot = utility.addVariable(null, "_score", definition.floatType).slot;
+        // ctx map set by executable scripts as a read-only map.
+        // TODO: currently working as a def type, should be smapType...
+        metadata.ctxValueSlot = utility.addVariable(null, "ctx", definition.defType).slot;
 
         metadata.createStatementMetadata(metadata.root);
         visit(metadata.root);
