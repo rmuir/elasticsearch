@@ -429,8 +429,8 @@ class Metadata {
     int scoreValueSlot = -1;
 
     /**
-     * Used to determine if the _score variable is actually used.  This is used in the {@link Analyzer} to update
-     * variable slots at the completion of analysis if _score is not used.
+     * Used to determine if the _score variable is actually used.  This is used to know if we should call
+     * Scorer.score() once and cache into a local variable, and expose NeedsScore interface (to allow query caching)
      */
     boolean scoreValueUsed = false;
     
@@ -447,8 +447,8 @@ class Metadata {
     int ctxValueSlot = -1;
     
     /**
-     * Used to determine if the ctx variable is actually used.  This is used in the {@link Analyzer} to update
-     * variable slots at the completion of analysis if ctx is not used.
+     * Used to determine if the ctx variable is actually used.  This is used to determine if we should call
+     * Map.get once and store into a local variable on startup.
      */
     boolean ctxValueUsed = false;
 
