@@ -73,8 +73,14 @@ final class Writer {
         writeEnd();
     }
 
+    // This maximum length is theoretically 65535 bytes, but as it's CESU-8 encoded we dont know how large it is in bytes, so be safe
+    // "If your ranking function is that large you need to check yourself into a mental institution!"
+    // in all seriousness: this is how much we are going to encode as the *file name*, we can clip it to be much smaller,
+    // just never ever try to exceed 16K here (and we add extra stuff so beware)!
+    private static final int MAX_SUMMARY_LENGTH = 256;
+
     private void writeBegin() {
-        final int version = Opcodes.V1_7;
+        final int version = Opcodes.V1_8;
         final int access = Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER | Opcodes.ACC_FINAL;
         final String base = BASE_CLASS_TYPE.getInternalName();
         final String name = CLASS_TYPE.getInternalName();
@@ -84,7 +90,18 @@ final class Writer {
             new String[] { WriterConstants.NEEDS_SCORE_TYPE.getInternalName() } : null;
 
         writer.visit(version, access, name, null, base, interfaces);
-        writer.visitSource(source, null);
+        StringBuilder fileName = new StringBuilder();
+        // TODO: don't shove the source in here unless its really an inline script
+        // otherwise give the actual file name.
+        if (source.length() > MAX_SUMMARY_LENGTH) {
+            fileName.append(source.substring(0, MAX_SUMMARY_LENGTH));
+            fileName.append(" ...");
+        } else {
+            fileName.append(source);
+        }
+        fileName.append(' ');
+        fileName.append("@script");
+        writer.visitSource(fileName.toString(), null);
     }
 
     private void writeConstructor() {

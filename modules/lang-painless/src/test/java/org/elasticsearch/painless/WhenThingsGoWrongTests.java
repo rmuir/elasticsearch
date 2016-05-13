@@ -30,6 +30,31 @@ public class WhenThingsGoWrongTests extends ScriptTestCase {
         });
     }
 
+    public void testLineNumbers() {
+        // trigger NPE at line 1 of the script
+        NullPointerException exception = expectThrows(NullPointerException.class, () -> {
+            exec("String x = null; boolean y = x.isEmpty();\n" +
+                 "return y;");
+        });
+        assertEquals(1, exception.getStackTrace()[0].getLineNumber());
+
+        // trigger NPE at line 2 of the script
+        exception = expectThrows(NullPointerException.class, () -> {
+            exec("String x = null;\n" +
+                 "return x.isEmpty();");
+        });
+        assertEquals(2, exception.getStackTrace()[0].getLineNumber());
+
+        // trigger NPE at line 3 of the script
+        exception = expectThrows(NullPointerException.class, () -> {
+            exec("String x = null;\n" +
+                 "String y = x;\n" +
+                 "return y.isEmpty();");
+        });
+        assertEquals(3, exception.getStackTrace()[0].getLineNumber());
+        exception.printStackTrace();
+    }
+
     public void testInvalidShift() {
         expectThrows(ClassCastException.class, () -> {
             exec("float x = 15F; x <<= 2; return x;");

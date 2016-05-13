@@ -22,6 +22,7 @@ package org.elasticsearch.painless.node;
 import org.elasticsearch.painless.CompilerSettings;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Variables;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
@@ -65,6 +66,9 @@ public final class SSource extends AStatement {
     @Override
     public void write(final CompilerSettings settings, final Definition definition, final GeneratorAdapter adapter) {
         for (final AStatement statement : statements) {
+            Label label = new Label();
+            adapter.visitLabel(label);
+            adapter.visitLineNumber(statement.line, label);
             statement.write(settings, definition, adapter);
         }
 
