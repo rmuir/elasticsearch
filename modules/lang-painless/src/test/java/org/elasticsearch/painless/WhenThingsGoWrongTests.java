@@ -52,7 +52,17 @@ public class WhenThingsGoWrongTests extends ScriptTestCase {
                  "return y.isEmpty();");
         });
         assertEquals(3, exception.getStackTrace()[0].getLineNumber());
-        exception.printStackTrace();
+        
+        // trigger NPE at line 4 in script (inside conditional)
+        exception = expectThrows(NullPointerException.class, () -> {
+            exec("String x = null;\n" +
+                 "boolean y = false;\n" +
+                 "if (!y) {\n" +
+                 "  y = x.isEmpty();\n" + 
+                 "}\n" +
+                 "return y;");
+        });
+        assertEquals(4, exception.getStackTrace()[0].getLineNumber());
     }
 
     public void testInvalidShift() {

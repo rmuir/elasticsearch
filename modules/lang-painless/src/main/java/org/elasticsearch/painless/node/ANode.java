@@ -19,6 +19,9 @@
 
 package org.elasticsearch.painless.node;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 /**
  * The superclass for all other nodes.
  */
@@ -41,5 +44,11 @@ public abstract class ANode {
 
     public String error(final String message) {
         return "Error " + location  + ": " + message;
+    }
+    
+    void writeDebugInfo(GeneratorAdapter adapter) {
+        Label label = new Label();
+        adapter.visitLabel(label);
+        adapter.visitLineNumber(line, label);
     }
 }

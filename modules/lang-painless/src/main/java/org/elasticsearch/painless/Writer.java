@@ -39,14 +39,15 @@ import static org.elasticsearch.painless.WriterConstants.MAP_TYPE;
 final class Writer {
 
     static byte[] write(final CompilerSettings settings, final Definition definition,
-                               final String source, final Variables variables, final SSource root) {
-        final Writer writer = new Writer(settings, definition, source, variables, root);
+                               String name, final String source, final Variables variables, final SSource root) {
+        final Writer writer = new Writer(settings, definition, name, source, variables, root);
 
         return writer.getBytes();
     }
 
     private final CompilerSettings settings;
     private final Definition definition;
+    private final String scriptName;
     private final String source;
     private final Variables variables;
     private final SSource root;
@@ -55,9 +56,10 @@ final class Writer {
     private final GeneratorAdapter adapter;
 
     private Writer(final CompilerSettings settings, final Definition definition,
-                     final String source, final Variables variables, final SSource root) {
+                     String name, final String source, final Variables variables, final SSource root) {
         this.settings = settings;
         this.definition = definition;
+        this.scriptName = name;
         this.source = source;
         this.variables = variables;
         this.root = root;
@@ -74,10 +76,7 @@ final class Writer {
     }
 
     // This maximum length is theoretically 65535 bytes, but as it's CESU-8 encoded we dont know how large it is in bytes, so be safe
-    // "If your ranking function is that large you need to check yourself into a mental institution!"
-    // in all seriousness: this is how much we are going to encode as the *file name*, we can clip it to be much smaller,
-    // just never ever try to exceed 16K here (and we add extra stuff so beware)!
-    private static final int MAX_SUMMARY_LENGTH = 256;
+    private static final int MAX_NAME_LENGTH = 256;
 
     private void writeBegin() {
         final int version = Opcodes.V1_8;
@@ -90,18 +89,47 @@ final class Writer {
             new String[] { WriterConstants.NEEDS_SCORE_TYPE.getInternalName() } : null;
 
         writer.visit(version, access, name, null, base, interfaces);
+        writer.visitSource(computeSourceName(), null);
+    }
+
+    /** Computes the file name (mostly important for stacktraces) */
+    private String computeSourceName() {
         StringBuilder fileName = new StringBuilder();
-        // TODO: don't shove the source in here unless its really an inline script
-        // otherwise give the actual file name.
-        if (source.length() > MAX_SUMMARY_LENGTH) {
-            fileName.append(source.substring(0, MAX_SUMMARY_LENGTH));
-            fileName.append(" ...");
+        if (scriptName.equals(PainlessScriptEngineService.INLINE_NAME)) {
+            // its an anonymous script, include at least a portion of the source to help identify which one it is
+            // but don't create stacktraces with filenames that contain newlines or huge names.
+
+            // truncate to the first newline
+            int limit = source.indexOf('\n');
+            if (limit >= 0) {
+                int limit2 = source.indexOf('\r');
+                if (limit2 >= 0) {
+                    limit = Math.min(limit, limit2);
+                }
+            } else {
+                limit = source.length();
+            }
+
+            // truncate to our limit
+            limit = Math.min(limit, MAX_NAME_LENGTH);
+            fileName.append(source, 0, limit);
+
+            // if we truncated, make it obvious
+            if (limit != source.length()) {
+                fileName.append(" ...");
+            }            
+            fileName.append(" @ <inline script>");
         } else {
-            fileName.append(source);
+            // its a named script, just use the name
+            // but don't trust this has a reasonable length!
+            if (scriptName.length() > MAX_NAME_LENGTH) {
+                fileName.append(scriptName, 0, MAX_NAME_LENGTH);
+                fileName.append(" ...");
+            } else {
+                fileName.append(scriptName);
+            }
         }
-        fileName.append(' ');
-        fileName.append("@script");
-        writer.visitSource(fileName.toString(), null);
+        return fileName.toString();
     }
 
     private void writeConstructor() {
