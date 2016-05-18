@@ -1,0 +1,436 @@
+#
+# Licensed to Elasticsearch under one or more contributor
+# license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright
+# ownership. Elasticsearch licenses this file to you under
+# the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+#
+# Painless definition file. This defines the hierarchy of classes,
+# what methods and fields they have, etc.
+# TODO: right now its just the methods and fields
+#
+
+# Object
+boolean Object#equals(Object)
+int Object#hashCode()
+String Object#toString()
+
+# Def
+boolean def#equals(Object)
+int def#hashCode()
+String def#toString()
+
+# Boolean
+Boolean Boolean#<init>(boolean)
+Boolean Boolean#TRUE
+Boolean Boolean#FALSE
+int Boolean#compare(boolean,boolean)
+boolean Boolean#parseBoolean(String)
+Boolean Boolean#valueOf(boolean)
+boolean Boolean#booleanValue()
+int Boolean#compareTo(Boolean)
+
+# Byte
+Byte Byte#<init>(byte)
+byte Byte#MIN_VALUE
+byte Byte#MAX_VALUE
+int Byte#compare(byte,byte)
+int Byte#compareTo(Byte)
+byte Byte#parseByte(String)
+Byte Byte#valueOf(byte)
+
+# Short
+Short Short#<init>(short)
+short Short#MIN_VALUE
+short Short#MAX_VALUE
+int Short#compare(short,short)
+int Short#compareTo(Short)
+short Short#parseShort(String)
+Short Short#valueOf(short)
+
+# Character
+Character Character#<init>(char)
+char Character#MIN_VALUE
+char Character#MAX_VALUE
+int Character#charCount(int)
+char Character#charValue()
+int Character#compare(char,char)
+int Character#compareTo(Character)
+int Character#digit(int,int)
+char Character#forDigit(int,int)
+String Character#getName(int)
+int Character#getNumericValue(int)
+boolean Character#isAlphabetic(int)
+boolean Character#isDefined(int)
+boolean Character#isDigit(int)
+boolean Character#isIdeographic(int)
+boolean Character#isLetter(int)
+boolean Character#isLetterOrDigit(int)
+boolean Character#isLowerCase(int)
+boolean Character#isMirrored(int)
+boolean Character#isSpaceChar(int)
+boolean Character#isTitleCase(int)
+boolean Character#isUpperCase(int)
+boolean Character#isWhitespace(int)
+Character Character#valueOf(char)
+
+# Integer
+Integer Integer#<init>(int)
+int Integer#MIN_VALUE
+int Integer#MAX_VALUE
+int Integer#compare(int,int)
+int Integer#compareTo(Integer)
+int Integer#min(int,int)
+int Integer#max(int,int)
+int Integer#parseInt(String)
+int Integer#signum(int)
+String Integer#toHexString(int)
+Integer Integer#valueOf(int)
+
+# Long
+Long Long#<init>(long)
+long Long#MIN_VALUE
+long Long#MAX_VALUE
+int Long#compare(long,long)
+int Long#compareTo(Long)
+long Long#min(long,long)
+long Long#max(long,long)
+long Long#parseLong(String)
+int Long#signum(long)
+String Long#toHexString(long)
+Long Long#valueOf(long)
+
+# Float
+Float Float#<init>(float)
+float Float#MIN_VALUE
+float Float#MAX_VALUE
+int Float#compare(float,float)
+int Float#compareTo(Float)
+float Float#min(float,float)
+float Float#max(float,float)
+float Float#parseFloat(String)
+String Float#toHexString(float)
+Float Float#valueOf(float)
+
+# Double
+Double Double#<init>(double)
+double Double#MIN_VALUE
+double Double#MAX_VALUE
+int Double#compare(double,double)
+int Double#compareTo(Double)
+double Double#min(double,double)
+double Double#max(double,double)
+double Double#parseDouble(String)
+String Double#toHexString(double)
+Double Double#valueOf(double)
+
+# Number
+byte Number#byteValue()
+short Number#shortValue()
+int Number#intValue()
+long Number#longValue()
+float Number#floatValue()
+double Number#doubleValue()
+
+# CharSequence
+char CharSequence#charAt(int)
+int CharSequence#length()
+
+# String
+String String#<init>()
+int String#codePointAt(int)
+int String#compareTo(String)
+String String#concat(String)
+boolean String#endsWith(String)
+int String#indexOf(String)
+int String#indexOf(String,int)
+boolean String#isEmpty()
+String String#replace(CharSequence,CharSequence)
+boolean String#startsWith(String)
+String String#substring(int,int)
+char[] String#toCharArray()
+String String#trim()
+
+# Math
+double Math#E
+double Math#PI
+double Math#abs(double)
+double Math#acos(double)
+double Math#asin(double)
+double Math#atan(double)
+double Math#atan2(double,double)
+double Math#cbrt(double)
+double Math#ceil(double)
+double Math#cos(double)
+double Math#cosh(double)
+double Math#exp(double)
+double Math#expm1(double)
+double Math#floor(double)
+double Math#hypot(double,double)
+double Math#log(double)
+double Math#log10(double)
+double Math#log1p(double)
+double Math#max(double,double)
+double Math#min(double,double)
+double Math#pow(double,double)
+double Math#random()
+double Math#rint(double)
+long Math#round(double)
+double Math#sin(double)
+double Math#sinh(double)
+double Math#sqrt(double)
+double Math#tan(double)
+double Math#tanh(double)
+double Math#toDegrees(double)
+double Math#toRadians(double)
+
+# Iterator
+boolean Iterator#hasNext()
+def Iterator#next()
+void Iterator#remove()
+
+# Collection
+boolean Collection#add(def)
+void Collection#clear()
+boolean Collection#contains(def)
+boolean Collection#isEmpty()
+Iterator Collection#iterator()
+boolean Collection#remove(def)
+int Collection#size()
+
+# List
+def List#set(int,def)
+def List#get(int)
+def List#remove(int)
+int List#getLength/size()
+
+# ArrayList
+ArrayList ArrayList#<init>()
+
+# HashSet
+HashSet HashSet#<init>()
+
+# Map
+def Map#put(def,def)
+def Map#get(def)
+def Map#remove(def)
+boolean Map#isEmpty()
+int Map#size()
+boolean Map#containsKey(def)
+Set Map#keySet()
+Collection Map#values()
+
+# HashMap
+HashMap HashMap#<init>()
+
+# Exceptions
+String Exception#getMessage()
+ArithmeticException ArithmeticException#<init>()
+IllegalArgumentException IllegalArgumentException#<init>()
+IllegalStateException IllegalStateException#<init>()
+NumberFormatException NumberFormatException#<init>()
+
+# ES GeoPoint helper class
+double GeoPoint#getLat()
+double GeoPoint#getLon()
+
+# ES Scripting API
+String Strings#getValue()
+List Strings#getValues()
+long Longs#getValue()
+List Longs#getValues()
+# TODO: add better date support for Longs here? (carefully?)
+double Doubles#getValue()
+List Doubles#getValues()
+GeoPoint GeoPoints#getValue()
+List GeoPoints#getValues()
+double GeoPoints#getLat()
+double GeoPoints#getLon()
+double[] GeoPoints#getLats()
+double[] GeoPoints#getLons()
+
+# geo distance functions... so many...
+double GeoPoints#factorDistance(double,double)
+double GeoPoints#factorDistanceWithDefault(double,double,double)
+double GeoPoints#factorDistance02(double,double)
+double GeoPoints#factorDistance13(double,double)
+double GeoPoints#arcDistance(double,double)
+double GeoPoints#arcDistanceWithDefault(double,double,double)
+double GeoPoints#arcDistanceInKm(double,double)
+double GeoPoints#arcDistanceInKmWithDefault(double,double,double)
+double GeoPoints#arcDistanceInMiles(double,double)
+double GeoPoints#arcDistanceInMilesWithDefault(double,double,double)
+double GeoPoints#distance(double,double)
+double GeoPoints#distanceWithDefault(double,double,double)
+double GeoPoints#distanceInKm(double,double)
+double GeoPoints#distanceInKmWithDefault(double,double,double)
+double GeoPoints#distanceInMiles(double,double)
+double GeoPoints#distanceInMilesWithDefault(double,double,double)
+double GeoPoints#geohashDistance(String)
+double GeoPoints#geohashDistanceInKm(String)
+double GeoPoints#geohashDistanceInMiles(String)
+
+# internal conversion methods
+boolean Utility#NumberToboolean(Number)
+char Utility#NumberTochar(Number)
+Boolean Utility#NumberToBoolean(Number)
+Byte Utility#NumberToByte(Number)
+Short Utility#NumberToShort(Number)
+Character Utility#NumberToCharacter(Number)
+Integer Utility#NumberToInteger(Number)
+Long Utility#NumberToLong(Number)
+Float Utility#NumberToFloat(Number)
+Double Utility#NumberToDouble(Number)
+byte Utility#booleanTobyte(boolean)
+short Utility#booleanToshort(boolean)
+char Utility#booleanTochar(boolean)
+int Utility#booleanToint(boolean)
+long Utility#booleanTolong(boolean)
+float Utility#booleanTofloat(boolean)
+double Utility#booleanTodouble(boolean)
+Integer Utility#booleanToInteger(boolean)
+byte Utility#BooleanTobyte(Boolean)
+short Utility#BooleanToshort(Boolean)
+char Utility#BooleanTochar(Boolean)
+int Utility#BooleanToint(Boolean)
+long Utility#BooleanTolong(Boolean)
+float Utility#BooleanTofloat(Boolean)
+double Utility#BooleanTodouble(Boolean)
+Byte Utility#BooleanToByte(Boolean)
+Short Utility#BooleanToShort(Boolean)
+Character Utility#BooleanToCharacter(Boolean)
+Integer Utility#BooleanToInteger(Boolean)
+Long Utility#BooleanToLong(Boolean)
+Float Utility#BooleanToFloat(Boolean)
+Double Utility#BooleanToDouble(Boolean)
+boolean Utility#byteToboolean(byte)
+Short Utility#byteToShort(byte)
+Character Utility#byteToCharacter(byte)
+Integer Utility#byteToInteger(byte)
+Long Utility#byteToLong(byte)
+Float Utility#byteToFloat(byte)
+Double Utility#byteToDouble(byte)
+boolean Utility#ByteToboolean(Byte)
+char Utility#ByteTochar(Byte)
+boolean Utility#shortToboolean(short)
+Byte Utility#shortToByte(short)
+Character Utility#shortToCharacter(short)
+Integer Utility#shortToInteger(short)
+Long Utility#shortToLong(short)
+Float Utility#shortToFloat(short)
+Double Utility#shortToDouble(short)
+boolean Utility#ShortToboolean(Short)
+char Utility#ShortTochar(Short)
+boolean Utility#charToboolean(char)
+Byte Utility#charToByte(char)
+Short Utility#charToShort(char)
+Integer Utility#charToInteger(char)
+Long Utility#charToLong(char)
+Float Utility#charToFloat(char)
+Double Utility#charToDouble(char)
+String Utility#charToString(char)
+boolean Utility#CharacterToboolean(Character)
+byte Utility#CharacterTobyte(Character)
+short Utility#CharacterToshort(Character)
+int Utility#CharacterToint(Character)
+long Utility#CharacterTolong(Character)
+float Utility#CharacterTofloat(Character)
+double Utility#CharacterTodouble(Character)
+Boolean Utility#CharacterToBoolean(Character)
+Byte Utility#CharacterToByte(Character)
+Short Utility#CharacterToShort(Character)
+Integer Utility#CharacterToInteger(Character)
+Long Utility#CharacterToLong(Character)
+Float Utility#CharacterToFloat(Character)
+Double Utility#CharacterToDouble(Character)
+String Utility#CharacterToString(Character)
+boolean Utility#intToboolean(int)
+Byte Utility#intToByte(int)
+Short Utility#intToShort(int)
+Character Utility#intToCharacter(int)
+Long Utility#intToLong(int)
+Float Utility#intToFloat(int)
+Double Utility#intToDouble(int)
+boolean Utility#IntegerToboolean(Integer)
+char Utility#IntegerTochar(Integer)
+boolean Utility#longToboolean(long)
+Byte Utility#longToByte(long)
+Short Utility#longToShort(long)
+Character Utility#longToCharacter(long)
+Integer Utility#longToInteger(long)
+Float Utility#longToFloat(long)
+Double Utility#longToDouble(long)
+boolean Utility#LongToboolean(Long)
+char Utility#LongTochar(Long)
+boolean Utility#floatToboolean(float)
+Byte Utility#floatToByte(float)
+Short Utility#floatToShort(float)
+Character Utility#floatToCharacter(float)
+Integer Utility#floatToInteger(float)
+Long Utility#floatToLong(float)
+Double Utility#floatToDouble(float)
+boolean Utility#FloatToboolean(Float)
+char Utility#FloatTochar(Float)
+boolean Utility#doubleToboolean(double)
+Byte Utility#doubleToByte(double)
+Short Utility#doubleToShort(double)
+Character Utility#doubleToCharacter(double)
+Integer Utility#doubleToInteger(double)
+Long Utility#doubleToLong(double)
+Float Utility#doubleToFloat(double)
+boolean Utility#DoubleToboolean(Double)
+char Utility#DoubleTochar(Double)
+char Utility#StringTochar(String)
+Character Utility#StringToCharacter(String)
+byte Def#DefTobyteImplicit(def)
+short Def#DefToshortImplicit(def)
+char Def#DefTocharImplicit(def)
+int Def#DefTointImplicit(def)
+long Def#DefTolongImplicit(def)
+float Def#DefTofloatImplicit(def)
+double Def#DefTodoubleImplicit(def)
+Byte Def#DefToByteImplicit(def)
+Short Def#DefToShortImplicit(def)
+Character Def#DefToCharacterImplicit(def)
+Integer Def#DefToIntegerImplicit(def)
+Long Def#DefToLongImplicit(def)
+Float Def#DefToFloatImplicit(def)
+Double Def#DefToDoubleImplicit(def)
+byte Def#DefTobyteExplicit(def)
+short Def#DefToshortExplicit(def)
+char Def#DefTocharExplicit(def)
+int Def#DefTointExplicit(def)
+long Def#DefTolongExplicit(def)
+float Def#DefTofloatExplicit(def)
+double Def#DefTodoubleExplicit(def)
+Byte Def#DefToByteExplicit(def)
+Short Def#DefToShortExplicit(def)
+Character Def#DefToCharacterExplicit(def)
+Integer Def#DefToIntegerExplicit(def)
+Long Def#DefToLongExplicit(def)
+Float Def#DefToFloatExplicit(def)
+Double Def#DefToDoubleExplicit(def)
+
+# for testing.
+# currently FeatureTest exposes overloaded constructor, field load store, and overloaded static methods
+FeatureTest FeatureTest#<init>()
+FeatureTest FeatureTest#<init>(int,int)
+int FeatureTest#getX()
+int FeatureTest#getY()
+void FeatureTest#setX(int)
+void FeatureTest#setY(int)
+boolean FeatureTest#overloadedStatic()
+boolean FeatureTest#overloadedStatic(boolean)

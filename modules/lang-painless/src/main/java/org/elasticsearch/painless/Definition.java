@@ -22,8 +22,13 @@ package org.elasticsearch.painless;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.fielddata.ScriptDocValues;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -461,415 +466,21 @@ public final class Definition {
     }
 
     private void addElements() {
-        /**
-         * XXX
-         */
-        Type booleanType = getType("boolean");
-        Type defType = getType("def");
-        Type booleanobjType = getType("Boolean");
-        Type byteType = getType("byte");
-        Type shortType = getType("short");
-        Type intType = getType("int");
-        Type charType = getType("char");
-        Type longType = getType("long");
-        Type floatType = getType("float");
-        Type doubleType = getType("double");
-        Type byteobjType = getType("Byte");
-        Type shortobjType = getType("Short");
-        Type charobjType = getType("Character");
-        Type intobjType = getType("Integer");
-        Type longobjType = getType("Long");
-        Type floatobjType = getType("Float");
-        Type doubleobjType = getType("Double");
-        Type stringType = getType("String");
-        
-        addSignature("boolean Object#equals(Object)");
-        addSignature("int Object#hashCode()");
-        addSignature("String Object#toString()");
-        
-        addSignature("boolean def#equals(Object)");
-        addSignature("int def#hashCode()");
-        addSignature("String def#toString()");
-
-        addSignature("Boolean Boolean#<init>(boolean)");
-        addSignature("Boolean Boolean#TRUE");
-        addSignature("Boolean Boolean#FALSE");
-        addSignature("int Boolean#compare(boolean,boolean)");
-        addSignature("boolean Boolean#parseBoolean(String)");
-        addSignature("Boolean Boolean#valueOf(boolean)");
-        addSignature("boolean Boolean#booleanValue()");
-        addSignature("int Boolean#compareTo(Boolean)");
-
-        addSignature("Byte Byte#<init>(byte)");
-        addSignature("byte Byte#MIN_VALUE");
-        addSignature("byte Byte#MAX_VALUE");
-        addSignature("int Byte#compare(byte,byte)");
-        addSignature("int Byte#compareTo(Byte)");
-        addSignature("byte Byte#parseByte(String)");
-        addSignature("Byte Byte#valueOf(byte)");
-
-        addSignature("Short Short#<init>(short)");
-        addSignature("short Short#MIN_VALUE");
-        addSignature("short Short#MAX_VALUE");
-        addSignature("int Short#compare(short,short)");
-        addSignature("int Short#compareTo(Short)");
-        addSignature("short Short#parseShort(String)");
-        addSignature("Short Short#valueOf(short)");
-
-        addSignature("Character Character#<init>(char)");
-        addSignature("char Character#MIN_VALUE");
-        addSignature("char Character#MAX_VALUE");
-        addSignature("int Character#charCount(int)");
-        addSignature("char Character#charValue()");
-        addSignature("int Character#compare(char,char)");
-        addSignature("int Character#compareTo(Character)");
-        addSignature("int Character#digit(int,int)");
-        addSignature("char Character#forDigit(int,int)");
-        addSignature("String Character#getName(int)");
-        addSignature("int Character#getNumericValue(int)");
-        addSignature("boolean Character#isAlphabetic(int)");
-        addSignature("boolean Character#isDefined(int)");
-        addSignature("boolean Character#isDigit(int)");
-        addSignature("boolean Character#isIdeographic(int)");
-        addSignature("boolean Character#isLetter(int)");
-        addSignature("boolean Character#isLetterOrDigit(int)");
-        addSignature("boolean Character#isLowerCase(int)");
-        addSignature("boolean Character#isMirrored(int)");
-        addSignature("boolean Character#isSpaceChar(int)");
-        addSignature("boolean Character#isTitleCase(int)");
-        addSignature("boolean Character#isUpperCase(int)");
-        addSignature("boolean Character#isWhitespace(int)");
-        addSignature("Character Character#valueOf(char)");
-
-        addSignature("Integer Integer#<init>(int)");
-        addSignature("int Integer#MIN_VALUE");
-        addSignature("int Integer#MAX_VALUE");
-        addSignature("int Integer#compare(int,int)");
-        addSignature("int Integer#compareTo(Integer)");
-        addSignature("int Integer#min(int,int)");
-        addSignature("int Integer#max(int,int)");
-        addSignature("int Integer#parseInt(String)");
-        addSignature("int Integer#signum(int)");
-        addSignature("String Integer#toHexString(int)");
-        addSignature("Integer Integer#valueOf(int)");
-
-        addSignature("Long Long#<init>(long)");
-        addSignature("long Long#MIN_VALUE");
-        addSignature("long Long#MAX_VALUE");
-        addSignature("int Long#compare(long,long)");
-        addSignature("int Long#compareTo(Long)");
-        addSignature("long Long#min(long,long)");
-        addSignature("long Long#max(long,long)");
-        addSignature("long Long#parseLong(String)");
-        addSignature("int Long#signum(long)");
-        addSignature("String Long#toHexString(long)");
-        addSignature("Long Long#valueOf(long)");
-
-        addSignature("Float Float#<init>(float)");
-        addSignature("float Float#MIN_VALUE");
-        addSignature("float Float#MAX_VALUE");
-        addSignature("int Float#compare(float,float)");
-        addSignature("int Float#compareTo(Float)");
-        addSignature("float Float#min(float,float)");
-        addSignature("float Float#max(float,float)");
-        addSignature("float Float#parseFloat(String)");
-        addSignature("String Float#toHexString(float)");
-        addSignature("Float Float#valueOf(float)");
-
-        addSignature("Double Double#<init>(double)");
-        addSignature("double Double#MIN_VALUE");
-        addSignature("double Double#MAX_VALUE");
-        addSignature("int Double#compare(double,double)");
-        addSignature("int Double#compareTo(Double)");
-        addSignature("double Double#min(double,double)");
-        addSignature("double Double#max(double,double)");
-        addSignature("double Double#parseDouble(String)");
-        addSignature("String Double#toHexString(double)");
-        addSignature("Double Double#valueOf(double)");
-
-        addSignature("byte Number#byteValue()");
-        addSignature("short Number#shortValue()");
-        addSignature("int Number#intValue()");
-        addSignature("long Number#longValue()");
-        addSignature("float Number#floatValue()");
-        addSignature("double Number#doubleValue()");
-
-        addSignature("char CharSequence#charAt(int)");
-        addSignature("int CharSequence#length()");
-
-        addSignature("String String#<init>()");
-        addSignature("int String#codePointAt(int)");
-        addSignature("int String#compareTo(String)");
-        addSignature("String String#concat(String)");
-        addSignature("boolean String#endsWith(String)");
-        addSignature("int String#indexOf(String)");
-        addSignature("int String#indexOf(String,int)");
-        addSignature("boolean String#isEmpty()");
-        addSignature("String String#replace(CharSequence,CharSequence)");
-        addSignature("boolean String#startsWith(String)");
-        addSignature("String String#substring(int,int)");
-        addSignature("char[] String#toCharArray()");
-        addSignature("String String#trim()");
-
-        addSignature("boolean Utility#NumberToboolean(Number)");
-        addSignature("char Utility#NumberTochar(Number)");
-        addSignature("Boolean Utility#NumberToBoolean(Number)");
-        addSignature("Byte Utility#NumberToByte(Number)");
-        addSignature("Short Utility#NumberToShort(Number)");
-        addSignature("Character Utility#NumberToCharacter(Number)");
-        addSignature("Integer Utility#NumberToInteger(Number)");
-        addSignature("Long Utility#NumberToLong(Number)");
-        addSignature("Float Utility#NumberToFloat(Number)");
-        addSignature("Double Utility#NumberToDouble(Number)");
-        addSignature("byte Utility#booleanTobyte(boolean)");
-        addSignature("short Utility#booleanToshort(boolean)");
-        addSignature("char Utility#booleanTochar(boolean)");
-        addSignature("int Utility#booleanToint(boolean)");
-        addSignature("long Utility#booleanTolong(boolean)");
-        addSignature("float Utility#booleanTofloat(boolean)");
-        addSignature("double Utility#booleanTodouble(boolean)");
-        addSignature("Integer Utility#booleanToInteger(boolean)");
-        addSignature("byte Utility#BooleanTobyte(Boolean)");
-        addSignature("short Utility#BooleanToshort(Boolean)");
-        addSignature("char Utility#BooleanTochar(Boolean)");
-        addSignature("int Utility#BooleanToint(Boolean)");
-        addSignature("long Utility#BooleanTolong(Boolean)");
-        addSignature("float Utility#BooleanTofloat(Boolean)");
-        addSignature("double Utility#BooleanTodouble(Boolean)");
-        addSignature("Byte Utility#BooleanToByte(Boolean)");
-        addSignature("Short Utility#BooleanToShort(Boolean)");
-        addSignature("Character Utility#BooleanToCharacter(Boolean)");
-        addSignature("Integer Utility#BooleanToInteger(Boolean)");
-        addSignature("Long Utility#BooleanToLong(Boolean)");
-        addSignature("Float Utility#BooleanToFloat(Boolean)");
-        addSignature("Double Utility#BooleanToDouble(Boolean)");
-        addSignature("boolean Utility#byteToboolean(byte)");
-        addSignature("Short Utility#byteToShort(byte)");
-        addSignature("Character Utility#byteToCharacter(byte)");
-        addSignature("Integer Utility#byteToInteger(byte)");
-        addSignature("Long Utility#byteToLong(byte)");
-        addSignature("Float Utility#byteToFloat(byte)");
-        addSignature("Double Utility#byteToDouble(byte)");
-        addSignature("boolean Utility#ByteToboolean(Byte)");
-        addSignature("char Utility#ByteTochar(Byte)");
-        addSignature("boolean Utility#shortToboolean(short)");
-        addSignature("Byte Utility#shortToByte(short)");
-        addSignature("Character Utility#shortToCharacter(short)");
-        addSignature("Integer Utility#shortToInteger(short)");
-        addSignature("Long Utility#shortToLong(short)");
-        addSignature("Float Utility#shortToFloat(short)");
-        addSignature("Double Utility#shortToDouble(short)");
-        addSignature("boolean Utility#ShortToboolean(Short)");
-        addSignature("char Utility#ShortTochar(Short)");
-        addSignature("boolean Utility#charToboolean(char)");
-        addSignature("Byte Utility#charToByte(char)");
-        addSignature("Short Utility#charToShort(char)");
-        addSignature("Integer Utility#charToInteger(char)");
-        addSignature("Long Utility#charToLong(char)");
-        addSignature("Float Utility#charToFloat(char)");
-        addSignature("Double Utility#charToDouble(char)");
-        addSignature("String Utility#charToString(char)");
-        addSignature("boolean Utility#CharacterToboolean(Character)");
-        addSignature("byte Utility#CharacterTobyte(Character)");
-        addSignature("short Utility#CharacterToshort(Character)");
-        addSignature("int Utility#CharacterToint(Character)");
-        addSignature("long Utility#CharacterTolong(Character)");
-        addSignature("float Utility#CharacterTofloat(Character)");
-        addSignature("double Utility#CharacterTodouble(Character)");
-        addSignature("Boolean Utility#CharacterToBoolean(Character)");
-        addSignature("Byte Utility#CharacterToByte(Character)");
-        addSignature("Short Utility#CharacterToShort(Character)");
-        addSignature("Integer Utility#CharacterToInteger(Character)");
-        addSignature("Long Utility#CharacterToLong(Character)");
-        addSignature("Float Utility#CharacterToFloat(Character)");
-        addSignature("Double Utility#CharacterToDouble(Character)");
-        addSignature("String Utility#CharacterToString(Character)");
-        addSignature("boolean Utility#intToboolean(int)");
-        addSignature("Byte Utility#intToByte(int)");
-        addSignature("Short Utility#intToShort(int)");
-        addSignature("Character Utility#intToCharacter(int)");
-        addSignature("Long Utility#intToLong(int)");
-        addSignature("Float Utility#intToFloat(int)");
-        addSignature("Double Utility#intToDouble(int)");
-        addSignature("boolean Utility#IntegerToboolean(Integer)");
-        addSignature("char Utility#IntegerTochar(Integer)");
-        addSignature("boolean Utility#longToboolean(long)");
-        addSignature("Byte Utility#longToByte(long)");
-        addSignature("Short Utility#longToShort(long)");
-        addSignature("Character Utility#longToCharacter(long)");
-        addSignature("Integer Utility#longToInteger(long)");
-        addSignature("Float Utility#longToFloat(long)");
-        addSignature("Double Utility#longToDouble(long)");
-        addSignature("boolean Utility#LongToboolean(Long)");
-        addSignature("char Utility#LongTochar(Long)");
-        addSignature("boolean Utility#floatToboolean(float)");
-        addSignature("Byte Utility#floatToByte(float)");
-        addSignature("Short Utility#floatToShort(float)");
-        addSignature("Character Utility#floatToCharacter(float)");
-        addSignature("Integer Utility#floatToInteger(float)");
-        addSignature("Long Utility#floatToLong(float)");
-        addSignature("Double Utility#floatToDouble(float)");
-        addSignature("boolean Utility#FloatToboolean(Float)");
-        addSignature("char Utility#FloatTochar(Float)");
-        addSignature("boolean Utility#doubleToboolean(double)");
-        addSignature("Byte Utility#doubleToByte(double)");
-        addSignature("Short Utility#doubleToShort(double)");
-        addSignature("Character Utility#doubleToCharacter(double)");
-        addSignature("Integer Utility#doubleToInteger(double)");
-        addSignature("Long Utility#doubleToLong(double)");
-        addSignature("Float Utility#doubleToFloat(double)");
-        addSignature("boolean Utility#DoubleToboolean(Double)");
-        addSignature("char Utility#DoubleTochar(Double)");
-        addSignature("char Utility#StringTochar(String)");
-        addSignature("Character Utility#StringToCharacter(String)");
-
-        addSignature("double Math#E");
-        addSignature("double Math#PI");
-        addSignature("double Math#abs(double)");
-        addSignature("double Math#acos(double)");
-        addSignature("double Math#asin(double)");
-        addSignature("double Math#atan(double)");
-        addSignature("double Math#atan2(double,double)");
-        addSignature("double Math#cbrt(double)");
-        addSignature("double Math#ceil(double)");
-        addSignature("double Math#cos(double)");
-        addSignature("double Math#cosh(double)");
-        addSignature("double Math#exp(double)");
-        addSignature("double Math#expm1(double)");
-        addSignature("double Math#floor(double)");
-        addSignature("double Math#hypot(double,double)");
-        addSignature("double Math#log(double)");
-        addSignature("double Math#log10(double)");
-        addSignature("double Math#log1p(double)");
-        addSignature("double Math#max(double,double)");
-        addSignature("double Math#min(double,double)");
-        addSignature("double Math#pow(double,double)");
-        addSignature("double Math#random()");
-        addSignature("double Math#rint(double)");
-        addSignature("long Math#round(double)");
-        addSignature("double Math#sin(double)");
-        addSignature("double Math#sinh(double)");
-        addSignature("double Math#sqrt(double)");
-        addSignature("double Math#tan(double)");
-        addSignature("double Math#tanh(double)");
-        addSignature("double Math#toDegrees(double)");
-        addSignature("double Math#toRadians(double)");
-
-        addSignature("byte Def#DefTobyteImplicit(def)");
-        addSignature("short Def#DefToshortImplicit(def)");
-        addSignature("char Def#DefTocharImplicit(def)");
-        addSignature("int Def#DefTointImplicit(def)");
-        addSignature("long Def#DefTolongImplicit(def)");
-        addSignature("float Def#DefTofloatImplicit(def)");
-        addSignature("double Def#DefTodoubleImplicit(def)");
-        addSignature("Byte Def#DefToByteImplicit(def)");
-        addSignature("Short Def#DefToShortImplicit(def)");
-        addSignature("Character Def#DefToCharacterImplicit(def)");
-        addSignature("Integer Def#DefToIntegerImplicit(def)");
-        addSignature("Long Def#DefToLongImplicit(def)");
-        addSignature("Float Def#DefToFloatImplicit(def)");
-        addSignature("Double Def#DefToDoubleImplicit(def)");
-        addSignature("byte Def#DefTobyteExplicit(def)");
-        addSignature("short Def#DefToshortExplicit(def)");
-        addSignature("char Def#DefTocharExplicit(def)");
-        addSignature("int Def#DefTointExplicit(def)");
-        addSignature("long Def#DefTolongExplicit(def)");
-        addSignature("float Def#DefTofloatExplicit(def)");
-        addSignature("double Def#DefTodoubleExplicit(def)");
-        addSignature("Byte Def#DefToByteExplicit(def)");
-        addSignature("Short Def#DefToShortExplicit(def)");
-        addSignature("Character Def#DefToCharacterExplicit(def)");
-        addSignature("Integer Def#DefToIntegerExplicit(def)");
-        addSignature("Long Def#DefToLongExplicit(def)");
-        addSignature("Float Def#DefToFloatExplicit(def)");
-        addSignature("Double Def#DefToDoubleExplicit(def)");
-
-        addSignature("boolean Iterator#hasNext()");
-        addSignature("def Iterator#next()");
-        addSignature("void Iterator#remove()");
-        
-        addSignature("boolean Collection#add(def)");
-        addSignature("void Collection#clear()");
-        addSignature("boolean Collection#contains(def)");
-        addSignature("boolean Collection#isEmpty()");
-        addSignature("Iterator Collection#iterator()");
-        addSignature("boolean Collection#remove(def)");
-        addSignature("int Collection#size()");
-
-        addSignature("def List#set(int,def)");
-        addSignature("def List#get(int)");
-        addSignature("def List#remove(int)");
-        // XXX
-        addMethodInternal("List", "getLength", "size", intType, new Type[] {});
-
-        addSignature("ArrayList ArrayList#<init>()");
-        addSignature("HashSet HashSet#<init>()");
-
-        addSignature("def Map#put(def,def)");
-        addSignature("def Map#get(def)");
-        addSignature("def Map#remove(def)");
-        addSignature("boolean Map#isEmpty()");
-        addSignature("int Map#size()");
-        addSignature("boolean Map#containsKey(def)");
-        addSignature("Set Map#keySet()");
-        addSignature("Collection Map#values()");
-
-        addSignature("HashMap HashMap#<init>()");
-
-        addSignature("String Exception#getMessage()");
-
-        addSignature("ArithmeticException ArithmeticException#<init>()");
-        addSignature("IllegalArgumentException IllegalArgumentException#<init>()");
-        addSignature("IllegalStateException IllegalStateException#<init>()");
-        addSignature("NumberFormatException NumberFormatException#<init>()");
-
-        addSignature("double GeoPoint#getLat()");
-        addSignature("double GeoPoint#getLon()");
-
-        addSignature("String Strings#getValue()");
-        addSignature("List Strings#getValues()");
-        addSignature("long Longs#getValue()");
-        addSignature("List Longs#getValues()");
-        // TODO: add better date support for Longs here? (carefully?)
-        addSignature("double Doubles#getValue()");
-        addSignature("List Doubles#getValues()");
-        addSignature("GeoPoint GeoPoints#getValue()");
-        addSignature("List GeoPoints#getValues()");
-        addSignature("double GeoPoints#getLat()");
-        addSignature("double GeoPoints#getLon()");
-        addSignature("double[] GeoPoints#getLats()");
-        addSignature("double[] GeoPoints#getLons()");
-
-        // geo distance functions... so many...
-        addSignature("double GeoPoints#factorDistance(double,double)");
-        addSignature("double GeoPoints#factorDistanceWithDefault(double,double,double)");
-        addSignature("double GeoPoints#factorDistance02(double,double)");
-        addSignature("double GeoPoints#factorDistance13(double,double)");
-        addSignature("double GeoPoints#arcDistance(double,double)");
-        addSignature("double GeoPoints#arcDistanceWithDefault(double,double,double)");
-        addSignature("double GeoPoints#arcDistanceInKm(double,double)");
-        addSignature("double GeoPoints#arcDistanceInKmWithDefault(double,double,double)");
-        addSignature("double GeoPoints#arcDistanceInMiles(double,double)");
-        addSignature("double GeoPoints#arcDistanceInMilesWithDefault(double,double,double)");
-        addSignature("double GeoPoints#distance(double,double)");
-        addSignature("double GeoPoints#distanceWithDefault(double,double,double)");
-        addSignature("double GeoPoints#distanceInKm(double,double)");
-        addSignature("double GeoPoints#distanceInKmWithDefault(double,double,double)");
-        addSignature("double GeoPoints#distanceInMiles(double,double)");
-        addSignature("double GeoPoints#distanceInMilesWithDefault(double,double,double)");
-        addSignature("double GeoPoints#geohashDistance(String)");
-        addSignature("double GeoPoints#geohashDistanceInKm(String)");
-        addSignature("double GeoPoints#geohashDistanceInMiles(String)");
-
-        // currently FeatureTest exposes overloaded constructor, field load store, and overloaded static methods
-        addSignature("FeatureTest FeatureTest#<init>()");
-        addSignature("FeatureTest FeatureTest#<init>(int,int)");
-        addSignature("int FeatureTest#getX()");
-        addSignature("int FeatureTest#getY()");
-        addSignature("void FeatureTest#setX(int)");
-        addSignature("void FeatureTest#setY(int)");
-        addSignature("boolean FeatureTest#overloadedStatic()");
-        addSignature("boolean FeatureTest#overloadedStatic(boolean)");
+        try {
+            try (InputStream stream = Definition.class.getResourceAsStream("definition.txt");
+                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.length() == 0 || line.charAt(0) == '#') {
+                        continue;
+                    }
+                    addSignature(line);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void copyStructs() {
@@ -1337,7 +948,15 @@ public final class Definition {
                 }
                 addConstructorInternal(className, "new", args);
             } else {
-                addMethodInternal(className, methodName, null, rtn, args);
+                if (methodName.indexOf('/') >= 0) {
+                    String nameAndAlias[] = methodName.split("/");
+                    if (nameAndAlias.length != 2) {
+                        throw new IllegalArgumentException("Currently only two aliases are allowed!");
+                    }
+                    addMethodInternal(className, nameAndAlias[0], nameAndAlias[1], rtn, args);
+                } else {
+                    addMethodInternal(className, methodName, null, rtn, args);
+                }
             }
         } else {
             // field
