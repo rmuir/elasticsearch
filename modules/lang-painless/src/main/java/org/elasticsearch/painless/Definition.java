@@ -842,54 +842,35 @@ public final class Definition {
         addSignature("double[] GeoPoints#getLons()");
 
         // geo distance functions... so many...
-        addMethodInternal("GeoPoints", "factorDistance", null,doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "factorDistanceWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "factorDistance02", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "factorDistance13", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "arcDistance", null,  doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "arcDistanceWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "arcDistanceInKm", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "arcDistanceInKmWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "arcDistanceInMiles", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "arcDistanceInMilesWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "distance", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "distanceWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "distanceInKm", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "distanceInKmWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "distanceInMiles", null, doubleType,
-                  new Type[] { doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "distanceInMilesWithDefault", null, doubleType,
-                  new Type[] { doubleType, doubleType, doubleType }, null, null);
-        addMethodInternal("GeoPoints", "geohashDistance", null, doubleType,
-                  new Type[] { stringType }, null, null);
-        addMethodInternal("GeoPoints", "geohashDistanceInKm", null, doubleType,
-                  new Type[] { stringType }, null, null);
-        addMethodInternal("GeoPoints", "geohashDistanceInMiles", null, doubleType,
-                  new Type[] { stringType }, null, null);
+        addSignature("double GeoPoints#factorDistance(double,double)");
+        addSignature("double GeoPoints#factorDistanceWithDefault(double,double,double)");
+        addSignature("double GeoPoints#factorDistance02(double,double)");
+        addSignature("double GeoPoints#factorDistance13(double,double)");
+        addSignature("double GeoPoints#arcDistance(double,double)");
+        addSignature("double GeoPoints#arcDistanceWithDefault(double,double,double)");
+        addSignature("double GeoPoints#arcDistanceInKm(double,double)");
+        addSignature("double GeoPoints#arcDistanceInKmWithDefault(double,double,double)");
+        addSignature("double GeoPoints#arcDistanceInMiles(double,double)");
+        addSignature("double GeoPoints#arcDistanceInMilesWithDefault(double,double,double)");
+        addSignature("double GeoPoints#distance(double,double)");
+        addSignature("double GeoPoints#distanceWithDefault(double,double,double)");
+        addSignature("double GeoPoints#distanceInKm(double,double)");
+        addSignature("double GeoPoints#distanceInKmWithDefault(double,double,double)");
+        addSignature("double GeoPoints#distanceInMiles(double,double)");
+        addSignature("double GeoPoints#distanceInMilesWithDefault(double,double,double)");
+        addSignature("double GeoPoints#geohashDistance(String)");
+        addSignature("double GeoPoints#geohashDistanceInKm(String)");
+        addSignature("double GeoPoints#geohashDistanceInMiles(String)");
 
         // currently FeatureTest exposes overloaded constructor, field load store, and overloaded static methods
-        addConstructorInternal("FeatureTest", "new", new Type[] {}, null);
-        addConstructorInternal("FeatureTest", "new", new Type[] {intType, intType}, null);
-        addMethodInternal("FeatureTest", "getX", null, intType, new Type[] {}, null, null);
-        addMethodInternal("FeatureTest", "getY", null, intType, new Type[] {}, null, null);
-        addMethodInternal("FeatureTest", "setX", null, voidType, new Type[] {intType}, null, null);
-        addMethodInternal("FeatureTest", "setY", null, voidType, new Type[] {intType}, null, null);
-        addMethodInternal("FeatureTest", "overloadedStatic", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("FeatureTest", "overloadedStatic", null, booleanType, new Type[] {booleanType}, null, null);
+        addSignature("FeatureTest FeatureTest#<init>()");
+        addSignature("FeatureTest FeatureTest#<init>(int,int)");
+        addSignature("int FeatureTest#getX()");
+        addSignature("int FeatureTest#getY()");
+        addSignature("void FeatureTest#setX(int)");
+        addSignature("void FeatureTest#setY(int)");
+        addSignature("boolean FeatureTest#overloadedStatic()");
+        addSignature("boolean FeatureTest#overloadedStatic(boolean)");
     }
 
     private void copyStructs() {
