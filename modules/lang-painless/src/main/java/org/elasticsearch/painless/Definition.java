@@ -520,136 +520,136 @@ public final class Definition {
         Type ssetType = getType("Set<String>");
         Type geoPointType = getType("GeoPoint");
         
-        addMethod("Object", "equals", "boolean", "Object");
-        addMethod("Object", "hashCode", "int");
-        addMethod("Object", "toString", "String");
+        addSignature("boolean Object#equals(Object)");
+        addSignature("int Object#hashCode()");
+        addSignature("String Object#toString()");
+        
+        addSignature("boolean def#equals(Object)");
+        addSignature("int def#hashCode()");
+        addSignature("String def#toString()");
 
-        addMethod("def", "equals", "boolean", "Object");
-        addMethod("def", "hashCode", "int");
-        addMethod("def", "toString", "String");
+        addSignature("Boolean Boolean#<init>(boolean)");
+        addSignature("Boolean Boolean#TRUE");
+        addSignature("Boolean Boolean#FALSE");
+        addSignature("int Boolean#compare(boolean,boolean)");
+        addSignature("boolean Boolean#parseBoolean(String)");
+        addSignature("Boolean Boolean#valueOf(boolean)");
+        addSignature("boolean Boolean#booleanValue()");
+        addSignature("int Boolean#compareTo(Boolean)");
 
-        addMethod("Boolean", "compare", "int", "boolean", "boolean");
-        addMethod("Boolean", "parseBoolean", "boolean", "String");
-        addMethod("Boolean", "valueOf", "Boolean", "boolean");
-        addField("Boolean", "FALSE", "Boolean");
-        addField("Boolean", "TRUE", "Boolean");
-        addConstructor("Boolean", "new", "boolean");
-        addMethod("Boolean", "booleanValue", "boolean");
-        addMethod("Boolean", "compareTo", "int", "Boolean");
+        addSignature("Byte Byte#<init>(byte)");
+        addSignature("byte Byte#MIN_VALUE");
+        addSignature("byte Byte#MAX_VALUE");
+        addSignature("int Byte#compare(byte,byte)");
+        addSignature("int Byte#compareTo(Byte)");
+        addSignature("byte Byte#parseByte(String)");
+        addSignature("Byte Byte#valueOf(byte)");
 
-        addConstructor("Byte", "new", "byte");
-        addMethodInternal("Byte", "compare", null, intType, new Type[] {byteType,byteType}, null, null);
-        addMethodInternal("Byte", "compareTo", null, intType, new Type[] {byteobjType}, null, null);
-        addMethodInternal("Byte", "parseByte", null, byteType, new Type[] {stringType}, null, null);
-        addMethodInternal("Byte", "valueOf", null, byteobjType, new Type[] {byteType}, null, null);
-        addField("Byte", "MIN_VALUE", "byte");
-        addField("Byte", "MAX_VALUE", "byte");
+        addSignature("Short Short#<init>(short)");
+        addSignature("short Short#MIN_VALUE");
+        addSignature("short Short#MAX_VALUE");
+        addSignature("int Short#compare(short,short)");
+        addSignature("int Short#compareTo(Short)");
+        addSignature("short Short#parseShort(String)");
+        addSignature("Short Short#valueOf(short)");
 
-        addConstructor("Short", "new", "short");
-        addMethodInternal("Short", "compare", null, intType, new Type[] {shortType,shortType}, null, null);
-        addMethodInternal("Short", "compareTo", null, intType, new Type[] {shortobjType}, null, null);
-        addMethodInternal("Short", "parseShort", null, shortType, new Type[] {stringType}, null, null);
-        addMethodInternal("Short", "valueOf", null, shortobjType, new Type[] {shortType}, null, null);
-        addFieldInternal("Short", "MIN_VALUE", null, shortType, null);
-        addFieldInternal("Short", "MAX_VALUE", null, shortType, null);
+        addSignature("Character Character#<init>(char)");
+        addSignature("char Character#MIN_VALUE");
+        addSignature("char Character#MAX_VALUE");
+        addSignature("int Character#charCount(int)");
+        addSignature("char Character#charValue()");
+        addSignature("int Character#compare(char,char)");
+        addSignature("int Character#compareTo(Character)");
+        addSignature("int Character#digit(int,int)");
+        addSignature("char Character#forDigit(int,int)");
+        addSignature("String Character#getName(int)");
+        addSignature("int Character#getNumericValue(int)");
+        addSignature("boolean Character#isAlphabetic(int)");
+        addSignature("boolean Character#isDefined(int)");
+        addSignature("boolean Character#isDigit(int)");
+        addSignature("boolean Character#isIdeographic(int)");
+        addSignature("boolean Character#isLetter(int)");
+        addSignature("boolean Character#isLetterOrDigit(int)");
+        addSignature("boolean Character#isLowerCase(int)");
+        addSignature("boolean Character#isMirrored(int)");
+        addSignature("boolean Character#isSpaceChar(int)");
+        addSignature("boolean Character#isTitleCase(int)");
+        addSignature("boolean Character#isUpperCase(int)");
+        addSignature("boolean Character#isWhitespace(int)");
+        addSignature("Character Character#valueOf(char)");
 
-        addConstructor("Character", "new", "char");
-        addMethodInternal("Character", "charCount", null, intType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "charValue", null, charType, new Type[] {}, null, null);
-        addMethodInternal("Character", "compare", null, intType, new Type[] {charType,charType}, null, null);
-        addMethodInternal("Character", "compareTo", null, intType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Character", "digit", null, intType, new Type[] {intType,intType}, null, null);
-        addMethodInternal("Character", "forDigit", null, charType, new Type[] {intType,intType}, null, null);
-        addMethodInternal("Character", "getName", null, stringType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "getNumericValue", null, intType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isAlphabetic", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isDefined", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isDigit", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isIdeographic", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isLetter", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isLetterOrDigit", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isLowerCase", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isMirrored", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isSpaceChar", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isTitleCase", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isUpperCase", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "isWhitespace", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Character", "valueOf", null, charobjType, new Type[] {charType}, null, null);
-        addFieldInternal("Character", "MIN_VALUE", null, charType, null);
-        addFieldInternal("Character", "MAX_VALUE", null, charType, null);
+        addSignature("Integer Integer#<init>(int)");
+        addSignature("int Integer#MIN_VALUE");
+        addSignature("int Integer#MAX_VALUE");
+        addSignature("int Integer#compare(int,int)");
+        addSignature("int Integer#compareTo(Integer)");
+        addSignature("int Integer#min(int,int)");
+        addSignature("int Integer#max(int,int)");
+        addSignature("int Integer#parseInt(String)");
+        addSignature("int Integer#signum(int)");
+        addSignature("String Integer#toHexString(int)");
+        addSignature("Integer Integer#valueOf(int)");
 
-        addConstructorInternal("Integer", "new", new Type[] {intType}, null);
-        addMethodInternal("Integer", "compare", null, intType, new Type[] {intType,intType}, null, null);
-        addMethodInternal("Integer", "compareTo", null, intType, new Type[] {intobjType}, null, null);
-        addMethodInternal("Integer", "min", null, intType, new Type[] {intType,intType}, null, null);
-        addMethodInternal("Integer", "max", null,intType, new Type[] {intType,intType}, null, null);
-        addMethodInternal("Integer", "parseInt", null, intType, new Type[] {stringType}, null, null);
-        addMethodInternal("Integer", "signum", null, intType, new Type[] {intType}, null, null);
-        addMethodInternal("Integer", "toHexString", null, stringType, new Type[] {intType}, null, null);
-        addMethodInternal("Integer", "valueOf", null, intobjType, new Type[] {intType}, null, null);
-        addFieldInternal("Integer", "MIN_VALUE", null, intType, null);
-        addFieldInternal("Integer", "MAX_VALUE", null, intType, null);
+        addSignature("Long Long#<init>(long)");
+        addSignature("long Long#MIN_VALUE");
+        addSignature("long Long#MAX_VALUE");
+        addSignature("int Long#compare(long,long)");
+        addSignature("int Long#compareTo(Long)");
+        addSignature("long Long#min(long,long)");
+        addSignature("long Long#max(long,long)");
+        addSignature("long Long#parseLong(String)");
+        addSignature("int Long#signum(long)");
+        addSignature("String Long#toHexString(long)");
+        addSignature("Long Long#valueOf(long)");
 
-        addConstructorInternal("Long", "new", new Type[] {longType}, null);
-        addMethodInternal("Long", "compare", null, intType, new Type[] {longType,longType}, null, null);
-        addMethodInternal("Long", "compareTo", null,intType, new Type[] {longobjType}, null, null);
-        addMethodInternal("Long", "min", null, longType, new Type[] {longType,longType}, null, null);
-        addMethodInternal("Long", "max", null, longType, new Type[] {longType,longType}, null, null);
-        addMethodInternal("Long", "parseLong", null, longType, new Type[] {stringType}, null, null);
-        addMethodInternal("Long", "signum", null, intType, new Type[] {longType}, null, null);
-        addMethodInternal("Long", "toHexString", null, stringType, new Type[] {longType}, null, null);
-        addMethodInternal("Long", "valueOf", null, longobjType, new Type[] {longType}, null, null);
-        addFieldInternal("Long", "MIN_VALUE", null, longType, null);
-        addFieldInternal("Long", "MAX_VALUE", null, longType, null);
+        addSignature("Float Float#<init>(float)");
+        addSignature("float Float#MIN_VALUE");
+        addSignature("float Float#MAX_VALUE");
+        addSignature("int Float#compare(float,float)");
+        addSignature("int Float#compareTo(Float)");
+        addSignature("float Float#min(float,float)");
+        addSignature("float Float#max(float,float)");
+        addSignature("float Float#parseFloat(String)");
+        addSignature("String Float#toHexString(float)");
+        addSignature("Float Float#valueOf(float)");
 
-        addConstructorInternal("Float", "new", new Type[] {floatType}, null);
-        addMethodInternal("Float", "compare", null, intType, new Type[] {floatType,floatType}, null, null);
-        addMethodInternal("Float", "compareTo", null, intType, new Type[] {floatobjType}, null, null);
-        addMethodInternal("Float", "min", null, floatType, new Type[] {floatType,floatType}, null, null);
-        addMethodInternal("Float", "max", null, floatType, new Type[] {floatType,floatType}, null, null);
-        addMethodInternal("Float", "parseFloat", null, floatType, new Type[] {stringType}, null, null);
-        addMethodInternal("Float", "toHexString", null, stringType, new Type[] {floatType}, null, null);
-        addMethodInternal("Float", "valueOf", null, floatobjType, new Type[] {floatType}, null, null);
-        addFieldInternal("Float", "MIN_VALUE", null, floatType, null);
-        addFieldInternal("Float", "MAX_VALUE", null, floatType, null);
+        addSignature("Double Double#<init>(double)");
+        addSignature("double Double#MIN_VALUE");
+        addSignature("double Double#MAX_VALUE");
+        addSignature("int Double#compare(double,double)");
+        addSignature("int Double#compareTo(Double)");
+        addSignature("double Double#min(double,double)");
+        addSignature("double Double#max(double,double)");
+        addSignature("double Double#parseDouble(String)");
+        addSignature("String Double#toHexString(double)");
+        addSignature("Double Double#valueOf(double)");
 
-        addConstructorInternal("Double", "new", new Type[] {doubleType}, null);
-        addMethodInternal("Double", "compare", null, intType, new Type[] {doubleType,doubleType}, null, null);
-        addMethodInternal("Double", "compareTo", null, intType, new Type[] {doubleobjType}, null, null);
-        addMethodInternal("Double", "min", null, doubleType, new Type[] {doubleType,doubleType}, null, null);
-        addMethodInternal("Double", "max", null, doubleType, new Type[] {doubleType,doubleType}, null, null);
-        addMethodInternal("Double", "parseDouble", null, doubleType, new Type[] {stringType}, null, null);
-        addMethodInternal("Double", "toHexString", null, stringType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Double", "valueOf", null, doubleobjType, new Type[] {doubleType}, null, null);
-        addFieldInternal("Double", "MIN_VALUE", null, doubleType, null);
-        addFieldInternal("Double", "MAX_VALUE", null, doubleType, null);
+        addSignature("byte Number#byteValue()");
+        addSignature("short Number#shortValue()");
+        addSignature("int Number#intValue()");
+        addSignature("long Number#longValue()");
+        addSignature("float Number#floatValue()");
+        addSignature("double Number#doubleValue()");
 
-        addMethodInternal("Number", "byteValue", null, byteType, new Type[] {}, null, null);
-        addMethodInternal("Number", "shortValue", null, shortType, new Type[] {}, null, null);
-        addMethodInternal("Number", "intValue", null, intType, new Type[] {}, null, null);
-        addMethodInternal("Number", "longValue", null, longType, new Type[] {}, null, null);
-        addMethodInternal("Number", "floatValue", null, floatType, new Type[] {}, null, null);
-        addMethodInternal("Number", "doubleValue", null, doubleType, new Type[] {}, null, null);
+        addSignature("char CharSequence#charAt(int)");
+        addSignature("int CharSequence#length()");
 
-        addMethodInternal("CharSequence", "charAt", null, charType, new Type[] {intType}, null, null);
-        addMethodInternal("CharSequence", "length", null, intType, new Type[] {}, null, null);
+        addSignature("String String#<init>()");
+        addSignature("int String#codePointAt(int)");
+        addSignature("int String#compareTo(String)");
+        addSignature("String String#concat(String)");
+        addSignature("boolean String#endsWith(String)");
+        addSignature("int String#indexOf(String)");
+        addSignature("int String#indexOf(String,int)");
+        addSignature("boolean String#isEmpty()");
+        addSignature("String String#replace(CharSequence,CharSequence)");
+        addSignature("boolean String#startsWith(String)");
+        addSignature("String String#substring(int,int)");
+        addSignature("char[] String#toCharArray()");
+        addSignature("String String#trim()");
 
-        addConstructorInternal("String", "new", new Type[] {}, null);
-        addMethodInternal("String", "codePointAt", null, intType, new Type[] {intType}, null, null);
-        addMethodInternal("String", "compareTo", null, intType, new Type[] {stringType}, null, null);
-        addMethodInternal("String", "concat", null, stringType, new Type[] {stringType}, null, null);
-        addMethodInternal("String", "endsWith", null, booleanType, new Type[] {stringType}, null, null);
-        addMethodInternal("String", "indexOf", null, intType, new Type[] {stringType}, null, null);
-        addMethodInternal("String", "indexOf", null, intType, new Type[] {stringType, intType}, null, null);
-        addMethodInternal("String", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("String", "replace", null, stringType, new Type[] {charseqType, charseqType}, null, null);
-        addMethodInternal("String", "startsWith", null, booleanType, new Type[] {stringType}, null, null);
-        addMethodInternal("String", "substring", null, stringType, new Type[] {intType, intType}, null, null);
-        addMethodInternal("String", "toCharArray", null, getType(charType.struct, 1), new Type[] {}, null, null);
-        addMethodInternal("String", "trim", null, stringType, new Type[] {}, null, null);
-
-        addMethodInternal("Utility", "NumberToboolean", null, booleanType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberTochar", null, charType, new Type[] {numberType}, null, null);
+        addSignature("boolean Utility#NumberToboolean(Number)");
+        addSignature("char Utility#NumberTochar(Number)");
         addMethodInternal("Utility", "NumberToBoolean", null, booleanobjType, new Type[] {numberType}, null, null);
         addMethodInternal("Utility", "NumberToByte", null, byteobjType, new Type[] {numberType}, null, null);
         addMethodInternal("Utility", "NumberToShort", null, shortobjType, new Type[] {numberType}, null, null);
@@ -1396,14 +1396,6 @@ public final class Definition {
         structsMap.put(name, struct);
         simpleTypesMap.put(name, getType(name));
     }
-
-    private final void addConstructor(String clazzName, String methodName, String... arguments) {
-        Type args[] = new Type[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            args[i] = getType(arguments[i]);
-        }
-        addConstructorInternal(clazzName, methodName, args, null);
-    }
     
     private final void addConstructorInternal(final String struct, final String name, final Type[] args, final Type[] genargs) {
         final Struct owner = structsMap.get(struct);
@@ -1465,13 +1457,57 @@ public final class Definition {
         owner.constructors.put(methodKey, constructor);
     }
     
-    private final void addMethod(String clazzName, String methodName, String returnType, String... arguments) {
-        Type rtn = getType(returnType);
-        Type args[] = new Type[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-            args[i] = getType(arguments[i]);
+    /** 
+     * Adds a new signature to the definition.
+     * <p>
+     * Signatures have the following forms:
+     * <ul>
+     *   <li>{@code void Class#method(String,int)}
+     *   <li>{@code boolean Class#field}
+     *   <li>{@code Class Class#<init>(String)}
+     * </ul>
+     * no spaces allowed.
+     */
+    private final void addSignature(String signature) {
+        String elements[] = signature.split("\u0020");
+        if (elements.length != 2) {
+            throw new IllegalArgumentException("Malformed signature: " + signature);
         }
-        addMethodInternal(clazzName, methodName, null, rtn, args, null, null);
+        // method or field type (e.g. return type)
+        Type rtn = getType(elements[0]);
+        int parenIndex = elements[1].indexOf('(');
+        if (parenIndex != -1) {
+            // method or ctor
+            int parenEnd = elements[1].indexOf(')');
+            final Type args[];
+            if (parenEnd > parenIndex + 1) {
+                String arguments[] = elements[1].substring(parenIndex + 1, parenEnd).split(",");
+                args = new Type[arguments.length];
+                for (int i = 0; i < arguments.length; i++) {
+                    args[i] = getType(arguments[i]);
+                }
+            } else {
+                args = new Type[0];
+            }
+            String classAndMethod = elements[1].substring(0, parenIndex);
+            int methodIndex = classAndMethod.lastIndexOf('#');
+            String className = classAndMethod.substring(0, methodIndex);
+            String methodName = classAndMethod.substring(methodIndex + 1);
+            if (methodName.equals("<init>")) {
+                if (!elements[0].equals(className)) {
+                    throw new IllegalArgumentException("Constructors must return their own type");
+                }
+                addConstructorInternal(className, "new", args, null);
+            } else {
+                addMethodInternal(className, methodName, null, rtn, args, null, null);
+            }
+        } else {
+            // field
+            int fieldIndex = elements[1].lastIndexOf('#');
+            String className = elements[1].substring(0, fieldIndex);
+            String fieldName = elements[1].substring(fieldIndex + 1);
+            addFieldInternal(className, fieldName, null, rtn, null);
+        }
     }
 
     private final void addMethodInternal(final String struct, final String name, final String alias, 
@@ -1566,10 +1602,6 @@ public final class Definition {
         } else {
             owner.methods.put(methodKey, method);
         }
-    }
-
-    private final void addField(String clazzName, String fieldName, String type) {
-        addFieldInternal(clazzName, fieldName, null, getType(type), null);
     }
     
     private final void addFieldInternal(final String struct, final String name, final String alias,
