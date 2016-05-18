@@ -531,8 +531,8 @@ public final class Definition {
         addMethod("Boolean", "compare", "int", "boolean", "boolean");
         addMethod("Boolean", "parseBoolean", "boolean", "String");
         addMethod("Boolean", "valueOf", "Boolean", "boolean");
-        addStaticField("Boolean", "FALSE", "Boolean");
-        addStaticField("Boolean", "TRUE", "Boolean");
+        addField("Boolean", "FALSE", "Boolean");
+        addField("Boolean", "TRUE", "Boolean");
         addConstructor("Boolean", "new", "boolean");
         addMethod("Boolean", "booleanValue", "boolean");
         addMethod("Boolean", "compareTo", "int", "Boolean");
@@ -542,16 +542,16 @@ public final class Definition {
         addMethodInternal("Byte", "compareTo", null, intType, new Type[] {byteobjType}, null, null);
         addMethodInternal("Byte", "parseByte", null, byteType, new Type[] {stringType}, null, null);
         addMethodInternal("Byte", "valueOf", null, byteobjType, new Type[] {byteType}, null, null);
-        addFieldInternal("Byte", "MIN_VALUE", null, true, byteType, null);
-        addFieldInternal("Byte", "MAX_VALUE", null, true, byteType, null);
+        addField("Byte", "MIN_VALUE", "byte");
+        addField("Byte", "MAX_VALUE", "byte");
 
         addConstructor("Short", "new", "short");
         addMethodInternal("Short", "compare", null, intType, new Type[] {shortType,shortType}, null, null);
         addMethodInternal("Short", "compareTo", null, intType, new Type[] {shortobjType}, null, null);
         addMethodInternal("Short", "parseShort", null, shortType, new Type[] {stringType}, null, null);
         addMethodInternal("Short", "valueOf", null, shortobjType, new Type[] {shortType}, null, null);
-        addFieldInternal("Short", "MIN_VALUE", null, true, shortType, null);
-        addFieldInternal("Short", "MAX_VALUE", null, true, shortType, null);
+        addFieldInternal("Short", "MIN_VALUE", null, shortType, null);
+        addFieldInternal("Short", "MAX_VALUE", null, shortType, null);
 
         addConstructor("Character", "new", "char");
         addMethodInternal("Character", "charCount", null, intType, new Type[] {intType}, null, null);
@@ -575,8 +575,8 @@ public final class Definition {
         addMethodInternal("Character", "isUpperCase", null, booleanType, new Type[] {intType}, null, null);
         addMethodInternal("Character", "isWhitespace", null, booleanType, new Type[] {intType}, null, null);
         addMethodInternal("Character", "valueOf", null, charobjType, new Type[] {charType}, null, null);
-        addFieldInternal("Character", "MIN_VALUE", null, true, charType, null);
-        addFieldInternal("Character", "MAX_VALUE", null, true, charType, null);
+        addFieldInternal("Character", "MIN_VALUE", null, charType, null);
+        addFieldInternal("Character", "MAX_VALUE", null, charType, null);
 
         addConstructorInternal("Integer", "new", new Type[] {intType}, null);
         addMethodInternal("Integer", "compare", null, intType, new Type[] {intType,intType}, null, null);
@@ -587,8 +587,8 @@ public final class Definition {
         addMethodInternal("Integer", "signum", null, intType, new Type[] {intType}, null, null);
         addMethodInternal("Integer", "toHexString", null, stringType, new Type[] {intType}, null, null);
         addMethodInternal("Integer", "valueOf", null, intobjType, new Type[] {intType}, null, null);
-        addFieldInternal("Integer", "MIN_VALUE", null, true, intType, null);
-        addFieldInternal("Integer", "MAX_VALUE", null, true, intType, null);
+        addFieldInternal("Integer", "MIN_VALUE", null, intType, null);
+        addFieldInternal("Integer", "MAX_VALUE", null, intType, null);
 
         addConstructorInternal("Long", "new", new Type[] {longType}, null);
         addMethodInternal("Long", "compare", null, intType, new Type[] {longType,longType}, null, null);
@@ -599,8 +599,8 @@ public final class Definition {
         addMethodInternal("Long", "signum", null, intType, new Type[] {longType}, null, null);
         addMethodInternal("Long", "toHexString", null, stringType, new Type[] {longType}, null, null);
         addMethodInternal("Long", "valueOf", null, longobjType, new Type[] {longType}, null, null);
-        addFieldInternal("Long", "MIN_VALUE", null, true, longType, null);
-        addFieldInternal("Long", "MAX_VALUE", null, true, longType, null);
+        addFieldInternal("Long", "MIN_VALUE", null, longType, null);
+        addFieldInternal("Long", "MAX_VALUE", null, longType, null);
 
         addConstructorInternal("Float", "new", new Type[] {floatType}, null);
         addMethodInternal("Float", "compare", null, intType, new Type[] {floatType,floatType}, null, null);
@@ -610,8 +610,8 @@ public final class Definition {
         addMethodInternal("Float", "parseFloat", null, floatType, new Type[] {stringType}, null, null);
         addMethodInternal("Float", "toHexString", null, stringType, new Type[] {floatType}, null, null);
         addMethodInternal("Float", "valueOf", null, floatobjType, new Type[] {floatType}, null, null);
-        addFieldInternal("Float", "MIN_VALUE", null, true, floatType, null);
-        addFieldInternal("Float", "MAX_VALUE", null, true, floatType, null);
+        addFieldInternal("Float", "MIN_VALUE", null, floatType, null);
+        addFieldInternal("Float", "MAX_VALUE", null, floatType, null);
 
         addConstructorInternal("Double", "new", new Type[] {doubleType}, null);
         addMethodInternal("Double", "compare", null, intType, new Type[] {doubleType,doubleType}, null, null);
@@ -621,8 +621,8 @@ public final class Definition {
         addMethodInternal("Double", "parseDouble", null, doubleType, new Type[] {stringType}, null, null);
         addMethodInternal("Double", "toHexString", null, stringType, new Type[] {doubleType}, null, null);
         addMethodInternal("Double", "valueOf", null, doubleobjType, new Type[] {doubleType}, null, null);
-        addFieldInternal("Double", "MIN_VALUE", null, true, doubleType, null);
-        addFieldInternal("Double", "MAX_VALUE", null, true, doubleType, null);
+        addFieldInternal("Double", "MIN_VALUE", null, doubleType, null);
+        addFieldInternal("Double", "MAX_VALUE", null, doubleType, null);
 
         addMethodInternal("Number", "byteValue", null, byteType, new Type[] {}, null, null);
         addMethodInternal("Number", "shortValue", null, shortType, new Type[] {}, null, null);
@@ -789,8 +789,8 @@ public final class Definition {
         addMethodInternal("Math", "tanh", null, doubleType, new Type[] {doubleType}, null, null);
         addMethodInternal("Math", "toDegrees", null, doubleType, new Type[] {doubleType}, null, null);
         addMethodInternal("Math", "toRadians", null, doubleType, new Type[] {doubleType}, null, null);
-        addFieldInternal("Math", "E", null, true, doubleType, null);
-        addFieldInternal("Math", "PI", null, true, doubleType, null);
+        addFieldInternal("Math", "E", null, doubleType, null);
+        addFieldInternal("Math", "PI", null, doubleType, null);
 
         addMethodInternal("Def", "DefTobyteImplicit", null, byteType, new Type[] {defType}, null, null);
         addMethodInternal("Def", "DefToshortImplicit", null, shortType, new Type[] {defType}, null, null);
@@ -1568,42 +1568,27 @@ public final class Definition {
         }
     }
 
-    private final void addStaticField(String clazzName, String fieldName, String type) {
-        addFieldInternal(clazzName, fieldName, null, true, getType(type), null);
+    private final void addField(String clazzName, String fieldName, String type) {
+        addFieldInternal(clazzName, fieldName, null, getType(type), null);
     }
     
     private final void addFieldInternal(final String struct, final String name, final String alias,
-                               final boolean statik, final Type type, final Type generic) {
+                                        final Type type, final Type generic) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
             throw new IllegalArgumentException("Owner struct [" + struct + "] not defined for " +
-                (statik ? "static" : "member") + " [" + name + "].");
+                " field [" + name + "].");
         }
 
         if (!name.matches("^[_a-zA-Z][_a-zA-Z0-9]*$")) {
-            throw new IllegalArgumentException("Invalid " + (statik ? "static" : "member") +
+            throw new IllegalArgumentException("Invalid field " +
                 " name [" + name + "] with the struct [" + owner.name + "].");
         }
 
-        if (owner.staticMembers.containsKey(name)) {
-            if (statik) {
-                throw new IllegalArgumentException("Duplicate static name [" + name + "]" +
-                    " found within the struct [" + owner.name + "].");
-            } else {
-                throw new IllegalArgumentException("Statics and members may not have the same name " +
-                    "[" + name + "] within the same struct [" + owner.name + "].");
-            }
-        }
-
-        if (owner.members.containsKey(name)) {
-            if (statik) {
-                throw new IllegalArgumentException("Statics and members may not have the same name " +
-                    "[" + name + "] within the same struct [" + owner.name + "].");
-            } else {
-                throw new IllegalArgumentException("Duplicate member name [" + name + "]" +
-                    " found within the struct [" + owner.name + "].");
-            }
+        if (owner.staticMembers.containsKey(name) || owner.members.containsKey(name)) {
+             throw new IllegalArgumentException("Duplicate field name [" + name + "]" +
+                     " found within the struct [" + owner.name + "].");
         }
 
         if (generic != null) {
@@ -1622,12 +1607,15 @@ public final class Definition {
             throw new IllegalArgumentException("Field [" + (alias == null ? name : alias) + "]" +
                 " not found for class [" + owner.clazz.getName() + "].");
         }
+        
+        final int modifiers = reflect.getModifiers();
+        boolean isStatic = java.lang.reflect.Modifier.isStatic(modifiers);
 
         MethodHandle getter = null;
         MethodHandle setter = null;
 
         try {
-            if (!statik) {
+            if (!isStatic) {
                 getter = MethodHandles.publicLookup().unreflectGetter(reflect);
                 setter = MethodHandles.publicLookup().unreflectSetter(reflect);
             }
@@ -1637,25 +1625,16 @@ public final class Definition {
         }
 
         final Field field = new Field(name, owner, generic == null ? type : generic, type, reflect, getter, setter);
-        final int modifiers = reflect.getModifiers();
 
-        if (statik) {
-            if (!java.lang.reflect.Modifier.isStatic(modifiers)) {
-                throw new IllegalArgumentException();
-            }
-
+        if (isStatic) {
+            // require that all static fields are static final
             if (!java.lang.reflect.Modifier.isFinal(modifiers)) {
                 throw new IllegalArgumentException("Static [" + name + "]" +
-                    " within the struct [" + owner.name + "] is not linked to static Java field.");
+                    " within the struct [" + owner.name + "] is not final.");
             }
 
             owner.staticMembers.put(alias == null ? name : alias, field);
         } else {
-            if (java.lang.reflect.Modifier.isStatic(modifiers)) {
-                throw new IllegalArgumentException("Member [" + name + "]" +
-                    " within the struct [" + owner.name + "] is not linked to non-static Java field.");
-            }
-
             owner.members.put(alias == null ? name : alias, field);
         }
     }
