@@ -482,7 +482,6 @@ public final class Definition {
         Type floatobjType = getType("Float");
         Type doubleobjType = getType("Double");
         Type stringType = getType("String");
-        Type voidType = getType("void");
         
         addSignature("boolean Object#equals(Object)");
         addSignature("int Object#hashCode()");
@@ -622,107 +621,107 @@ public final class Definition {
         addSignature("Long Utility#NumberToLong(Number)");
         addSignature("Float Utility#NumberToFloat(Number)");
         addSignature("Double Utility#NumberToDouble(Number)");
-        addMethodInternal("Utility", "booleanTobyte", null, byteType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanToshort", null, shortType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanTochar", null, charType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanToint", null, intType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanTolong", null, longType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanTofloat", null, floatType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanTodouble", null, doubleType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "booleanToInteger", null, intobjType, new Type[] {booleanType}, null, null);
-        addMethodInternal("Utility", "BooleanTobyte", null, byteType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToshort", null,  shortType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanTochar", null, charType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToint", null, intType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanTolong", null, longType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanTofloat", null, floatType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanTodouble", null, doubleType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToByte", null, byteobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToShort", null, shortobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToCharacter", null, charobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToInteger", null, intobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToLong", null, longobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToFloat", null, floatobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "BooleanToDouble", null, doubleobjType, new Type[] {booleanobjType}, null, null);
-        addMethodInternal("Utility", "byteToboolean", null, booleanType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "byteToShort", null, shortobjType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "byteToCharacter", null, charobjType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "byteToInteger", null, intobjType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "byteToLong", null, longobjType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "byteToFloat", null, floatobjType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "byteToDouble", null, doubleobjType, new Type[] {byteType}, null, null);
-        addMethodInternal("Utility", "ByteToboolean", null, booleanType, new Type[] {byteobjType}, null, null);
-        addMethodInternal("Utility", "ByteTochar", null, charType, new Type[] {byteobjType}, null, null);
-        addMethodInternal("Utility", "shortToboolean", null, booleanType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "shortToByte", null, byteobjType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "shortToCharacter", null, charobjType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "shortToInteger", null, intobjType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "shortToLong", null, longobjType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "shortToFloat", null, floatobjType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "shortToDouble", null, doubleobjType, new Type[] {shortType}, null, null);
-        addMethodInternal("Utility", "ShortToboolean", null, booleanType, new Type[] {shortobjType}, null, null);
-        addMethodInternal("Utility", "ShortTochar", null, charType, new Type[] {shortobjType}, null, null);
-        addMethodInternal("Utility", "charToboolean", null, booleanType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToByte", null, byteobjType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToShort", null, shortobjType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToInteger", null, intobjType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToLong", null, longobjType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToFloat", null, floatobjType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToDouble", null, doubleobjType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "charToString", null, stringType, new Type[] {charType}, null, null);
-        addMethodInternal("Utility", "CharacterToboolean", null, booleanType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterTobyte", null, byteType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToshort", null, shortType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToint", null, intType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterTolong", null, longType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterTofloat", null, floatType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterTodouble", null, doubleType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToBoolean", null, booleanobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToByte", null, byteobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToShort", null, shortobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToInteger", null,intobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToLong", null, longobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToFloat", null, floatobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToDouble", null, doubleobjType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "CharacterToString", null, stringType, new Type[] {charobjType}, null, null);
-        addMethodInternal("Utility", "intToboolean", null, booleanType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "intToByte", null, byteobjType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "intToShort", null, shortobjType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "intToCharacter", null, charobjType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "intToLong", null, longobjType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "intToFloat", null, floatobjType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "intToDouble", null,  doubleobjType, new Type[] {intType}, null, null);
-        addMethodInternal("Utility", "IntegerToboolean", null, booleanType, new Type[] {intobjType}, null, null);
-        addMethodInternal("Utility", "IntegerTochar", null, charType, new Type[] {intobjType}, null, null);
-        addMethodInternal("Utility", "longToboolean", null, booleanType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "longToByte", null, byteobjType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "longToShort", null, shortobjType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "longToCharacter", null, charobjType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "longToInteger", null, intobjType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "longToFloat", null, floatobjType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "longToDouble", null, doubleobjType, new Type[] {longType}, null, null);
-        addMethodInternal("Utility", "LongToboolean", null, booleanType, new Type[] {longobjType}, null, null);
-        addMethodInternal("Utility", "LongTochar", null, charType, new Type[] {longobjType}, null, null);
-        addMethodInternal("Utility", "floatToboolean", null, booleanType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "floatToByte", null, byteobjType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "floatToShort", null, shortobjType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "floatToCharacter", null, charobjType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "floatToInteger", null, intobjType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "floatToLong", null, longobjType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "floatToDouble", null, doubleobjType, new Type[] {floatType}, null, null);
-        addMethodInternal("Utility", "FloatToboolean", null, booleanType, new Type[] {floatobjType}, null, null);
-        addMethodInternal("Utility", "FloatTochar", null, charType, new Type[] {floatobjType}, null, null);
-        addMethodInternal("Utility", "doubleToboolean", null, booleanType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "doubleToByte", null, byteobjType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "doubleToShort", null, shortobjType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "doubleToCharacter", null, charobjType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "doubleToInteger", null, intobjType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "doubleToLong", null, longobjType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "doubleToFloat", null,  floatobjType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Utility", "DoubleToboolean", null, booleanType, new Type[] {doubleobjType}, null, null);
-        addMethodInternal("Utility", "DoubleTochar", null, charType, new Type[] {doubleobjType}, null, null);
-        addMethodInternal("Utility", "StringTochar", null, charType, new Type[] {stringType}, null, null);
-        addMethodInternal("Utility", "StringToCharacter", null, charobjType, new Type[] {stringType}, null, null);
+        addSignature("byte Utility#booleanTobyte(boolean)");
+        addMethodInternal("Utility", "booleanToshort", null, shortType, new Type[] {booleanType});
+        addMethodInternal("Utility", "booleanTochar", null, charType, new Type[] {booleanType});
+        addMethodInternal("Utility", "booleanToint", null, intType, new Type[] {booleanType});
+        addMethodInternal("Utility", "booleanTolong", null, longType, new Type[] {booleanType});
+        addMethodInternal("Utility", "booleanTofloat", null, floatType, new Type[] {booleanType});
+        addMethodInternal("Utility", "booleanTodouble", null, doubleType, new Type[] {booleanType});
+        addMethodInternal("Utility", "booleanToInteger", null, intobjType, new Type[] {booleanType});
+        addMethodInternal("Utility", "BooleanTobyte", null, byteType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToshort", null,  shortType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanTochar", null, charType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToint", null, intType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanTolong", null, longType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanTofloat", null, floatType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanTodouble", null, doubleType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToByte", null, byteobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToShort", null, shortobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToCharacter", null, charobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToInteger", null, intobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToLong", null, longobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToFloat", null, floatobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "BooleanToDouble", null, doubleobjType, new Type[] {booleanobjType});
+        addMethodInternal("Utility", "byteToboolean", null, booleanType, new Type[] {byteType});
+        addMethodInternal("Utility", "byteToShort", null, shortobjType, new Type[] {byteType});
+        addMethodInternal("Utility", "byteToCharacter", null, charobjType, new Type[] {byteType});
+        addMethodInternal("Utility", "byteToInteger", null, intobjType, new Type[] {byteType});
+        addMethodInternal("Utility", "byteToLong", null, longobjType, new Type[] {byteType});
+        addMethodInternal("Utility", "byteToFloat", null, floatobjType, new Type[] {byteType});
+        addMethodInternal("Utility", "byteToDouble", null, doubleobjType, new Type[] {byteType});
+        addMethodInternal("Utility", "ByteToboolean", null, booleanType, new Type[] {byteobjType});
+        addMethodInternal("Utility", "ByteTochar", null, charType, new Type[] {byteobjType});
+        addMethodInternal("Utility", "shortToboolean", null, booleanType, new Type[] {shortType});
+        addMethodInternal("Utility", "shortToByte", null, byteobjType, new Type[] {shortType});
+        addMethodInternal("Utility", "shortToCharacter", null, charobjType, new Type[] {shortType});
+        addMethodInternal("Utility", "shortToInteger", null, intobjType, new Type[] {shortType});
+        addMethodInternal("Utility", "shortToLong", null, longobjType, new Type[] {shortType});
+        addMethodInternal("Utility", "shortToFloat", null, floatobjType, new Type[] {shortType});
+        addMethodInternal("Utility", "shortToDouble", null, doubleobjType, new Type[] {shortType});
+        addMethodInternal("Utility", "ShortToboolean", null, booleanType, new Type[] {shortobjType});
+        addMethodInternal("Utility", "ShortTochar", null, charType, new Type[] {shortobjType});
+        addMethodInternal("Utility", "charToboolean", null, booleanType, new Type[] {charType});
+        addMethodInternal("Utility", "charToByte", null, byteobjType, new Type[] {charType});
+        addMethodInternal("Utility", "charToShort", null, shortobjType, new Type[] {charType});
+        addMethodInternal("Utility", "charToInteger", null, intobjType, new Type[] {charType});
+        addMethodInternal("Utility", "charToLong", null, longobjType, new Type[] {charType});
+        addMethodInternal("Utility", "charToFloat", null, floatobjType, new Type[] {charType});
+        addMethodInternal("Utility", "charToDouble", null, doubleobjType, new Type[] {charType});
+        addMethodInternal("Utility", "charToString", null, stringType, new Type[] {charType});
+        addMethodInternal("Utility", "CharacterToboolean", null, booleanType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterTobyte", null, byteType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToshort", null, shortType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToint", null, intType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterTolong", null, longType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterTofloat", null, floatType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterTodouble", null, doubleType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToBoolean", null, booleanobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToByte", null, byteobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToShort", null, shortobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToInteger", null,intobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToLong", null, longobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToFloat", null, floatobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToDouble", null, doubleobjType, new Type[] {charobjType});
+        addMethodInternal("Utility", "CharacterToString", null, stringType, new Type[] {charobjType});
+        addMethodInternal("Utility", "intToboolean", null, booleanType, new Type[] {intType});
+        addMethodInternal("Utility", "intToByte", null, byteobjType, new Type[] {intType});
+        addMethodInternal("Utility", "intToShort", null, shortobjType, new Type[] {intType});
+        addMethodInternal("Utility", "intToCharacter", null, charobjType, new Type[] {intType});
+        addMethodInternal("Utility", "intToLong", null, longobjType, new Type[] {intType});
+        addMethodInternal("Utility", "intToFloat", null, floatobjType, new Type[] {intType});
+        addMethodInternal("Utility", "intToDouble", null,  doubleobjType, new Type[] {intType});
+        addMethodInternal("Utility", "IntegerToboolean", null, booleanType, new Type[] {intobjType});
+        addMethodInternal("Utility", "IntegerTochar", null, charType, new Type[] {intobjType});
+        addMethodInternal("Utility", "longToboolean", null, booleanType, new Type[] {longType});
+        addMethodInternal("Utility", "longToByte", null, byteobjType, new Type[] {longType});
+        addMethodInternal("Utility", "longToShort", null, shortobjType, new Type[] {longType});
+        addMethodInternal("Utility", "longToCharacter", null, charobjType, new Type[] {longType});
+        addMethodInternal("Utility", "longToInteger", null, intobjType, new Type[] {longType});
+        addMethodInternal("Utility", "longToFloat", null, floatobjType, new Type[] {longType});
+        addMethodInternal("Utility", "longToDouble", null, doubleobjType, new Type[] {longType});
+        addMethodInternal("Utility", "LongToboolean", null, booleanType, new Type[] {longobjType});
+        addMethodInternal("Utility", "LongTochar", null, charType, new Type[] {longobjType});
+        addMethodInternal("Utility", "floatToboolean", null, booleanType, new Type[] {floatType});
+        addMethodInternal("Utility", "floatToByte", null, byteobjType, new Type[] {floatType});
+        addMethodInternal("Utility", "floatToShort", null, shortobjType, new Type[] {floatType});
+        addMethodInternal("Utility", "floatToCharacter", null, charobjType, new Type[] {floatType});
+        addMethodInternal("Utility", "floatToInteger", null, intobjType, new Type[] {floatType});
+        addMethodInternal("Utility", "floatToLong", null, longobjType, new Type[] {floatType});
+        addMethodInternal("Utility", "floatToDouble", null, doubleobjType, new Type[] {floatType});
+        addMethodInternal("Utility", "FloatToboolean", null, booleanType, new Type[] {floatobjType});
+        addMethodInternal("Utility", "FloatTochar", null, charType, new Type[] {floatobjType});
+        addMethodInternal("Utility", "doubleToboolean", null, booleanType, new Type[] {doubleType});
+        addMethodInternal("Utility", "doubleToByte", null, byteobjType, new Type[] {doubleType});
+        addMethodInternal("Utility", "doubleToShort", null, shortobjType, new Type[] {doubleType});
+        addMethodInternal("Utility", "doubleToCharacter", null, charobjType, new Type[] {doubleType});
+        addMethodInternal("Utility", "doubleToInteger", null, intobjType, new Type[] {doubleType});
+        addMethodInternal("Utility", "doubleToLong", null, longobjType, new Type[] {doubleType});
+        addMethodInternal("Utility", "doubleToFloat", null,  floatobjType, new Type[] {doubleType});
+        addMethodInternal("Utility", "DoubleToboolean", null, booleanType, new Type[] {doubleobjType});
+        addMethodInternal("Utility", "DoubleTochar", null, charType, new Type[] {doubleobjType});
+        addMethodInternal("Utility", "StringTochar", null, charType, new Type[] {stringType});
+        addMethodInternal("Utility", "StringToCharacter", null, charobjType, new Type[] {stringType});
 
         addSignature("double Math#E");
         addSignature("double Math#PI");
@@ -756,34 +755,34 @@ public final class Definition {
         addSignature("double Math#toDegrees(double)");
         addSignature("double Math#toRadians(double)");
 
-        addMethodInternal("Def", "DefTobyteImplicit", null, byteType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToshortImplicit", null, shortType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTocharImplicit", null, charType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTointImplicit", null, intType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTolongImplicit", null, longType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTofloatImplicit", null, floatType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTodoubleImplicit", null, doubleType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToByteImplicit", null, byteobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToShortImplicit", null, shortobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToCharacterImplicit", null, charobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToIntegerImplicit", null, intobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToLongImplicit", null, longobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToFloatImplicit", null, floatobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToDoubleImplicit", null, doubleobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTobyteExplicit", null, byteType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToshortExplicit", null, shortType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTocharExplicit", null, charType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTointExplicit", null, intType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTolongExplicit", null, longType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTofloatExplicit", null, floatType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefTodoubleExplicit", null, doubleType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToByteExplicit", null, byteobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToShortExplicit", null, shortobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToCharacterExplicit", null, charobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToIntegerExplicit", null, intobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToLongExplicit", null, longobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToFloatExplicit", null, floatobjType, new Type[] {defType}, null, null);
-        addMethodInternal("Def", "DefToDoubleExplicit", null, doubleobjType, new Type[] {defType}, null, null);
+        addMethodInternal("Def", "DefTobyteImplicit", null, byteType, new Type[] {defType});
+        addMethodInternal("Def", "DefToshortImplicit", null, shortType, new Type[] {defType});
+        addMethodInternal("Def", "DefTocharImplicit", null, charType, new Type[] {defType});
+        addMethodInternal("Def", "DefTointImplicit", null, intType, new Type[] {defType});
+        addMethodInternal("Def", "DefTolongImplicit", null, longType, new Type[] {defType});
+        addMethodInternal("Def", "DefTofloatImplicit", null, floatType, new Type[] {defType});
+        addMethodInternal("Def", "DefTodoubleImplicit", null, doubleType, new Type[] {defType});
+        addMethodInternal("Def", "DefToByteImplicit", null, byteobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToShortImplicit", null, shortobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToCharacterImplicit", null, charobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToIntegerImplicit", null, intobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToLongImplicit", null, longobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToFloatImplicit", null, floatobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToDoubleImplicit", null, doubleobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefTobyteExplicit", null, byteType, new Type[] {defType});
+        addMethodInternal("Def", "DefToshortExplicit", null, shortType, new Type[] {defType});
+        addMethodInternal("Def", "DefTocharExplicit", null, charType, new Type[] {defType});
+        addMethodInternal("Def", "DefTointExplicit", null, intType, new Type[] {defType});
+        addMethodInternal("Def", "DefTolongExplicit", null, longType, new Type[] {defType});
+        addMethodInternal("Def", "DefTofloatExplicit", null, floatType, new Type[] {defType});
+        addMethodInternal("Def", "DefTodoubleExplicit", null, doubleType, new Type[] {defType});
+        addMethodInternal("Def", "DefToByteExplicit", null, byteobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToShortExplicit", null, shortobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToCharacterExplicit", null, charobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToIntegerExplicit", null, intobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToLongExplicit", null, longobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToFloatExplicit", null, floatobjType, new Type[] {defType});
+        addMethodInternal("Def", "DefToDoubleExplicit", null, doubleobjType, new Type[] {defType});
 
         addSignature("boolean Iterator#hasNext()");
         addSignature("def Iterator#next()");
@@ -801,7 +800,7 @@ public final class Definition {
         addSignature("def List#get(int)");
         addSignature("def List#remove(int)");
         // XXX
-        addMethodInternal("List", "getLength", "size", intType, new Type[] {}, null, null);
+        addMethodInternal("List", "getLength", "size", intType, new Type[] {});
 
         addSignature("ArrayList ArrayList#<init>()");
         addSignature("HashSet HashSet#<init>()");
@@ -1245,7 +1244,7 @@ public final class Definition {
         simpleTypesMap.put(name, getType(name));
     }
     
-    private final void addConstructorInternal(final String struct, final String name, final Type[] args, final Type[] genargs) {
+    private final void addConstructorInternal(final String struct, final String name, final Type[] args) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
@@ -1278,14 +1277,6 @@ public final class Definition {
         final Class<?>[] classes = new Class<?>[args.length];
 
         for (int count = 0; count < classes.length; ++count) {
-            if (genargs != null) {
-                if (!args[count].clazz.isAssignableFrom(genargs[count].clazz)) {
-                    throw new ClassCastException("Generic argument [" + genargs[count].name + "]" +
-                        " is not a sub class of [" + args[count].name + "] in the constructor" +
-                        " [" + name + " ] from the struct [" + owner.name + "].");
-                }
-            }
-
             classes[count] = args[count].clazz;
         }
 
@@ -1299,8 +1290,7 @@ public final class Definition {
         }
 
         final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
-        final Constructor constructor =
-            new Constructor(name, owner, Arrays.asList(genargs != null ? genargs : args), asm, reflect);
+        final Constructor constructor = new Constructor(name, owner, Arrays.asList(args), asm, reflect);
 
         owner.constructors.put(methodKey, constructor);
     }
@@ -1345,9 +1335,9 @@ public final class Definition {
                 if (!elements[0].equals(className)) {
                     throw new IllegalArgumentException("Constructors must return their own type");
                 }
-                addConstructorInternal(className, "new", args, null);
+                addConstructorInternal(className, "new", args);
             } else {
-                addMethodInternal(className, methodName, null, rtn, args, null, null);
+                addMethodInternal(className, methodName, null, rtn, args);
             }
         } else {
             // field
@@ -1359,7 +1349,7 @@ public final class Definition {
     }
 
     private final void addMethodInternal(final String struct, final String name, final String alias, 
-                                         final Type rtn, final Type[] args, final Type genrtn, final Type[] genargs) {
+                                         final Type rtn, final Type[] args) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
@@ -1385,30 +1375,9 @@ public final class Definition {
                 "Duplicate  method signature [" + methodKey + "] found within the struct [" + owner.name + "].");
         }
 
-        if (genrtn != null) {
-            if (!rtn.clazz.isAssignableFrom(genrtn.clazz)) {
-                throw new ClassCastException("Generic return [" + genrtn.clazz.getCanonicalName() + "]" +
-                    " is not a sub class of [" + rtn.clazz.getCanonicalName() + "] in the method" +
-                    " [" + name + " ] from the struct [" + owner.name + "].");
-            }
-        }
-
-        if (genargs != null && genargs.length != args.length) {
-            throw new IllegalArgumentException("Generic arguments arity [" +  genargs.length + "] is not the same as " +
-                "method [" + name + "] arguments arity" + " [" + args.length + "] within the struct [" + owner.name + "].");
-        }
-
         final Class<?>[] classes = new Class<?>[args.length];
 
         for (int count = 0; count < classes.length; ++count) {
-            if (genargs != null) {
-                if (!args[count].clazz.isAssignableFrom(genargs[count].clazz)) {
-                    throw new ClassCastException("Generic argument [" + genargs[count].name + "] is not a sub class" +
-                        " of [" + args[count].name + "] in the method [" + name + 
-                        " ] from the struct [" + owner.name + "].");
-                }
-            }
-
             classes[count] = args[count].clazz;
         }
 
@@ -1441,8 +1410,7 @@ public final class Definition {
                 " with arguments " + Arrays.toString(classes) + ".");
         }
 
-        final Method method = new Method(name, owner, genrtn != null ? genrtn : rtn,
-            Arrays.asList(genargs != null ? genargs : args), asm, reflect, handle);
+        final Method method = new Method(name, owner, rtn, Arrays.asList(args), asm, reflect, handle);
         final int modifiers = reflect.getModifiers();
 
         if (java.lang.reflect.Modifier.isStatic(modifiers)) {
