@@ -104,13 +104,13 @@ public final class Variables {
         addVariable("[" + Reserved.THIS + "]"  , "Executable", Reserved.THIS  , true, true);
 
         // Input map of variables passed to the script.  TODO: Rename to 'params' since that will be its use.
-        addVariable("[" + Reserved.PARAMS + "]", "Map<String,def>", Reserved.PARAMS, true, true);
+        addVariable("[" + Reserved.PARAMS + "]", "Map", Reserved.PARAMS, true, true);
 
         // Scorer parameter passed to the script.  Internal use only.
         addVariable("[" + Reserved.SCORER + "]", "def", Reserved.SCORER, true, true);
 
-        // Doc parameter passed to the script. TODO: Currently working as a Map<String,Def>, we can do better?
-        addVariable("[" + Reserved.DOC + "]"   , "Map<String,def>", Reserved.DOC   , true, true);
+        // Doc parameter passed to the script. TODO: Currently working as a Map, we can do better?
+        addVariable("[" + Reserved.DOC + "]"   , "Map", Reserved.DOC   , true, true);
 
         // Aggregation _value parameter passed to the script.
         addVariable("[" + Reserved.VALUE + "]" , "def", Reserved.VALUE , true, true);
@@ -124,7 +124,7 @@ public final class Variables {
 
         // The ctx map set by executable scripts as a read-only map.
         if (reserved.ctx) {
-            addVariable("[" + Reserved.CTX + "]", "Map<String,def>", Reserved.CTX, true, true);
+            addVariable("[" + Reserved.CTX + "]", "Map", Reserved.CTX, true, true);
         }
 
         // Loop counter to catch infinite loops.  Internal use only.

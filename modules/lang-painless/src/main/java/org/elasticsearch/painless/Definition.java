@@ -434,36 +434,14 @@ public final class Definition {
         addStruct( "Utility"      , Utility.class      );
         addStruct( "Def"          , Def.class          );
 
-        addStruct( "Iterator"         , Iterator.class );
-        addStruct( "Iterator<Object>" , Iterator.class );
-        addStruct( "Iterator<String>" , Iterator.class );
-
-        addStruct( "Collection"         , Collection.class );
-        addStruct( "Collection<Object>" , Collection.class );
-        addStruct( "Collection<String>" , Collection.class );
-
-        addStruct( "List"              , List.class      );
-        addStruct( "ArrayList"         , ArrayList.class );
-        addStruct( "List<Object>"      , List.class      );
-        addStruct( "ArrayList<Object>" , ArrayList.class );
-        addStruct( "List<String>"      , List.class      );
-        addStruct( "ArrayList<String>" , ArrayList.class );
-
-        addStruct( "Set"             , Set.class     );
-        addStruct( "HashSet"         , HashSet.class );
-        addStruct( "Set<Object>"     , Set.class     );
-        addStruct( "HashSet<Object>" , HashSet.class );
-        addStruct( "Set<String>"     , Set.class     );
-        addStruct( "HashSet<String>" , HashSet.class );
-
-        addStruct( "Map"                    , Map.class     );
-        addStruct( "HashMap"                , HashMap.class );
-        addStruct( "Map<Object,Object>"     , Map.class     );
-        addStruct( "HashMap<Object,Object>" , HashMap.class );
-        addStruct( "Map<String,def>"        , Map.class     );
-        addStruct( "HashMap<String,def>"    , HashMap.class );
-        addStruct( "Map<String,Object>"     , Map.class     );
-        addStruct( "HashMap<String,Object>" , HashMap.class );
+        addStruct( "Iterator"     , Iterator.class   );
+        addStruct( "Collection"   , Collection.class );
+        addStruct( "List"         , List.class       );
+        addStruct( "ArrayList"    , ArrayList.class  );
+        addStruct( "Set"          , Set.class        );
+        addStruct( "HashSet"      , HashSet.class    );
+        addStruct( "Map"          , Map.class        );
+        addStruct( "HashMap"      , HashMap.class    );
 
         addStruct( "Executable" , Executable.class );
 
@@ -487,7 +465,6 @@ public final class Definition {
          * XXX
          */
         Type booleanType = getType("boolean");
-        Type objectType = getType("Object");
         Type defType = getType("def");
         Type booleanobjType = getType("Boolean");
         Type byteType = getType("byte");
@@ -497,7 +474,6 @@ public final class Definition {
         Type longType = getType("long");
         Type floatType = getType("float");
         Type doubleType = getType("double");
-        Type numberType = getType("Number");
         Type byteobjType = getType("Byte");
         Type shortobjType = getType("Short");
         Type charobjType = getType("Character");
@@ -506,19 +482,7 @@ public final class Definition {
         Type floatobjType = getType("Float");
         Type doubleobjType = getType("Double");
         Type stringType = getType("String");
-        Type charseqType = getType("CharSequence");
         Type voidType = getType("void");
-        Type collectionType = getType("Collection");
-        Type ocollectionType = getType("Collection<Object>");
-        Type itrType = getType("Iterator");
-        Type oitrType = getType("Iterator<Object>");
-        Type sitrType = getType("Iterator<String>");
-        Type setType = getType("Set");
-        Type olistType = getType("List<Object>");
-        Type slistType = getType("List<String>");
-        Type osetType = getType("Set<Object>");
-        Type ssetType = getType("Set<String>");
-        Type geoPointType = getType("GeoPoint");
         
         addSignature("boolean Object#equals(Object)");
         addSignature("int Object#hashCode()");
@@ -650,14 +614,14 @@ public final class Definition {
 
         addSignature("boolean Utility#NumberToboolean(Number)");
         addSignature("char Utility#NumberTochar(Number)");
-        addMethodInternal("Utility", "NumberToBoolean", null, booleanobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToByte", null, byteobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToShort", null, shortobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToCharacter", null, charobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToInteger", null, intobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToLong", null, longobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToFloat", null, floatobjType, new Type[] {numberType}, null, null);
-        addMethodInternal("Utility", "NumberToDouble", null, doubleobjType, new Type[] {numberType}, null, null);
+        addSignature("Boolean Utility#NumberToBoolean(Number)");
+        addSignature("Byte Utility#NumberToByte(Number)");
+        addSignature("Short Utility#NumberToShort(Number)");
+        addSignature("Character Utility#NumberToCharacter(Number)");
+        addSignature("Integer Utility#NumberToInteger(Number)");
+        addSignature("Long Utility#NumberToLong(Number)");
+        addSignature("Float Utility#NumberToFloat(Number)");
+        addSignature("Double Utility#NumberToDouble(Number)");
         addMethodInternal("Utility", "booleanTobyte", null, byteType, new Type[] {booleanType}, null, null);
         addMethodInternal("Utility", "booleanToshort", null, shortType, new Type[] {booleanType}, null, null);
         addMethodInternal("Utility", "booleanTochar", null, charType, new Type[] {booleanType}, null, null);
@@ -760,37 +724,37 @@ public final class Definition {
         addMethodInternal("Utility", "StringTochar", null, charType, new Type[] {stringType}, null, null);
         addMethodInternal("Utility", "StringToCharacter", null, charobjType, new Type[] {stringType}, null, null);
 
-        addMethodInternal("Math", "abs", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "acos", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "asin", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "atan", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "atan2", null, doubleType, new Type[] {doubleType, doubleType}, null, null);
-        addMethodInternal("Math", "cbrt", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "ceil", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "cos", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "cosh", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "exp", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "expm1", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "floor", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "hypot", null, doubleType, new Type[] {doubleType, doubleType}, null, null);
-        addMethodInternal("Math", "log", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "log10", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "log1p", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "max", null, doubleType, new Type[] {doubleType, doubleType}, null, null);
-        addMethodInternal("Math", "min", null, doubleType, new Type[] {doubleType, doubleType}, null, null);
-        addMethodInternal("Math", "pow", null, doubleType, new Type[] {doubleType, doubleType}, null, null);
-        addMethodInternal("Math", "random", null, doubleType, new Type[] {}, null, null);
-        addMethodInternal("Math", "rint", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "round", null, longType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "sin", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "sinh", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "sqrt", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "tan", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "tanh", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "toDegrees", null, doubleType, new Type[] {doubleType}, null, null);
-        addMethodInternal("Math", "toRadians", null, doubleType, new Type[] {doubleType}, null, null);
-        addFieldInternal("Math", "E", null, doubleType, null);
-        addFieldInternal("Math", "PI", null, doubleType, null);
+        addSignature("double Math#E");
+        addSignature("double Math#PI");
+        addSignature("double Math#abs(double)");
+        addSignature("double Math#acos(double)");
+        addSignature("double Math#asin(double)");
+        addSignature("double Math#atan(double)");
+        addSignature("double Math#atan2(double,double)");
+        addSignature("double Math#cbrt(double)");
+        addSignature("double Math#ceil(double)");
+        addSignature("double Math#cos(double)");
+        addSignature("double Math#cosh(double)");
+        addSignature("double Math#exp(double)");
+        addSignature("double Math#expm1(double)");
+        addSignature("double Math#floor(double)");
+        addSignature("double Math#hypot(double,double)");
+        addSignature("double Math#log(double)");
+        addSignature("double Math#log10(double)");
+        addSignature("double Math#log1p(double)");
+        addSignature("double Math#max(double,double)");
+        addSignature("double Math#min(double,double)");
+        addSignature("double Math#pow(double,double)");
+        addSignature("double Math#random()");
+        addSignature("double Math#rint(double)");
+        addSignature("long Math#round(double)");
+        addSignature("double Math#sin(double)");
+        addSignature("double Math#sinh(double)");
+        addSignature("double Math#sqrt(double)");
+        addSignature("double Math#tan(double)");
+        addSignature("double Math#tanh(double)");
+        addSignature("double Math#toDegrees(double)");
+        addSignature("double Math#toRadians(double)");
 
         addMethodInternal("Def", "DefTobyteImplicit", null, byteType, new Type[] {defType}, null, null);
         addMethodInternal("Def", "DefToshortImplicit", null, shortType, new Type[] {defType}, null, null);
@@ -821,145 +785,62 @@ public final class Definition {
         addMethodInternal("Def", "DefToFloatExplicit", null, floatobjType, new Type[] {defType}, null, null);
         addMethodInternal("Def", "DefToDoubleExplicit", null, doubleobjType, new Type[] {defType}, null, null);
 
-        addMethodInternal("Iterator", "hasNext", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Iterator", "next", null, objectType, new Type[] {}, defType, null);
-        addMethodInternal("Iterator", "remove", null, voidType, new Type[] {}, null, null);
+        addSignature("boolean Iterator#hasNext()");
+        addSignature("def Iterator#next()");
+        addSignature("void Iterator#remove()");
+        
+        addSignature("boolean Collection#add(def)");
+        addSignature("void Collection#clear()");
+        addSignature("boolean Collection#contains(def)");
+        addSignature("boolean Collection#isEmpty()");
+        addSignature("Iterator Collection#iterator()");
+        addSignature("boolean Collection#remove(def)");
+        addSignature("int Collection#size()");
 
-        addMethodInternal("Iterator<Object>", "hasNext", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Iterator<Object>", "next", null, objectType, new Type[] {}, null, null);
-        addMethodInternal("Iterator<Object>", "remove", null, voidType, new Type[] {}, null, null);
-
-        addMethodInternal("Iterator<String>", "hasNext", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Iterator<String>", "next", null, objectType, new Type[] {}, stringType, null);
-        addMethodInternal("Iterator<String>", "remove", null, voidType, new Type[] {}, null, null);
-
-        addMethodInternal("Collection", "add", null, booleanType, new Type[] {objectType}, null, new Type[] {defType});
-        addMethodInternal("Collection", "clear", null, voidType, new Type[] {}, null, null);
-        addMethodInternal("Collection", "contains", null, booleanType, new Type[] {objectType}, null, new Type[] {defType});
-        addMethodInternal("Collection", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Collection", "iterator", null, itrType, new Type[] {}, null, null);
-        addMethodInternal("Collection", "remove", null, booleanType, new Type[] {objectType}, null, new Type[] {defType});
-        addMethodInternal("Collection", "size", null, intType, new Type[] {}, null, null);
-
-        addMethodInternal("Collection<Object>", "add", null, booleanType, new Type[] {objectType}, null, null);
-        addMethodInternal("Collection<Object>", "clear", null, voidType, new Type[] {}, null, null);
-        addMethodInternal("Collection<Object>", "contains", null, booleanType, new Type[] {objectType}, null, null);
-        addMethodInternal("Collection<Object>", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Collection<Object>", "iterator", null, oitrType, new Type[] {}, null, null);
-        addMethodInternal("Collection<Object>", "remove", null, booleanType, new Type[] {objectType}, null, null);
-        addMethodInternal("Collection<Object>", "size", null, intType, new Type[] {}, null, null);
-
-        addMethodInternal("Collection<String>", "add", null, booleanType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Collection<String>", "clear", null, voidType, new Type[] {}, null, null);
-        addMethodInternal("Collection<String>", "contains", null, booleanType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Collection<String>", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Collection<String>", "iterator", null, sitrType, new Type[] {}, null, null);
-        addMethodInternal("Collection<String>", "remove", null, booleanType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Collection<String>", "size", null, intType, new Type[] {}, null, null);
-
-        addMethodInternal("List", "set", null, objectType, new Type[] {intType, objectType}, defType, new Type[] {intType, defType});
-        addMethodInternal("List", "get", null, objectType, new Type[] {intType}, defType, null);
-        addMethodInternal("List", "remove", null, objectType, new Type[] {intType}, defType, null);
+        addSignature("def List#set(int,def)");
+        addSignature("def List#get(int)");
+        addSignature("def List#remove(int)");
+        // XXX
         addMethodInternal("List", "getLength", "size", intType, new Type[] {}, null, null);
 
-        addConstructorInternal("ArrayList", "new", new Type[] {}, null);
+        addSignature("ArrayList ArrayList#<init>()");
+        addSignature("HashSet HashSet#<init>()");
 
-        addMethodInternal("List<Object>", "set", null, objectType, new Type[] {intType, objectType}, null, null);
-        addMethodInternal("List<Object>", "get", null, objectType, new Type[] {intType}, null, null);
-        addMethodInternal("List<Object>", "remove", null, objectType, new Type[] {intType}, null, null);
-        addMethodInternal("List<Object>", "getLength", "size", intType, new Type[] {}, null, null);
+        addSignature("def Map#put(def,def)");
+        addSignature("def Map#get(def)");
+        addSignature("def Map#remove(def)");
+        addSignature("boolean Map#isEmpty()");
+        addSignature("int Map#size()");
+        addSignature("boolean Map#containsKey(def)");
+        addSignature("Set Map#keySet()");
+        addSignature("Collection Map#values()");
 
-        addConstructorInternal("ArrayList<Object>", "new", new Type[] {}, null);
+        addSignature("HashMap HashMap#<init>()");
 
-        addMethodInternal("List<String>", "set", null, objectType, new Type[] {intType, objectType}, stringType,
-            new Type[] {intType, stringType});
-        addMethodInternal("List<String>", "get", null, objectType, new Type[] {intType}, stringType, null);
-        addMethodInternal("List<String>", "remove", null, objectType, new Type[] {intType}, stringType, null);
-        addMethodInternal("List<String>", "getLength", "size", intType, new Type[] {}, null, null);
+        addSignature("String Exception#getMessage()");
 
-        addConstructorInternal("ArrayList<String>", "new", new Type[] {}, null);
+        addSignature("ArithmeticException ArithmeticException#<init>()");
+        addSignature("IllegalArgumentException IllegalArgumentException#<init>()");
+        addSignature("IllegalStateException IllegalStateException#<init>()");
+        addSignature("NumberFormatException NumberFormatException#<init>()");
 
-        addConstructorInternal("HashSet", "new", new Type[] {}, null);
+        addSignature("double GeoPoint#getLat()");
+        addSignature("double GeoPoint#getLon()");
 
-        addConstructorInternal("HashSet<Object>", "new", new Type[] {}, null);
-
-        addConstructorInternal("HashSet<String>", "new", new Type[] {}, null);
-
-        addMethodInternal("Map", "put", null, objectType, new Type[] {objectType, objectType}, defType, new Type[] {defType, defType});
-        addMethodInternal("Map", "get", null, objectType, new Type[] {objectType}, defType, new Type[] {defType});
-        addMethodInternal("Map", "remove", null, objectType, new Type[] {objectType}, null, null);
-        addMethodInternal("Map", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Map", "size", null, intType, new Type[] {}, null, null);
-        addMethodInternal("Map", "containsKey", null, booleanType, new Type[] {objectType}, null, new Type[] {defType});
-        addMethodInternal("Map", "containsValue", null, booleanType, new Type[] {objectType}, null, new Type[] {defType});
-        addMethodInternal("Map", "keySet", null, osetType, new Type[] {}, setType, null);
-        addMethodInternal("Map", "values", null, ocollectionType, new Type[] {}, collectionType, null);
-
-        addConstructorInternal("HashMap", "new", new Type[] {}, null);
-
-        addMethodInternal("Map<Object,Object>", "put", null, objectType, new Type[] {objectType, objectType}, null, null);
-        addMethodInternal("Map<Object,Object>", "get", null, objectType, new Type[] {objectType}, null, null);
-        addMethodInternal("Map<Object,Object>", "remove", null, objectType, new Type[] {objectType}, null, null);
-        addMethodInternal("Map<Object,Object>", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Map<Object,Object>", "size", null, intType, new Type[] {}, null, null);
-        addMethodInternal("Map<Object,Object>", "containsKey", null, booleanType, new Type[] {objectType}, null, null);
-        addMethodInternal("Map<Object,Object>", "containsValue", null, booleanType, new Type[] {objectType}, null, null);
-        addMethodInternal("Map<Object,Object>", "keySet", null, osetType, new Type[] {}, null, null);
-        addMethodInternal("Map<Object,Object>", "values", null, ocollectionType, new Type[] {}, null, null);
-
-        addConstructorInternal("HashMap<Object,Object>", "new", new Type[] {}, null);
-
-        addMethodInternal("Map<String,def>", "put", null, objectType, new Type[] {objectType, objectType}, defType,
-            new Type[] {stringType, defType});
-        addMethodInternal("Map<String,def>", "get", null, objectType, new Type[] {objectType}, defType, new Type[] {stringType});
-        addMethodInternal("Map<String,def>", "remove", null, objectType, new Type[] {objectType}, defType, new Type[] {stringType});
-        addMethodInternal("Map<String,def>", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Map<String,def>", "size", null, intType, new Type[] {}, null, null);
-        addMethodInternal("Map<String,def>", "containsKey", null, booleanType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Map<String,def>", "containsValue", null, booleanType, new Type[] {objectType}, null, new Type[] {defType});
-        addMethodInternal("Map<String,def>", "keySet", null, osetType, new Type[] {}, ssetType, null);
-        addMethodInternal("Map<String,def>", "values", null, ocollectionType, new Type[] {}, collectionType, null);
-
-        addConstructorInternal("HashMap<String,def>", "new", new Type[] {}, null);
-
-        addMethodInternal("Map<String,Object>", "put", null, objectType, new Type[] {objectType, objectType}, null,
-            new Type[] {stringType, objectType});
-        addMethodInternal("Map<String,Object>", "get", null, objectType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Map<String,Object>", "remove", null, objectType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Map<String,Object>", "isEmpty", null, booleanType, new Type[] {}, null, null);
-        addMethodInternal("Map<String,Object>", "size", null, intType, new Type[] {}, null, null);
-        addMethodInternal("Map<String,Object>", "containsKey", null, booleanType, new Type[] {objectType}, null, new Type[] {stringType});
-        addMethodInternal("Map<String,Object>", "containsValue", null, booleanType, new Type[] {objectType}, null, null);
-        addMethodInternal("Map<String,Object>", "keySet", null, osetType, new Type[] {}, ssetType, null);
-        addMethodInternal("Map<String,Object>", "values", null, ocollectionType, new Type[] {}, null, null);
-
-        addConstructorInternal("HashMap<String,Object>", "new", new Type[] {}, null);
-
-        addMethodInternal("Exception", "getMessage", null, stringType, new Type[] {}, null, null);
-
-        addConstructorInternal("ArithmeticException", "new", new Type[] {stringType}, null);
-
-        addConstructorInternal("IllegalArgumentException", "new", new Type[] {stringType}, null);
-
-        addConstructorInternal("IllegalStateException", "new", new Type[] {stringType}, null);
-
-        addConstructorInternal("NumberFormatException", "new", new Type[] {stringType}, null);
-
-        addMethodInternal("GeoPoint", "getLat", null, doubleType, new Type[] {}, null, null);
-        addMethodInternal("GeoPoint", "getLon", null, doubleType, new Type[] {}, null, null);
-        addMethodInternal("Strings", "getValue", null, stringType, new Type[] {}, null, null);
-        addMethodInternal("Strings", "getValues", null, slistType, new Type[] {}, null, null);
-        addMethodInternal("Longs", "getValue", null, longType, new Type[] {}, null, null);
-        addMethodInternal("Longs", "getValues", null, olistType, new Type[] {}, null, null);
+        addSignature("String Strings#getValue()");
+        addSignature("List Strings#getValues()");
+        addSignature("long Longs#getValue()");
+        addSignature("List Longs#getValues()");
         // TODO: add better date support for Longs here? (carefully?)
-        addMethodInternal("Doubles", "getValue", null, doubleType, new Type[] {}, null, null);
-        addMethodInternal("Doubles", "getValues", null, olistType, new Type[] {}, null, null);
-        addMethodInternal("GeoPoints", "getValue", null, geoPointType, new Type[] {}, null, null);
-        addMethodInternal("GeoPoints", "getValues", null, olistType, new Type[] {}, null, null);
-        addMethodInternal("GeoPoints", "getLat", null, doubleType, new Type[] {}, null, null);
-        addMethodInternal("GeoPoints", "getLon", null, doubleType, new Type[] {}, null, null);
-        addMethodInternal("GeoPoints", "getLats", null, getType(doubleType.struct, 1), new Type[] {}, null, null);
-        addMethodInternal("GeoPoints", "getLons", null, getType(doubleType.struct, 1), new Type[] {}, null, null);
+        addSignature("double Doubles#getValue()");
+        addSignature("List Doubles#getValues()");
+        addSignature("GeoPoint GeoPoints#getValue()");
+        addSignature("List GeoPoints#getValues()");
+        addSignature("double GeoPoints#getLat()");
+        addSignature("double GeoPoints#getLon()");
+        addSignature("double[] GeoPoints#getLats()");
+        addSignature("double[] GeoPoints#getLons()");
+
         // geo distance functions... so many...
         addMethodInternal("GeoPoints", "factorDistance", null,doubleType,
                   new Type[] { doubleType, doubleType }, null, null);
@@ -1028,26 +909,12 @@ public final class Definition {
 
         copyStruct("List", "Collection", "Object");
         copyStruct("ArrayList", "List", "Collection", "Object");
-        copyStruct("List<Object>", "Collection<Object>", "Object");
-        copyStruct("ArrayList<Object>", "List<Object>", "Collection<Object>", "Object");
-        copyStruct("List<String>", "Collection<String>", "Object");
-        copyStruct("ArrayList<String>", "List<String>", "Collection<String>", "Object");
 
         copyStruct("Set", "Collection", "Object");
         copyStruct("HashSet", "Set", "Collection", "Object");
-        copyStruct("Set<Object>", "Collection<Object>", "Object");
-        copyStruct("HashSet<Object>", "Set<Object>", "Collection<Object>", "Object");
-        copyStruct("Set<String>", "Collection<String>", "Object");
-        copyStruct("HashSet<String>", "Set<String>", "Collection<String>", "Object");
 
         copyStruct("Map", "Object");
         copyStruct("HashMap", "Map", "Object");
-        copyStruct("Map<Object,Object>", "Object");
-        copyStruct("HashMap<Object,Object>", "Map<Object,Object>", "Object");
-        copyStruct("Map<String,def>", "Object");
-        copyStruct("HashMap<String,def>", "Map<String,def>", "Object");
-        copyStruct("Map<String,Object>", "Object");
-        copyStruct("HashMap<String,Object>", "Map<String,Object>", "Object");
 
         copyStruct("Executable", "Object");
 
@@ -1058,7 +925,7 @@ public final class Definition {
         copyStruct("NumberFormatException", "Exception", "Object");
 
         copyStruct("GeoPoint", "Object");
-        copyStruct("Strings", "List<String>", "Collection<String>", "Object");
+        copyStruct("Strings", "List", "Collection", "Object");
         copyStruct("Longs", "List", "Collection", "Object");
         copyStruct("Doubles", "List", "Collection", "Object");
         copyStruct("GeoPoints", "List", "Collection", "Object");
