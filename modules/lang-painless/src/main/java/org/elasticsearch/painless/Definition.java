@@ -1483,46 +1483,31 @@ public final class Definition {
         addMethodInternal(clazzName, methodName, null, true, rtn, args, null, null);
     }
 
-    private final void addMethodInternal(final String struct, final String name, final String alias, final boolean statik,
+    private final void addMethodInternal(final String struct, final String name, final String alias, final boolean statiko,
                                 final Type rtn, final Type[] args, final Type genrtn, final Type[] genargs) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
             throw new IllegalArgumentException("Owner struct [" + struct + "] not defined" +
-                " for " + (statik ? "function" : "method") + " [" + name + "].");
+                " for method [" + name + "].");
         }
 
         if (!name.matches("^[_a-zA-Z][_a-zA-Z0-9]*$")) {
-            throw new IllegalArgumentException("Invalid " + (statik ? "static method" : "method") +
-                " name [" + name + "] with the struct [" + owner.name + "].");
+            throw new IllegalArgumentException("Invalid method name" +
+                " [" + name + "] with the struct [" + owner.name + "].");
         }
 
         MethodKey methodKey = new MethodKey(name, args.length);
 
         if (owner.constructors.containsKey(methodKey)) {
-            throw new IllegalArgumentException("Constructors and " + (statik ? "static methods" : "methods") +
+            throw new IllegalArgumentException("Constructors and methods" +
                 " may not have the same signature [" + methodKey + "] within the same struct" +
                 " [" + owner.name + "].");
         }
 
-        if (owner.staticMethods.containsKey(methodKey)) {
-            if (statik) {
-                throw new IllegalArgumentException(
-                    "Duplicate static method signature [" + methodKey + "] found within the struct [" + owner.name + "].");
-            } else {
-                throw new IllegalArgumentException("Static methods and methods may not have the same signature" +
-                    " [" + methodKey + "] within the same struct [" + owner.name + "].");
-            }
-        }
-
-        if (owner.methods.containsKey(methodKey)) {
-            if (statik) {
-                throw new IllegalArgumentException("Static methods and methods may not have the same signature" +
-                    " [" + methodKey + "] within the same struct [" + owner.name + "].");
-            } else {
-                throw new IllegalArgumentException("Duplicate method signature [" + methodKey + "]" +
-                    " found within the struct [" + owner.name + "].");
-            }
+        if (owner.staticMethods.containsKey(methodKey) || owner.methods.containsKey(methodKey)) {
+            throw new IllegalArgumentException(
+                "Duplicate  method signature [" + methodKey + "] found within the struct [" + owner.name + "].");
         }
 
         if (genrtn != null) {
@@ -1535,8 +1520,7 @@ public final class Definition {
 
         if (genargs != null && genargs.length != args.length) {
             throw new IllegalArgumentException("Generic arguments arity [" +  genargs.length + "] is not the same as " +
-                (statik ? "function" : "method") + " [" + name + "] arguments arity" +
-                " [" + args.length + "] within the struct [" + owner.name + "].");
+                "method [" + name + "] arguments arity" + " [" + args.length + "] within the struct [" + owner.name + "].");
         }
 
         final Class<?>[] classes = new Class<?>[args.length];
@@ -1545,8 +1529,8 @@ public final class Definition {
             if (genargs != null) {
                 if (!args[count].clazz.isAssignableFrom(genargs[count].clazz)) {
                     throw new ClassCastException("Generic argument [" + genargs[count].name + "] is not a sub class" +
-                        " of [" + args[count].name + "] in the " + (statik ? "function" : "method") +
-                        " [" + name + " ] from the struct [" + owner.name + "].");
+                        " of [" + args[count].name + "] in the method [" + name + 
+                        " ] from the struct [" + owner.name + "].");
                 }
             }
 
@@ -1558,15 +1542,15 @@ public final class Definition {
         try {
             reflect = owner.clazz.getMethod(alias == null ? name : alias, classes);
         } catch (final NoSuchMethodException exception) {
-            throw new IllegalArgumentException((statik ? "Function" : "Method") +
-                " [" + (alias == null ? name : alias) + "] not found for class [" + owner.clazz.getName() + "]" +
+            throw new IllegalArgumentException("Method [" + (alias == null ? name : alias) + 
+                "] not found for class [" + owner.clazz.getName() + "]" +
                 " with arguments " + Arrays.toString(classes) + ".");
         }
 
         if (!reflect.getReturnType().equals(rtn.clazz)) {
             throw new IllegalArgumentException("Specified return type class [" + rtn.clazz + "]" +
-                " does not match the found return type class [" + reflect.getReturnType() + "] for the " +
-                (statik ? "function" : "method") + " [" + name + "]" +
+                " does not match the found return type class [" + reflect.getReturnType() + "] for the" +
+                " method [" + name + "]" +
                 " within the struct [" + owner.name + "].");
         }
 
@@ -1586,19 +1570,9 @@ public final class Definition {
             Arrays.asList(genargs != null ? genargs : args), asm, reflect, handle);
         final int modifiers = reflect.getModifiers();
 
-        if (statik) {
-            if (!java.lang.reflect.Modifier.isStatic(modifiers)) {
-                throw new IllegalArgumentException("Function [" + name + "]" +
-                    " within the struct [" + owner.name + "] is not linked to a static Java method.");
-            }
-
+        if (java.lang.reflect.Modifier.isStatic(modifiers)) {
             owner.staticMethods.put(methodKey, method);
         } else {
-            if (java.lang.reflect.Modifier.isStatic(modifiers)) {
-                throw new IllegalArgumentException("Method [" + name + "]" +
-                    " within the struct [" + owner.name + "] is not linked to a non-static Java method.");
-            }
-
             owner.methods.put(methodKey, method);
         }
     }
