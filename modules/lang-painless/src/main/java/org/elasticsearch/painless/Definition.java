@@ -378,9 +378,9 @@ public final class Definition {
         }
     }
 
-    public final Map<String, Struct> structsMap;
-    public final Map<Cast, Cast> transformsMap;
-    public final Map<Class<?>, RuntimeClass> runtimeMap;
+    final Map<Cast, Cast> transformsMap;
+    final Map<Class<?>, RuntimeClass> runtimeMap;
+    private final Map<String, Struct> structsMap;
     private final Map<String, Type> simpleTypesMap;
 
     private Definition() {
@@ -393,7 +393,10 @@ public final class Definition {
         addElements();
         copyStructs();
         addTransforms();
-        addRuntimeClasses();
+        // precompute runtime classes
+        for (Struct struct : structsMap.values()) {
+          addRuntimeClass(struct);
+        }
     }
 
     private Definition(final Definition definition) {
@@ -470,12 +473,21 @@ public final class Definition {
             try (InputStream stream = Definition.class.getResourceAsStream("definition.txt");
                  LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
                 String line = null;
+                String currentClass = null;
                 while ((line = reader.readLine()) != null) {
                     line = line.trim();
                     if (line.length() == 0 || line.charAt(0) == '#') {
                         continue;
+                    } else if (line.startsWith("class ")) {
+                        assert currentClass == null;
+                        currentClass = line.split("\u0020")[1];
+                    } else if (line.equals("}")) {
+                        assert currentClass != null;
+                        currentClass = null;
+                    } else {
+                        assert currentClass != null;
+                        addSignature(currentClass, line);
                     }
-                    addSignature(line);
                 }
             }
         } catch (IOException e) {
@@ -830,16 +842,6 @@ public final class Definition {
         addTransform(stringType, charobjType, "Utility", "StringToCharacter", true, true);
     }
 
-    private void addRuntimeClasses() {
-        for (Map.Entry<String,Struct> kvPair : structsMap.entrySet()) {
-            String name = kvPair.getKey();
-            // if its not generic class (otherwise it just duplicates!)
-            if (!name.contains("<")) {
-                addRuntimeClass(kvPair.getValue());
-            }
-        }
-    }
-
     private final void addStruct(final String name, final Class<?> clazz) {
         if (!name.matches("^[_a-zA-Z][<>,_a-zA-Z0-9]*$")) {
             throw new IllegalArgumentException("Invalid struct name [" + name + "].");
@@ -911,13 +913,13 @@ public final class Definition {
      * <p>
      * Signatures have the following forms:
      * <ul>
-     *   <li>{@code void Class#method(String,int)}
-     *   <li>{@code boolean Class#field}
-     *   <li>{@code Class Class#<init>(String)}
+     *   <li>{@code void method(String,int)}
+     *   <li>{@code boolean field}
+     *   <li>{@code Class <init>(String)}
      * </ul>
      * no spaces allowed.
      */
-    private final void addSignature(String signature) {
+    private final void addSignature(String className, String signature) {
         String elements[] = signature.split("\u0020");
         if (elements.length != 2) {
             throw new IllegalArgumentException("Malformed signature: " + signature);
@@ -938,10 +940,7 @@ public final class Definition {
             } else {
                 args = new Type[0];
             }
-            String classAndMethod = elements[1].substring(0, parenIndex);
-            int methodIndex = classAndMethod.lastIndexOf('#');
-            String className = classAndMethod.substring(0, methodIndex);
-            String methodName = classAndMethod.substring(methodIndex + 1);
+            String methodName = elements[1].substring(0, parenIndex);
             if (methodName.equals("<init>")) {
                 if (!elements[0].equals(className)) {
                     throw new IllegalArgumentException("Constructors must return their own type");
@@ -960,10 +959,7 @@ public final class Definition {
             }
         } else {
             // field
-            int fieldIndex = elements[1].lastIndexOf('#');
-            String className = elements[1].substring(0, fieldIndex);
-            String fieldName = elements[1].substring(fieldIndex + 1);
-            addFieldInternal(className, fieldName, null, rtn, null);
+            addFieldInternal(className, elements[1], null, rtn);
         }
     }
 
@@ -1040,7 +1036,7 @@ public final class Definition {
     }
     
     private final void addFieldInternal(final String struct, final String name, final String alias,
-                                        final Type type, final Type generic) {
+                                        final Type type) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
@@ -1056,14 +1052,6 @@ public final class Definition {
         if (owner.staticMembers.containsKey(name) || owner.members.containsKey(name)) {
              throw new IllegalArgumentException("Duplicate field name [" + name + "]" +
                      " found within the struct [" + owner.name + "].");
-        }
-
-        if (generic != null) {
-            if (!type.clazz.isAssignableFrom(generic.clazz)) {
-                throw new ClassCastException("Generic type [" + generic.clazz.getCanonicalName() + "]" +
-                    " is not a sub class of [" + type.clazz.getCanonicalName() + "] for the field" +
-                    " [" + name + " ] from the struct [" + owner.name + "].");
-            }
         }
 
         java.lang.reflect.Field reflect;
@@ -1091,7 +1079,7 @@ public final class Definition {
                 " not found for class [" + owner.clazz.getName() + "].");
         }
 
-        final Field field = new Field(name, owner, generic == null ? type : generic, type, reflect, getter, setter);
+        final Field field = new Field(name, owner, type, type, reflect, getter, setter);
 
         if (isStatic) {
             // require that all static fields are static final

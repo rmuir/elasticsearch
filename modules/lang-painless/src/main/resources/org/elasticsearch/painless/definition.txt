@@ -20,417 +20,506 @@
 #
 # Painless definition file. This defines the hierarchy of classes,
 # what methods and fields they have, etc.
-# TODO: right now its just the methods and fields
 #
 
-# Object
-boolean Object#equals(Object)
-int Object#hashCode()
-String Object#toString()
+# primitive types
 
-# Def
-boolean def#equals(Object)
-int def#hashCode()
-String def#toString()
+class void -> void {
+}
 
-# Boolean
-Boolean Boolean#<init>(boolean)
-Boolean Boolean#TRUE
-Boolean Boolean#FALSE
-int Boolean#compare(boolean,boolean)
-boolean Boolean#parseBoolean(String)
-Boolean Boolean#valueOf(boolean)
-boolean Boolean#booleanValue()
-int Boolean#compareTo(Boolean)
+class boolean -> boolean {
+}
 
-# Byte
-Byte Byte#<init>(byte)
-byte Byte#MIN_VALUE
-byte Byte#MAX_VALUE
-int Byte#compare(byte,byte)
-int Byte#compareTo(Byte)
-byte Byte#parseByte(String)
-Byte Byte#valueOf(byte)
+class byte -> byte {
+}
 
-# Short
-Short Short#<init>(short)
-short Short#MIN_VALUE
-short Short#MAX_VALUE
-int Short#compare(short,short)
-int Short#compareTo(Short)
-short Short#parseShort(String)
-Short Short#valueOf(short)
+class short -> short {
+}
 
-# Character
-Character Character#<init>(char)
-char Character#MIN_VALUE
-char Character#MAX_VALUE
-int Character#charCount(int)
-char Character#charValue()
-int Character#compare(char,char)
-int Character#compareTo(Character)
-int Character#digit(int,int)
-char Character#forDigit(int,int)
-String Character#getName(int)
-int Character#getNumericValue(int)
-boolean Character#isAlphabetic(int)
-boolean Character#isDefined(int)
-boolean Character#isDigit(int)
-boolean Character#isIdeographic(int)
-boolean Character#isLetter(int)
-boolean Character#isLetterOrDigit(int)
-boolean Character#isLowerCase(int)
-boolean Character#isMirrored(int)
-boolean Character#isSpaceChar(int)
-boolean Character#isTitleCase(int)
-boolean Character#isUpperCase(int)
-boolean Character#isWhitespace(int)
-Character Character#valueOf(char)
+class char -> char {
+}
 
-# Integer
-Integer Integer#<init>(int)
-int Integer#MIN_VALUE
-int Integer#MAX_VALUE
-int Integer#compare(int,int)
-int Integer#compareTo(Integer)
-int Integer#min(int,int)
-int Integer#max(int,int)
-int Integer#parseInt(String)
-int Integer#signum(int)
-String Integer#toHexString(int)
-Integer Integer#valueOf(int)
+class int -> int {
+}
 
-# Long
-Long Long#<init>(long)
-long Long#MIN_VALUE
-long Long#MAX_VALUE
-int Long#compare(long,long)
-int Long#compareTo(Long)
-long Long#min(long,long)
-long Long#max(long,long)
-long Long#parseLong(String)
-int Long#signum(long)
-String Long#toHexString(long)
-Long Long#valueOf(long)
+class long -> long {
+}
 
-# Float
-Float Float#<init>(float)
-float Float#MIN_VALUE
-float Float#MAX_VALUE
-int Float#compare(float,float)
-int Float#compareTo(Float)
-float Float#min(float,float)
-float Float#max(float,float)
-float Float#parseFloat(String)
-String Float#toHexString(float)
-Float Float#valueOf(float)
+class float -> float {
+}
 
-# Double
-Double Double#<init>(double)
-double Double#MIN_VALUE
-double Double#MAX_VALUE
-int Double#compare(double,double)
-int Double#compareTo(Double)
-double Double#min(double,double)
-double Double#max(double,double)
-double Double#parseDouble(String)
-String Double#toHexString(double)
-Double Double#valueOf(double)
+class double -> double {
+}
 
-# Number
-byte Number#byteValue()
-short Number#shortValue()
-int Number#intValue()
-long Number#longValue()
-float Number#floatValue()
-double Number#doubleValue()
+# basic JDK classes
 
-# CharSequence
-char CharSequence#charAt(int)
-int CharSequence#length()
+class Object -> java.lang.Object {
+  boolean equals(Object)
+  int hashCode()
+  String toString()
+}
 
-# String
-String String#<init>()
-int String#codePointAt(int)
-int String#compareTo(String)
-String String#concat(String)
-boolean String#endsWith(String)
-int String#indexOf(String)
-int String#indexOf(String,int)
-boolean String#isEmpty()
-String String#replace(CharSequence,CharSequence)
-boolean String#startsWith(String)
-String String#substring(int,int)
-char[] String#toCharArray()
-String String#trim()
+class def -> java.lang.Object {
+  boolean equals(Object)
+  int hashCode()
+  String toString()
+}
 
-# Math
-double Math#E
-double Math#PI
-double Math#abs(double)
-double Math#acos(double)
-double Math#asin(double)
-double Math#atan(double)
-double Math#atan2(double,double)
-double Math#cbrt(double)
-double Math#ceil(double)
-double Math#cos(double)
-double Math#cosh(double)
-double Math#exp(double)
-double Math#expm1(double)
-double Math#floor(double)
-double Math#hypot(double,double)
-double Math#log(double)
-double Math#log10(double)
-double Math#log1p(double)
-double Math#max(double,double)
-double Math#min(double,double)
-double Math#pow(double,double)
-double Math#random()
-double Math#rint(double)
-long Math#round(double)
-double Math#sin(double)
-double Math#sinh(double)
-double Math#sqrt(double)
-double Math#tan(double)
-double Math#tanh(double)
-double Math#toDegrees(double)
-double Math#toRadians(double)
+class Void -> java.lang.Void extends Object {
+}
 
-# Iterator
-boolean Iterator#hasNext()
-def Iterator#next()
-void Iterator#remove()
+class Boolean -> java.lang.Boolean extends Object {
+  Boolean <init>(boolean)
+  Boolean TRUE
+  Boolean FALSE
+  int compare(boolean,boolean)
+  boolean parseBoolean(String)
+  Boolean valueOf(boolean)
+  boolean booleanValue()
+  int compareTo(Boolean)
+} 
 
-# Collection
-boolean Collection#add(def)
-void Collection#clear()
-boolean Collection#contains(def)
-boolean Collection#isEmpty()
-Iterator Collection#iterator()
-boolean Collection#remove(def)
-int Collection#size()
+class Byte -> java.lang.Byte extends Number,Object {
+  Byte <init>(byte)
+  byte MIN_VALUE
+  byte MAX_VALUE
+  int compare(byte,byte)
+  int compareTo(Byte)
+  byte parseByte(String)
+  Byte valueOf(byte)
+}
 
-# List
-def List#set(int,def)
-def List#get(int)
-def List#remove(int)
-int List#getLength/size()
+class Short -> java.lang.Short extends Number,Object {
+  Short <init>(short)
+  short MIN_VALUE
+  short MAX_VALUE
+  int compare(short,short)
+  int compareTo(Short)
+  short parseShort(String)
+  Short valueOf(short)
+}
 
-# ArrayList
-ArrayList ArrayList#<init>()
+class Character -> java.lang.Character extends Object {
+  Character <init>(char)
+  char MIN_VALUE
+  char MAX_VALUE
+  int charCount(int)
+  char charValue()
+  int compare(char,char)
+  int compareTo(Character)
+  int digit(int,int)
+  char forDigit(int,int)
+  String getName(int)
+  int getNumericValue(int)
+  boolean isAlphabetic(int)
+  boolean isDefined(int)
+  boolean isDigit(int)
+  boolean isIdeographic(int)
+  boolean isLetter(int)
+  boolean isLetterOrDigit(int)
+  boolean isLowerCase(int)
+  boolean isMirrored(int)
+  boolean isSpaceChar(int)
+  boolean isTitleCase(int)
+  boolean isUpperCase(int)
+  boolean isWhitespace(int)
+  Character valueOf(char)
+}
 
-# HashSet
-HashSet HashSet#<init>()
+class Integer -> java.lang.Integer extends Number,Object {
+  Integer <init>(int)
+  int MIN_VALUE
+  int MAX_VALUE
+  int compare(int,int)
+  int compareTo(Integer)
+  int min(int,int)
+  int max(int,int)
+  int parseInt(String)
+  int signum(int)
+  String toHexString(int)
+  Integer valueOf(int)
+}
 
-# Map
-def Map#put(def,def)
-def Map#get(def)
-def Map#remove(def)
-boolean Map#isEmpty()
-int Map#size()
-boolean Map#containsKey(def)
-Set Map#keySet()
-Collection Map#values()
+class Long -> java.lang.Long extends Number,Object {
+  Long <init>(long)
+  long MIN_VALUE
+  long MAX_VALUE
+  int compare(long,long)
+  int compareTo(Long)
+  long min(long,long)
+  long max(long,long)
+  long parseLong(String)
+  int signum(long)
+  String toHexString(long)
+  Long valueOf(long)
+}
 
-# HashMap
-HashMap HashMap#<init>()
+class Float -> java.lang.Float extends Number,Object {
+  Float <init>(float)
+  float MIN_VALUE
+  float MAX_VALUE
+  int compare(float,float)
+  int compareTo(Float)
+  float min(float,float)
+  float max(float,float)
+  float parseFloat(String)
+  String toHexString(float)
+  Float valueOf(float)
+}
 
-# Exceptions
-String Exception#getMessage()
-ArithmeticException ArithmeticException#<init>()
-IllegalArgumentException IllegalArgumentException#<init>()
-IllegalStateException IllegalStateException#<init>()
-NumberFormatException NumberFormatException#<init>()
+class Double -> java.lang.Double extends Number,Object {
+  Double <init>(double)
+  double MIN_VALUE
+  double MAX_VALUE
+  int compare(double,double)
+  int compareTo(Double)
+  double min(double,double)
+  double max(double,double)
+  double parseDouble(String)
+  String toHexString(double)
+  Double valueOf(double)
+}
 
-# ES GeoPoint helper class
-double GeoPoint#getLat()
-double GeoPoint#getLon()
+class Number -> java.lang.Number extends Object {
+  byte byteValue()
+  short shortValue()
+  int intValue()
+  long longValue()
+  float floatValue()
+  double doubleValue()
+}
+
+class CharSequence -> java.lang.CharSequence extends Object {
+  char charAt(int)
+  int length()
+}
+
+class String -> java.lang.String extends CharSequence,Object {
+  String <init>()
+  int codePointAt(int)
+  int compareTo(String)
+  String concat(String)
+  boolean endsWith(String)
+  int indexOf(String)
+  int indexOf(String,int)
+  boolean isEmpty()
+  String replace(CharSequence,CharSequence)
+  boolean startsWith(String)
+  String substring(int,int)
+  char[] toCharArray()
+  String trim()
+}
+
+class Math -> java.lang.Math {
+  double E
+  double PI
+  double abs(double)
+  double acos(double)
+  double asin(double)
+  double atan(double)
+  double atan2(double,double)
+  double cbrt(double)
+  double ceil(double)
+  double cos(double)
+  double cosh(double)
+  double exp(double)
+  double expm1(double)
+  double floor(double)
+  double hypot(double,double)
+  double log(double)
+  double log10(double)
+  double log1p(double)
+  double max(double,double)
+  double min(double,double)
+  double pow(double,double)
+  double random()
+  double rint(double)
+  long round(double)
+  double sin(double)
+  double sinh(double)
+  double sqrt(double)
+  double tan(double)
+  double tanh(double)
+  double toDegrees(double)
+  double toRadians(double)
+}
+
+class Iterator -> java.util.Iterator extends Object {
+  boolean hasNext()
+  def next()
+  void remove()
+}
+
+class Collection -> java.util.Collection extends Object {
+  boolean add(def)
+  void clear()
+  boolean contains(def)
+  boolean isEmpty()
+  Iterator iterator()
+  boolean remove(def)
+  int size()
+}
+
+class List -> java.util.List extends Collection,Object {
+  def set(int,def)
+  def get(int)
+  def remove(int)
+  int getLength/size()
+}
+
+class ArrayList -> java.util.ArrayList extends List,Collection,Object {
+  ArrayList <init>()
+}
+
+class Set -> java.util.Set extends Collection,Object {
+}
+
+class HashSet -> java.util.HashSet extends Set,Collection,Object {
+  HashSet <init>()
+}
+
+class Map -> java.util.Map extends Object {
+  def put(def,def)
+  def get(def)
+  def remove(def)
+  boolean isEmpty()
+  int size()
+  boolean containsKey(def)
+  Set keySet()
+  Collection values()
+}
+
+class HashMap -> java.util.HashMap extends Map,Object {
+  HashMap <init>()
+}
+
+class Exception -> java.lang.Exception extends Object {
+  String getMessage()
+}
+
+class ArithmeticException -> java.lang.ArithmeticException extends Exception,Object {
+  ArithmeticException <init>()
+}
+
+class IllegalArgumentException -> java.lang.IllegalArgumentException extends Exception,Object {
+  IllegalArgumentException <init>()
+}
+
+class IllegalStateException -> java.lang.IllegalStateException extends Exception,Object {
+  IllegalStateException <init>()
+}
+
+class NumberFormatException -> java.lang.NumberFormatException extends Exception,Object {
+  NumberFormatException <init>()
+}
 
 # ES Scripting API
-String Strings#getValue()
-List Strings#getValues()
-long Longs#getValue()
-List Longs#getValues()
-# TODO: add better date support for Longs here? (carefully?)
-double Doubles#getValue()
-List Doubles#getValues()
-GeoPoint GeoPoints#getValue()
-List GeoPoints#getValues()
-double GeoPoints#getLat()
-double GeoPoints#getLon()
-double[] GeoPoints#getLats()
-double[] GeoPoints#getLons()
 
-# geo distance functions... so many...
-double GeoPoints#factorDistance(double,double)
-double GeoPoints#factorDistanceWithDefault(double,double,double)
-double GeoPoints#factorDistance02(double,double)
-double GeoPoints#factorDistance13(double,double)
-double GeoPoints#arcDistance(double,double)
-double GeoPoints#arcDistanceWithDefault(double,double,double)
-double GeoPoints#arcDistanceInKm(double,double)
-double GeoPoints#arcDistanceInKmWithDefault(double,double,double)
-double GeoPoints#arcDistanceInMiles(double,double)
-double GeoPoints#arcDistanceInMilesWithDefault(double,double,double)
-double GeoPoints#distance(double,double)
-double GeoPoints#distanceWithDefault(double,double,double)
-double GeoPoints#distanceInKm(double,double)
-double GeoPoints#distanceInKmWithDefault(double,double,double)
-double GeoPoints#distanceInMiles(double,double)
-double GeoPoints#distanceInMilesWithDefault(double,double,double)
-double GeoPoints#geohashDistance(String)
-double GeoPoints#geohashDistanceInKm(String)
-double GeoPoints#geohashDistanceInMiles(String)
+class GeoPoint -> org.elasticsearch.common.geo.GeoPoint extends Object {
+  double getLat()
+  double getLon()
+}
+
+class Strings -> org.elasticsearch.index.fielddata.ScriptDocValues.Strings extends List,Collection,Object {
+  String getValue()
+  List getValues()
+}
+
+class Longs -> org.elasticsearch.index.fielddata.ScriptDocValues.Longs extends List,Collection,Object {
+  long getValue()
+  List getValues()
+}
+
+class Doubles -> org.elasticsearch.index.fielddata.ScriptDocValues.Doubles extends List,Collection,Object {
+  double getValue()
+  List getValues()
+}
+
+class GeoPoints -> org.elasticsearch.index.fielddata.ScriptDocValues.GeoPoints extends List,Collection,Object {
+  GeoPoint getValue()
+  List getValues()
+  double getLat()
+  double getLon()
+  double[] getLats()
+  double[] getLons()
+
+  # geo distance functions... so many...
+  double factorDistance(double,double)
+  double factorDistanceWithDefault(double,double,double)
+  double factorDistance02(double,double)
+  double factorDistance13(double,double)
+  double arcDistance(double,double)
+  double arcDistanceWithDefault(double,double,double)
+  double arcDistanceInKm(double,double)
+  double arcDistanceInKmWithDefault(double,double,double)
+  double arcDistanceInMiles(double,double)
+  double arcDistanceInMilesWithDefault(double,double,double)
+  double distance(double,double)
+  double distanceWithDefault(double,double,double)
+  double distanceInKm(double,double)
+  double distanceInKmWithDefault(double,double,double)
+  double distanceInMiles(double,double)
+  double distanceInMilesWithDefault(double,double,double)
+  double geohashDistance(String)
+  double geohashDistanceInKm(String)
+  double geohashDistanceInMiles(String)
+}
 
 # internal conversion methods
-boolean Utility#NumberToboolean(Number)
-char Utility#NumberTochar(Number)
-Boolean Utility#NumberToBoolean(Number)
-Byte Utility#NumberToByte(Number)
-Short Utility#NumberToShort(Number)
-Character Utility#NumberToCharacter(Number)
-Integer Utility#NumberToInteger(Number)
-Long Utility#NumberToLong(Number)
-Float Utility#NumberToFloat(Number)
-Double Utility#NumberToDouble(Number)
-byte Utility#booleanTobyte(boolean)
-short Utility#booleanToshort(boolean)
-char Utility#booleanTochar(boolean)
-int Utility#booleanToint(boolean)
-long Utility#booleanTolong(boolean)
-float Utility#booleanTofloat(boolean)
-double Utility#booleanTodouble(boolean)
-Integer Utility#booleanToInteger(boolean)
-byte Utility#BooleanTobyte(Boolean)
-short Utility#BooleanToshort(Boolean)
-char Utility#BooleanTochar(Boolean)
-int Utility#BooleanToint(Boolean)
-long Utility#BooleanTolong(Boolean)
-float Utility#BooleanTofloat(Boolean)
-double Utility#BooleanTodouble(Boolean)
-Byte Utility#BooleanToByte(Boolean)
-Short Utility#BooleanToShort(Boolean)
-Character Utility#BooleanToCharacter(Boolean)
-Integer Utility#BooleanToInteger(Boolean)
-Long Utility#BooleanToLong(Boolean)
-Float Utility#BooleanToFloat(Boolean)
-Double Utility#BooleanToDouble(Boolean)
-boolean Utility#byteToboolean(byte)
-Short Utility#byteToShort(byte)
-Character Utility#byteToCharacter(byte)
-Integer Utility#byteToInteger(byte)
-Long Utility#byteToLong(byte)
-Float Utility#byteToFloat(byte)
-Double Utility#byteToDouble(byte)
-boolean Utility#ByteToboolean(Byte)
-char Utility#ByteTochar(Byte)
-boolean Utility#shortToboolean(short)
-Byte Utility#shortToByte(short)
-Character Utility#shortToCharacter(short)
-Integer Utility#shortToInteger(short)
-Long Utility#shortToLong(short)
-Float Utility#shortToFloat(short)
-Double Utility#shortToDouble(short)
-boolean Utility#ShortToboolean(Short)
-char Utility#ShortTochar(Short)
-boolean Utility#charToboolean(char)
-Byte Utility#charToByte(char)
-Short Utility#charToShort(char)
-Integer Utility#charToInteger(char)
-Long Utility#charToLong(char)
-Float Utility#charToFloat(char)
-Double Utility#charToDouble(char)
-String Utility#charToString(char)
-boolean Utility#CharacterToboolean(Character)
-byte Utility#CharacterTobyte(Character)
-short Utility#CharacterToshort(Character)
-int Utility#CharacterToint(Character)
-long Utility#CharacterTolong(Character)
-float Utility#CharacterTofloat(Character)
-double Utility#CharacterTodouble(Character)
-Boolean Utility#CharacterToBoolean(Character)
-Byte Utility#CharacterToByte(Character)
-Short Utility#CharacterToShort(Character)
-Integer Utility#CharacterToInteger(Character)
-Long Utility#CharacterToLong(Character)
-Float Utility#CharacterToFloat(Character)
-Double Utility#CharacterToDouble(Character)
-String Utility#CharacterToString(Character)
-boolean Utility#intToboolean(int)
-Byte Utility#intToByte(int)
-Short Utility#intToShort(int)
-Character Utility#intToCharacter(int)
-Long Utility#intToLong(int)
-Float Utility#intToFloat(int)
-Double Utility#intToDouble(int)
-boolean Utility#IntegerToboolean(Integer)
-char Utility#IntegerTochar(Integer)
-boolean Utility#longToboolean(long)
-Byte Utility#longToByte(long)
-Short Utility#longToShort(long)
-Character Utility#longToCharacter(long)
-Integer Utility#longToInteger(long)
-Float Utility#longToFloat(long)
-Double Utility#longToDouble(long)
-boolean Utility#LongToboolean(Long)
-char Utility#LongTochar(Long)
-boolean Utility#floatToboolean(float)
-Byte Utility#floatToByte(float)
-Short Utility#floatToShort(float)
-Character Utility#floatToCharacter(float)
-Integer Utility#floatToInteger(float)
-Long Utility#floatToLong(float)
-Double Utility#floatToDouble(float)
-boolean Utility#FloatToboolean(Float)
-char Utility#FloatTochar(Float)
-boolean Utility#doubleToboolean(double)
-Byte Utility#doubleToByte(double)
-Short Utility#doubleToShort(double)
-Character Utility#doubleToCharacter(double)
-Integer Utility#doubleToInteger(double)
-Long Utility#doubleToLong(double)
-Float Utility#doubleToFloat(double)
-boolean Utility#DoubleToboolean(Double)
-char Utility#DoubleTochar(Double)
-char Utility#StringTochar(String)
-Character Utility#StringToCharacter(String)
-byte Def#DefTobyteImplicit(def)
-short Def#DefToshortImplicit(def)
-char Def#DefTocharImplicit(def)
-int Def#DefTointImplicit(def)
-long Def#DefTolongImplicit(def)
-float Def#DefTofloatImplicit(def)
-double Def#DefTodoubleImplicit(def)
-Byte Def#DefToByteImplicit(def)
-Short Def#DefToShortImplicit(def)
-Character Def#DefToCharacterImplicit(def)
-Integer Def#DefToIntegerImplicit(def)
-Long Def#DefToLongImplicit(def)
-Float Def#DefToFloatImplicit(def)
-Double Def#DefToDoubleImplicit(def)
-byte Def#DefTobyteExplicit(def)
-short Def#DefToshortExplicit(def)
-char Def#DefTocharExplicit(def)
-int Def#DefTointExplicit(def)
-long Def#DefTolongExplicit(def)
-float Def#DefTofloatExplicit(def)
-double Def#DefTodoubleExplicit(def)
-Byte Def#DefToByteExplicit(def)
-Short Def#DefToShortExplicit(def)
-Character Def#DefToCharacterExplicit(def)
-Integer Def#DefToIntegerExplicit(def)
-Long Def#DefToLongExplicit(def)
-Float Def#DefToFloatExplicit(def)
-Double Def#DefToDoubleExplicit(def)
+class Utility -> org.elasticsearch.painless.Utility {
+  boolean NumberToboolean(Number)
+  char NumberTochar(Number)
+  Boolean NumberToBoolean(Number)
+  Byte NumberToByte(Number)
+  Short NumberToShort(Number)
+  Character NumberToCharacter(Number)
+  Integer NumberToInteger(Number)
+  Long NumberToLong(Number)
+  Float NumberToFloat(Number)
+  Double NumberToDouble(Number)
+  byte booleanTobyte(boolean)
+  short booleanToshort(boolean)
+  char booleanTochar(boolean)
+  int booleanToint(boolean)
+  long booleanTolong(boolean)
+  float booleanTofloat(boolean)
+  double booleanTodouble(boolean)
+  Integer booleanToInteger(boolean)
+  byte BooleanTobyte(Boolean)
+  short BooleanToshort(Boolean)
+  char BooleanTochar(Boolean)
+  int BooleanToint(Boolean)
+  long BooleanTolong(Boolean)
+  float BooleanTofloat(Boolean)
+  double BooleanTodouble(Boolean)
+  Byte BooleanToByte(Boolean)
+  Short BooleanToShort(Boolean)
+  Character BooleanToCharacter(Boolean)
+  Integer BooleanToInteger(Boolean)
+  Long BooleanToLong(Boolean)
+  Float BooleanToFloat(Boolean)
+  Double BooleanToDouble(Boolean)
+  boolean byteToboolean(byte)
+  Short byteToShort(byte)
+  Character byteToCharacter(byte)
+  Integer byteToInteger(byte)
+  Long byteToLong(byte)
+  Float byteToFloat(byte)
+  Double byteToDouble(byte)
+  boolean ByteToboolean(Byte)
+  char ByteTochar(Byte)
+  boolean shortToboolean(short)
+  Byte shortToByte(short)
+  Character shortToCharacter(short)
+  Integer shortToInteger(short)
+  Long shortToLong(short)
+  Float shortToFloat(short)
+  Double shortToDouble(short)
+  boolean ShortToboolean(Short)
+  char ShortTochar(Short)
+  boolean charToboolean(char)
+  Byte charToByte(char)
+  Short charToShort(char)
+  Integer charToInteger(char)
+  Long charToLong(char)
+  Float charToFloat(char)
+  Double charToDouble(char)
+  String charToString(char)
+  boolean CharacterToboolean(Character)
+  byte CharacterTobyte(Character)
+  short CharacterToshort(Character)
+  int CharacterToint(Character)
+  long CharacterTolong(Character)
+  float CharacterTofloat(Character)
+  double CharacterTodouble(Character)
+  Boolean CharacterToBoolean(Character)
+  Byte CharacterToByte(Character)
+  Short CharacterToShort(Character)
+  Integer CharacterToInteger(Character)
+  Long CharacterToLong(Character)
+  Float CharacterToFloat(Character)
+  Double CharacterToDouble(Character)
+  String CharacterToString(Character)
+  boolean intToboolean(int)
+  Byte intToByte(int)
+  Short intToShort(int)
+  Character intToCharacter(int)
+  Long intToLong(int)
+  Float intToFloat(int)
+  Double intToDouble(int)
+  boolean IntegerToboolean(Integer)
+  char IntegerTochar(Integer)
+  boolean longToboolean(long)
+  Byte longToByte(long)
+  Short longToShort(long)
+  Character longToCharacter(long)
+  Integer longToInteger(long)
+  Float longToFloat(long)
+  Double longToDouble(long)
+  boolean LongToboolean(Long)
+  char LongTochar(Long)
+  boolean floatToboolean(float)
+  Byte floatToByte(float)
+  Short floatToShort(float)
+  Character floatToCharacter(float)
+  Integer floatToInteger(float)
+  Long floatToLong(float)
+  Double floatToDouble(float)
+  boolean FloatToboolean(Float)
+  char FloatTochar(Float)
+  boolean doubleToboolean(double)
+  Byte doubleToByte(double)
+  Short doubleToShort(double)
+  Character doubleToCharacter(double)
+  Integer doubleToInteger(double)
+  Long doubleToLong(double)
+  Float doubleToFloat(double)
+  boolean DoubleToboolean(Double)
+  char DoubleTochar(Double)
+  char StringTochar(String)
+  Character StringToCharacter(String)
+}
+
+class Def -> org.elasticsearch.painless.Def {
+  byte DefTobyteImplicit(def)
+  short DefToshortImplicit(def)
+  char DefTocharImplicit(def)
+  int DefTointImplicit(def)
+  long DefTolongImplicit(def)
+  float DefTofloatImplicit(def)
+  double DefTodoubleImplicit(def)
+  Byte DefToByteImplicit(def)
+  Short DefToShortImplicit(def)
+  Character DefToCharacterImplicit(def)
+  Integer DefToIntegerImplicit(def)
+  Long DefToLongImplicit(def)
+  Float DefToFloatImplicit(def)
+  Double DefToDoubleImplicit(def)
+  byte DefTobyteExplicit(def)
+  short DefToshortExplicit(def)
+  char DefTocharExplicit(def)
+  int DefTointExplicit(def)
+  long DefTolongExplicit(def)
+  float DefTofloatExplicit(def)
+  double DefTodoubleExplicit(def)
+  Byte DefToByteExplicit(def)
+  Short DefToShortExplicit(def)
+  Character DefToCharacterExplicit(def)
+  Integer DefToIntegerExplicit(def)
+  Long DefToLongExplicit(def)
+  Float DefToFloatExplicit(def)
+  Double DefToDoubleExplicit(def)
+}
 
 # for testing.
 # currently FeatureTest exposes overloaded constructor, field load store, and overloaded static methods
-FeatureTest FeatureTest#<init>()
-FeatureTest FeatureTest#<init>(int,int)
-int FeatureTest#getX()
-int FeatureTest#getY()
-void FeatureTest#setX(int)
-void FeatureTest#setY(int)
-boolean FeatureTest#overloadedStatic()
-boolean FeatureTest#overloadedStatic(boolean)
+class FeatureTest -> org.elasticsearch.painless.FeatureTest extends Object {
+  FeatureTest <init>()
+  FeatureTest <init>(int,int)
+  int getX()
+  int getY()
+  void setX(int)
+  void setY(int)
+  boolean overloadedStatic()
+  boolean overloadedStatic(boolean)
+}
