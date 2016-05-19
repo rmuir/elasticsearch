@@ -320,22 +320,22 @@ class GeoPoint -> org.elasticsearch.common.geo.GeoPoint extends Object {
   double getLon()
 }
 
-class Strings -> org.elasticsearch.index.fielddata.ScriptDocValues.Strings extends List,Collection,Object {
+class Strings -> org.elasticsearch.index.fielddata.ScriptDocValues$Strings extends List,Collection,Object {
   String getValue()
   List getValues()
 }
 
-class Longs -> org.elasticsearch.index.fielddata.ScriptDocValues.Longs extends List,Collection,Object {
+class Longs -> org.elasticsearch.index.fielddata.ScriptDocValues$Longs extends List,Collection,Object {
   long getValue()
   List getValues()
 }
 
-class Doubles -> org.elasticsearch.index.fielddata.ScriptDocValues.Doubles extends List,Collection,Object {
+class Doubles -> org.elasticsearch.index.fielddata.ScriptDocValues$Doubles extends List,Collection,Object {
   double getValue()
   List getValues()
 }
 
-class GeoPoints -> org.elasticsearch.index.fielddata.ScriptDocValues.GeoPoints extends List,Collection,Object {
+class GeoPoints -> org.elasticsearch.index.fielddata.ScriptDocValues$GeoPoints extends List,Collection,Object {
   GeoPoint getValue()
   List getValues()
   double getLat()
@@ -522,4 +522,8 @@ class FeatureTest -> org.elasticsearch.painless.FeatureTest extends Object {
   void setY(int)
   boolean overloadedStatic()
   boolean overloadedStatic(boolean)
+}
+
+# currently needed internally
+class Executable -> org.elasticsearch.painless.Executable {
 }

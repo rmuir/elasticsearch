@@ -19,27 +19,18 @@
 
 package org.elasticsearch.painless;
 
-import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.index.fielddata.ScriptDocValues;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * The entire API for Painless.  Also used as a whitelist for checking for legal
@@ -389,9 +380,12 @@ public final class Definition {
         transformsMap = new HashMap<>();
         runtimeMap = new HashMap<>();
 
-        addStructs();
+        Map<String, List<String>> hierarchy = addStructs();
         addElements();
-        copyStructs();
+        // apply hierarchy
+        for (Map.Entry<String,List<String>> clazz : hierarchy.entrySet()) {
+            copyStruct(clazz.getKey(), clazz.getValue());
+        }
         addTransforms();
         // precompute runtime classes
         for (Struct struct : structsMap.values()) {
@@ -412,69 +406,83 @@ public final class Definition {
         this.simpleTypesMap = Collections.unmodifiableMap(definition.simpleTypesMap);
     }
 
-    private void addStructs() {
-        addStruct( "void"    , void.class    );
-        addStruct( "boolean" , boolean.class );
-        addStruct( "byte"    , byte.class    );
-        addStruct( "short"   , short.class   );
-        addStruct( "char"    , char.class    );
-        addStruct( "int"     , int.class     );
-        addStruct( "long"    , long.class    );
-        addStruct( "float"   , float.class   );
-        addStruct( "double"  , double.class  );
-
-        addStruct( "Void"      , Void.class      );
-        addStruct( "Boolean"   , Boolean.class   );
-        addStruct( "Byte"      , Byte.class      );
-        addStruct( "Short"     , Short.class     );
-        addStruct( "Character" , Character.class );
-        addStruct( "Integer"   , Integer.class   );
-        addStruct( "Long"      , Long.class      );
-        addStruct( "Float"     , Float.class     );
-        addStruct( "Double"    , Double.class    );
-
-        addStruct( "Object"       , Object.class       );
-        addStruct( "def"          , Object.class       );
-        addStruct( "Number"       , Number.class       );
-        addStruct( "CharSequence" , CharSequence.class );
-        addStruct( "String"       , String.class       );
-        addStruct( "Math"         , Math.class         );
-        addStruct( "Utility"      , Utility.class      );
-        addStruct( "Def"          , Def.class          );
-
-        addStruct( "Iterator"     , Iterator.class   );
-        addStruct( "Collection"   , Collection.class );
-        addStruct( "List"         , List.class       );
-        addStruct( "ArrayList"    , ArrayList.class  );
-        addStruct( "Set"          , Set.class        );
-        addStruct( "HashSet"      , HashSet.class    );
-        addStruct( "Map"          , Map.class        );
-        addStruct( "HashMap"      , HashMap.class    );
-
-        addStruct( "Executable" , Executable.class );
-
-        addStruct( "Exception"                , Exception.class);
-        addStruct( "ArithmeticException"      , ArithmeticException.class);
-        addStruct( "IllegalArgumentException" , IllegalArgumentException.class);
-        addStruct( "IllegalStateException"    , IllegalStateException.class);
-        addStruct( "NumberFormatException"    , NumberFormatException.class);
-
-        addStruct( "GeoPoint"  , GeoPoint.class);
-        addStruct( "Strings"   , ScriptDocValues.Strings.class);
-        addStruct( "Longs"     , ScriptDocValues.Longs.class);
-        addStruct( "Doubles"   , ScriptDocValues.Doubles.class);
-        addStruct( "GeoPoints" , ScriptDocValues.GeoPoints.class);
-
-        addStruct( "FeatureTest", FeatureTest.class);
+    /** adds classes from definition. returns hierarchy */
+    private Map<String,List<String>> addStructs() {
+        final Map<String,List<String>> hierarchy = new HashMap<>();
+        int currentLine = -1;
+        try {
+            try (InputStream stream = Definition.class.getResourceAsStream("definition.txt");
+                    LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    currentLine = reader.getLineNumber();
+                    line = line.trim();
+                    if (line.length() == 0 || line.charAt(0) == '#') {
+                        continue;
+                    }
+                    if (line.startsWith("class ")) {
+                        String elements[] = line.split("\u0020");
+                        assert elements[2].equals("->");
+                        if (elements.length == 7) {
+                            hierarchy.put(elements[1], Arrays.asList(elements[5].split(",")));
+                        } else {
+                            assert elements.length == 5;
+                        }
+                        String className = elements[1];
+                        String javaPeer = elements[3];
+                        final Class<?> javaClazz;
+                        switch (javaPeer) {
+                            case "void":
+                                javaClazz = void.class;
+                                break;
+                            case "boolean":
+                                javaClazz = boolean.class;
+                                break;
+                            case "byte":
+                                javaClazz = byte.class;
+                                break;
+                            case "short":
+                                javaClazz = short.class;
+                                break;
+                            case "char":
+                                javaClazz = char.class;
+                                break;
+                            case "int":
+                                javaClazz = int.class;
+                                break;
+                            case "long":
+                                javaClazz = long.class;
+                                break;
+                            case "float":
+                                javaClazz = float.class;
+                                break;
+                            case "double":
+                                javaClazz = double.class;
+                                break;
+                            default:
+                                javaClazz = Class.forName(javaPeer);
+                                break;
+                        }
+                        addStruct(className, javaClazz);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("syntax error in definition line: " + currentLine, e);
+        }
+        return hierarchy;
     }
 
+    /** adds class methods/fields/ctors */
     private void addElements() {
+        int currentLine = -1;
         try {
             try (InputStream stream = Definition.class.getResourceAsStream("definition.txt");
                  LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
                 String line = null;
                 String currentClass = null;
                 while ((line = reader.readLine()) != null) {
+                    currentLine = reader.getLineNumber();
                     line = line.trim();
                     if (line.length() == 0 || line.charAt(0) == '#') {
                         continue;
@@ -490,50 +498,9 @@ public final class Definition {
                     }
                 }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("syntax error in definition line: " + currentLine, e);
         }
-    }
-
-    private void copyStructs() {
-        copyStruct("Void", "Object");
-        copyStruct("Boolean", "Object");
-        copyStruct("Byte", "Number", "Object");
-        copyStruct("Short", "Number", "Object");
-        copyStruct("Character", "Object");
-        copyStruct("Integer", "Number", "Object");
-        copyStruct("Long", "Number", "Object");
-        copyStruct("Float", "Number", "Object");
-        copyStruct("Double", "Number", "Object");
-
-        copyStruct("Number", "Object");
-        copyStruct("CharSequence", "Object");
-        copyStruct("String", "CharSequence", "Object");
-
-        copyStruct("List", "Collection", "Object");
-        copyStruct("ArrayList", "List", "Collection", "Object");
-
-        copyStruct("Set", "Collection", "Object");
-        copyStruct("HashSet", "Set", "Collection", "Object");
-
-        copyStruct("Map", "Object");
-        copyStruct("HashMap", "Map", "Object");
-
-        copyStruct("Executable", "Object");
-
-        copyStruct("Exception", "Object");
-        copyStruct("ArithmeticException", "Exception", "Object");
-        copyStruct("IllegalArgumentException", "Exception", "Object");
-        copyStruct("IllegalStateException", "Exception", "Object");
-        copyStruct("NumberFormatException", "Exception", "Object");
-
-        copyStruct("GeoPoint", "Object");
-        copyStruct("Strings", "List", "Collection", "Object");
-        copyStruct("Longs", "List", "Collection", "Object");
-        copyStruct("Doubles", "List", "Collection", "Object");
-        copyStruct("GeoPoints", "List", "Collection", "Object");
-
-        copyStruct("FeatureTest", "Object");
     }
 
     private void addTransforms() {
@@ -1094,18 +1061,18 @@ public final class Definition {
         }
     }
 
-    private final void copyStruct(final String struct, final String... children) {
+    private final void copyStruct(final String struct, List<String> children) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
             throw new IllegalArgumentException("Owner struct [" + struct + "] not defined for copy.");
         }
 
-        for (int count = 0; count < children.length; ++count) {
-            final Struct child = structsMap.get(children[count]);
+        for (int count = 0; count < children.size(); ++count) {
+            final Struct child = structsMap.get(children.get(count));
 
             if (struct == null) {
-                throw new IllegalArgumentException("Child struct [" + children[count] + "]" +
+                throw new IllegalArgumentException("Child struct [" + children.get(count) + "]" +
                     " not defined for copy to owner struct [" + owner.name + "].");
             }
 
