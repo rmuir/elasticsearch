@@ -19,10 +19,7 @@
 
 package org.elasticsearch.painless;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
-import org.elasticsearch.SpecialPermission;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.script.ScriptEngineRegistry;
 import org.elasticsearch.script.ScriptMode;
@@ -33,22 +30,14 @@ import org.elasticsearch.script.ScriptModule;
  */
 public final class PainlessPlugin extends Plugin {
 
+    // parse our definition at startup (not on the user's first script)
+    // compilation process is sandboxed and has no file access.
     static {
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(new SpecialPermission());
+        try {
+            Class.forName("org.elasticsearch.painless.Definition");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-            @Override
-            public Void run() {
-                try {
-                    Class.forName("org.elasticsearch.painless.Definition");
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-                return null;
-            }
-        });
     }
 
     @Override
