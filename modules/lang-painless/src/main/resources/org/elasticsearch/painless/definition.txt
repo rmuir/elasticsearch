@@ -68,108 +68,315 @@ class def -> java.lang.Object {
 class Void -> java.lang.Void extends Object {
 }
 
-class Boolean -> java.lang.Boolean extends Object {
+class Boolean -> java.lang.Boolean extends Comparable,Object {
   Boolean TRUE
   Boolean FALSE
-  int compare(boolean,boolean)
-  boolean parseBoolean(String)
-  Boolean valueOf(boolean)
   boolean booleanValue()
-  int compareTo(Boolean)
+  int compare(boolean,boolean)
+  int hashCode(boolean)
+  boolean logicalAnd(boolean,boolean)
+  boolean logicalOr(boolean,boolean)
+  boolean logicalXor(boolean,boolean)
+  boolean parseBoolean(String)
+  String toString(boolean)
+  Boolean valueOf(boolean)
 } 
 
-class Byte -> java.lang.Byte extends Number,Object {
-  byte MIN_VALUE
+class Byte -> java.lang.Byte extends Number,Comparable,Object {
+  int BYTES
   byte MAX_VALUE
+  byte MIN_VALUE
+  int SIZE
   int compare(byte,byte)
-  int compareTo(Byte)
+  Byte decode(String)
+  int hashCode(byte)
   byte parseByte(String)
+  byte parseByte(String,int)
+  String toString(byte)
+  int toUnsignedInt(byte)
+  long toUnsignedLong(byte)
   Byte valueOf(byte)
+  Byte valueOf(String,int)
 }
 
-class Short -> java.lang.Short extends Number,Object {
-  short MIN_VALUE
+class Short -> java.lang.Short extends Number,Comparable,Object {
+  int BYTES
   short MAX_VALUE
+  short MIN_VALUE
+  int SIZE
   int compare(short,short)
-  int compareTo(Short)
+  Short decode(String)
+  int hashCode(short)
   short parseShort(String)
+  short parseShort(String,int)
+  short reverseBytes(short)
+  String toString(short)
+  int toUnsignedInt(short)
+  long toUnsignedLong(short)
   Short valueOf(short)
+  Short valueOf(String,int)
 }
 
-class Character -> java.lang.Character extends Object {
-  char MIN_VALUE
+class Character -> java.lang.Character extends Comparable,Object {
+  int BYTES
+  byte COMBINING_SPACING_MARK
+  byte CONNECTOR_PUNCTUATION
+  byte CONTROL
+  byte CURRENCY_SYMBOL
+  byte DASH_PUNCTUATION
+  byte DECIMAL_DIGIT_NUMBER
+  byte DIRECTIONALITY_ARABIC_NUMBER
+  byte DIRECTIONALITY_BOUNDARY_NEUTRAL
+  byte DIRECTIONALITY_COMMON_NUMBER_SEPARATOR
+  byte DIRECTIONALITY_EUROPEAN_NUMBER
+  byte DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR
+  byte DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR
+  byte DIRECTIONALITY_LEFT_TO_RIGHT
+  byte DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING
+  byte DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE
+  byte DIRECTIONALITY_NONSPACING_MARK
+  byte DIRECTIONALITY_OTHER_NEUTRALS
+  byte DIRECTIONALITY_PARAGRAPH_SEPARATOR
+  byte DIRECTIONALITY_POP_DIRECTIONAL_FORMAT
+  byte DIRECTIONALITY_RIGHT_TO_LEFT
+  byte DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC
+  byte DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING
+  byte DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE
+  byte DIRECTIONALITY_SEGMENT_SEPARATOR
+  byte DIRECTIONALITY_UNDEFINED
+  byte DIRECTIONALITY_WHITESPACE
+  byte ENCLOSING_MARK
+  byte END_PUNCTUATION
+  byte FINAL_QUOTE_PUNCTUATION
+  byte FORMAT
+  byte INITIAL_QUOTE_PUNCTUATION
+  byte LETTER_NUMBER
+  byte LINE_SEPARATOR
+  byte LOWERCASE_LETTER
+  byte MATH_SYMBOL
+  int MAX_CODE_POINT
+  char MAX_HIGH_SURROGATE
+  char MAX_LOW_SURROGATE
+  int MAX_RADIX
+  char MAX_SURROGATE
   char MAX_VALUE
+  char MIN_CODE_POINT
+  char MIN_HIGH_SURROGATE
+  char MIN_LOW_SURROGATE
+  int MIN_RADIX
+  int MIN_SUPPLEMENTARY_CODE_POINT
+  char MIN_SURROGATE
+  char MIN_VALUE
+  byte MODIFIER_LETTER
+  byte MODIFIER_SYMBOL
+  byte NON_SPACING_MARK
+  byte OTHER_LETTER
+  byte OTHER_NUMBER
+  byte OTHER_PUNCTUATION
+  byte OTHER_SYMBOL
+  byte PARAGRAPH_SEPARATOR
+  byte PRIVATE_USE
+  int SIZE
+  byte SPACE_SEPARATOR
+  byte START_PUNCTUATION
+  byte SURROGATE
+  byte TITLECASE_LETTER
+  byte UNASSIGNED
+  byte UPPERCASE_LETTER
   int charCount(int)
   char charValue()
+  int codePointAt(char[],int,int)
+  int codePointAt(CharSequence,int)
+  int codePointBefore(char[],int,int)
+  int codePointBefore(CharSequence,int)
+  int codePointCount(CharSequence,int,int)
   int compare(char,char)
-  int compareTo(Character)
   int digit(int,int)
   char forDigit(int,int)
+  byte getDirectionality(int)
   String getName(int)
   int getNumericValue(int)
+  int getType(int)
+  int hashCode(char)
+  char highSurrogate(int)
   boolean isAlphabetic(int)
+  boolean isBmpCodePoint(int)
   boolean isDefined(int)
   boolean isDigit(int)
+  boolean isHighSurrogate(char)
+  boolean isIdentifierIgnorable(int)
   boolean isIdeographic(int)
+  boolean isISOControl(int)
+  boolean isJavaIdentifierPart(int)
+  boolean isJavaIdentifierStart(int)
   boolean isLetter(int)
   boolean isLetterOrDigit(int)
   boolean isLowerCase(int)
   boolean isMirrored(int)
   boolean isSpaceChar(int)
+  boolean isSupplementaryCodePoint(int)
+  boolean isSurrogate(char)
+  boolean isSurrogatePair(char,char)
   boolean isTitleCase(int)
+  boolean isUnicodeIdentifierPart(int)
+  boolean isUnicodeIdentifierStart(int)
   boolean isUpperCase(int)
+  boolean isValidCodePoint(int)
   boolean isWhitespace(int)
+  char lowSurrogate(int)
+  int offsetByCodePoints(char[],int,int,int,int)
+  int offsetByCodePoints(CharSequence,int,int)
+  char reverseBytes(char)
+  char[] toChars(int)
+  int toChars(int,char[],int)
+  int toCodePoint(char,char)
+  char toLowerCase(char)
+  String toString(char)
+  char toTitleCase(char)
+  char toUpperCase(char)
   Character valueOf(char)
 }
 
-class Integer -> java.lang.Integer extends Number,Object {
-  int MIN_VALUE
+class Integer -> java.lang.Integer extends Number,Comparable,Object {
+  int BYTES
   int MAX_VALUE
+  int MIN_VALUE
+  int SIZE
+  int bitCount(int)
   int compare(int,int)
-  int compareTo(Integer)
-  int min(int,int)
+  int compareUnsigned(int,int)
+  Integer decode(String)
+  int divideUnsigned(int,int)
+  int hashCode(int)
+  int highestOneBit(int)
+  int lowestOneBit(int)
   int max(int,int)
+  int min(int,int)
+  int numberOfLeadingZeros(int)
+  int numberOfTrailingZeros(int)
   int parseInt(String)
+  int parseInt(String,int)
+  int parseUnsignedInt(String)
+  int parseUnsignedInt(String,int)
+  int remainderUnsigned(int,int)
+  int reverse(int)
+  int reverseBytes(int)
+  int rotateLeft(int,int)
+  int rotateRight(int,int)
   int signum(int)
+  String toBinaryString(int)
   String toHexString(int)
+  String toOctalString(int)
+  String toString(int)
+  String toString(int,int)
+  long toUnsignedLong(int)
+  String toUnsignedString(int)
+  String toUnsignedString(int,int)
   Integer valueOf(int)
+  Integer valueOf(String,int)
 }
 
-class Long -> java.lang.Long extends Number,Object {
-  long MIN_VALUE
+class Long -> java.lang.Long extends Number,Comparable,Object {
+  int BYTES
   long MAX_VALUE
+  long MIN_VALUE
+  int SIZE
+  int bitCount(long)
   int compare(long,long)
-  int compareTo(Long)
-  long min(long,long)
+  int compareUnsigned(long,long)
+  Long decode(String)
+  long divideUnsigned(long,long)
+  int hashCode(long)
+  long highestOneBit(long)
+  long lowestOneBit(long)
   long max(long,long)
+  long min(long,long)
+  int numberOfLeadingZeros(long)
+  int numberOfTrailingZeros(long)
   long parseLong(String)
+  long parseLong(String,int)
+  long parseUnsignedLong(String)
+  long parseUnsignedLong(String,int)
+  long remainderUnsigned(long,long)
+  long reverse(long)
+  long reverseBytes(long)
+  long rotateLeft(long,int)
+  long rotateRight(long,int)
   int signum(long)
+  long sum(long,long)
+  String toBinaryString(long)
   String toHexString(long)
+  String toOctalString(long)
+  String toString(long)
+  String toString(long,int)
+  String toUnsignedString(long)
+  String toUnsignedString(long,int)
   Long valueOf(long)
+  Long valueOf(String,int)
 }
 
-class Float -> java.lang.Float extends Number,Object {
-  float MIN_VALUE
+class Float -> java.lang.Float extends Number,Comparable,Object {
+  int BYTES
+  int MAX_EXPONENT
   float MAX_VALUE
+  int MIN_EXPONENT
+  float MIN_NORMAL
+  float MIN_VALUE
+  float NaN
+  float NEGATIVE_INFINITY
+  float POSITIVE_INFINITY
+  int SIZE
   int compare(float,float)
-  int compareTo(Float)
-  float min(float,float)
+  int floatToIntBits(float)
+  int floatToRawIntBits(float)
+  int hashCode(float)
+  float intBitsToFloat(int)
+  boolean isFinite(float)
+  boolean isInfinite()
+  boolean isInfinite(float)
+  boolean isNaN()
+  boolean isNaN(float)
   float max(float,float)
+  float min(float,float)
   float parseFloat(String)
+  float sum(float,float)
   String toHexString(float)
+  String toString(float)
   Float valueOf(float)
 }
 
-class Double -> java.lang.Double extends Number,Object {
-  double MIN_VALUE
+class Double -> java.lang.Double extends Number,Comparable,Object {
+  int BYTES
+  int MAX_EXPONENT
   double MAX_VALUE
+  int MIN_EXPONENT
+  double MIN_NORMAL
+  double MIN_VALUE
+  double NaN
+  double NEGATIVE_INFINITY
+  double POSITIVE_INFINITY
+  int SIZE
   int compare(double,double)
-  int compareTo(Double)
-  double min(double,double)
+  long doubleToLongBits(double)
+  long doubleToRawLongBits(double)
+  int hashCode(double)
+  boolean isFinite(double)
+  boolean isInfinite()
+  boolean isInfinite(double)
+  boolean isNaN()
+  boolean isNaN(double)
+  double longBitsToDouble(long)
   double max(double,double)
+  double min(double,double)
   double parseDouble(String)
+  double sum(double,double)
   String toHexString(double)
+  String toString(double)
   Double valueOf(double)
+}
+
+class Appendable -> java.lang.Appendable {
+  Appendable append(CharSequence,int,int)
 }
 
 class Number -> java.lang.Number extends Object {
@@ -181,25 +388,108 @@ class Number -> java.lang.Number extends Object {
   double doubleValue()
 }
 
-class CharSequence -> java.lang.CharSequence extends Object {
-  char charAt(int)
-  int length()
+class System -> java.lang.System extends Object {
+  long currentTimeMillis()
+  long nanoTime()
 }
 
-class String -> java.lang.String extends CharSequence,Object {
+class Comparable -> java.lang.Comparable {
+  int compareTo(def)
+}
+
+class CharSequence -> java.lang.CharSequence {
+  char charAt(int)
+  int length()
+  CharSequence subSequence(int,int)
+  String toString()
+}
+
+class StringBuilder -> java.lang.StringBuilder extends CharSequence,Appendable,Object {
+  StringBuilder <init>()
+  StringBuilder <init>(CharSequence)
+  StringBuilder append(def)
+  StringBuilder append(CharSequence,int,int)
+  StringBuilder appendCodePoint(int)
+  int capacity()
+  int codePointAt(int)
+  int codePointBefore(int)
+  int codePointCount(int,int)
+  StringBuilder delete(int,int)
+  StringBuilder deleteCharAt(int)
+  void getChars(int,int,char[],int)
+  int indexOf(String)
+  int indexOf(String,int)
+  StringBuilder insert(int,def)
+  int lastIndexOf(String)
+  int lastIndexOf(String,int)
+  int offsetByCodePoints(int,int)
+  StringBuilder replace(int,int,String)
+  StringBuilder reverse()
+  void setCharAt(int,char)
+  void setLength(int)
+  String substring(int)
+  String substring(int,int)
+}
+
+class StringBuffer -> java.lang.StringBuffer extends CharSequence,Appendable,Object {
+  StringBuffer <init>()
+  StringBuffer <init>(CharSequence)
+  StringBuffer append(def)
+  StringBuffer append(CharSequence,int,int)
+  StringBuffer appendCodePoint(int)
+  int capacity()
+  int codePointAt(int)
+  int codePointBefore(int)
+  int codePointCount(int,int)
+  StringBuffer delete(int,int)
+  StringBuffer deleteCharAt(int)
+  void getChars(int,int,char[],int)
+  int indexOf(String)
+  int indexOf(String,int)
+  StringBuffer insert(int,def)
+  int lastIndexOf(String)
+  int lastIndexOf(String,int)
+  int offsetByCodePoints(int,int)
+  StringBuffer replace(int,int,String)
+  StringBuffer reverse()
+  void setCharAt(int,char)
+  void setLength(int)
+  String substring(int)
+  String substring(int,int)
+}
+
+class String -> java.lang.String extends CharSequence,Comparable,Object {
   String <init>()
   int codePointAt(int)
-  int compareTo(String)
+  int codePointBefore(int)
+  int codePointCount(int,int)
+  int compareToIgnoreCase(String)
   String concat(String)
+  boolean contains(CharSequence)
+  boolean contentEquals(CharSequence)
+  String copyValueOf(char[])
+  String copyValueOf(char[],int,int)
   boolean endsWith(String)
+  boolean equalsIgnoreCase(String)
+  void getChars(int,int,char[],int)
   int indexOf(String)
   int indexOf(String,int)
   boolean isEmpty()
+  int lastIndexOf(String)
+  int lastIndexOf(String,int)
+  int offsetByCodePoints(int,int)
+  boolean regionMatches(boolean,int,String,int,int)
+  boolean regionMatches(int,String,int,int)
   String replace(CharSequence,CharSequence)
   boolean startsWith(String)
+  boolean startsWith(String,int)
+  String substring(int)
   String substring(int,int)
   char[] toCharArray()
+  String toLowerCase()
+  String toUpperCase()
   String trim()
+  String valueOf(def)
 }
 
 class Math -> java.lang.Math {
@@ -212,21 +502,28 @@ class Math -> java.lang.Math {
   double atan2(double,double)
   double cbrt(double)
   double ceil(double)
+  double copySign(double,double)
   double cos(double)
   double cosh(double)
   double exp(double)
   double expm1(double)
   double floor(double)
   double hypot(double,double)
+  double IEEEremainder(double,double)
   double log(double)
   double log10(double)
   double log1p(double)
   double max(double,double)
   double min(double,double)
+  double nextAfter(double,double)
+  double nextDown(double)
+  double nextUp(double)
   double pow(double,double)
   double random()
   double rint(double)
   long round(double)
+  double scalb(double,int)
+  double signum(double)
   double sin(double)
   double sinh(double)
   double sqrt(double)
@@ -234,50 +531,126 @@ class Math -> java.lang.Math {
   double tanh(double)
   double toDegrees(double)
   double toRadians(double)
+  double ulp(double)
 }
 
-class Iterator -> java.util.Iterator extends Object {
+class StrictMath -> java.lang.StrictMath {
+  double E
+  double PI
+  double abs(double)
+  double acos(double)
+  double asin(double)
+  double atan(double)
+  double atan2(double,double)
+  double cbrt(double)
+  double ceil(double)
+  double copySign(double,double)
+  double cos(double)
+  double cosh(double)
+  double exp(double)
+  double expm1(double)
+  double floor(double)
+  double hypot(double,double)
+  double IEEEremainder(double,double)
+  double log(double)
+  double log10(double)
+  double log1p(double)
+  double max(double,double)
+  double min(double,double)
+  double nextAfter(double,double)
+  double nextDown(double)
+  double nextUp(double)
+  double pow(double,double)
+  double random()
+  double rint(double)
+  long round(double)
+  double scalb(double,int)
+  double signum(double)
+  double sin(double)
+  double sinh(double)
+  double sqrt(double)
+  double tan(double)
+  double tanh(double)
+  double toDegrees(double)
+  double toRadians(double)
+  double ulp(double)
+}
+
+class Iterable -> java.lang.Iterable {
+  Iterator iterator()
+}
+
+class Iterator -> java.util.Iterator {
   boolean hasNext()
   def next()
   void remove()
 }
 
-class Collection -> java.util.Collection extends Object {
+class ListIterator -> java.util.ListIterator extends Iterator {
+  void add(def)
+  boolean hasPrevious()
+  int nextIndex()
+  int previousIndex()
+  void set(def)
+}
+
+class Collection -> java.util.Collection extends Iterable {
   boolean add(def)
+  boolean addAll(Collection)
   void clear()
   boolean contains(def)
+  boolean containsAll(Collection)
   boolean isEmpty()
-  Iterator iterator()
-  boolean remove(def)
+  boolean removeAll(Collection)
+  boolean retainAll(Collection)
   int size()
+  def[] toArray()
 }
 
-class List -> java.util.List extends Collection,Object {
-  def set(int,def)
+class List -> java.util.List extends Collection,Iterable,Object {
+  void add(int,def)
+  boolean addAll(int,Collection)
   def get(int)
+  int indexOf(def)
+  int lastIndexOf(def)
+  ListIterator listIterator()
+  ListIterator listIterator(int)
   def remove(int)
+  def set(int,def)
+  # TODO: wtf?
   int getLength/size()
+  List subList(int,int)
 }
 
-class ArrayList -> java.util.ArrayList extends List,Collection,Object {
+class ArrayList -> java.util.ArrayList extends List,Collection,Iterable,Object {
   ArrayList <init>()
+  def clone()
 }
 
-class Set -> java.util.Set extends Collection,Object {
+class Set -> java.util.Set extends Collection,Iterable,Object {
 }
 
-class HashSet -> java.util.HashSet extends Set,Collection,Object {
+class HashSet -> java.util.HashSet extends Set,Collection,Iterable,Object {
   HashSet <init>()
+  def clone()
 }
 
 class Map -> java.util.Map extends Object {
-  def put(def,def)
-  def get(def)
-  def remove(def)
-  boolean isEmpty()
-  int size()
+  void clear()
   boolean containsKey(def)
+  boolean containsValue(def)
+  Set entrySet()
+  def get(def)
+  def getOrDefault(def,def)
+  boolean isEmpty()
   Set keySet()
+  def put(def,def)
+  void putAll(Map)
+  def putIfAbsent(def,def)
+  def remove(def)
+  boolean remove(def,def)
+  def replace(def,def)
+  int size()
   Collection values()
 }
 
@@ -285,24 +658,148 @@ class HashMap -> java.util.HashMap extends Map,Object {
   HashMap <init>()
 }
 
+class StackTraceElement -> java.lang.StackTraceElement extends Object {
+  StackTraceElement <init>(String,String,String,int)
+  String getClassName()
+  String getFileName()
+  int getLineNumber()
+  String getMethodName()
+  boolean isNativeMethod()
+}
+
 class Exception -> java.lang.Exception extends Object {
+  Exception <init>()
+  Exception <init>(String)
+  String getLocalizedMessage()
   String getMessage()
+  StackTraceElement[] getStackTrace()
 }
 
-class ArithmeticException -> java.lang.ArithmeticException extends Exception,Object {
+class ArithmeticException -> java.lang.ArithmeticException extends RuntimeException,Exception,Object {
   ArithmeticException <init>()
+  ArithmeticException <init>(String)
 }
 
-class IllegalArgumentException -> java.lang.IllegalArgumentException extends Exception,Object {
+class ArrayIndexOutOfBoundsException -> java.lang.ArrayIndexOutOfBoundsException extends IndexOutOfBoundsException,RuntimeException,Exception,Object {
+  ArrayIndexOutOfBoundsException <init>()
+  ArrayIndexOutOfBoundsException <init>(String)
+}
+
+class ArrayStoreException -> java.lang.ArrayStoreException extends RuntimeException,Exception,Object {
+  ArrayStoreException <init>()
+  ArrayStoreException <init>(String)
+}
+
+class ClassCastException -> java.lang.ClassCastException extends RuntimeException,Exception,Object {
+  ClassCastException <init>()
+  ClassCastException <init>(String)
+}
+
+class ClassNotFoundException -> java.lang.ClassNotFoundException extends ReflectiveOperationException,Exception,Object {
+  ClassNotFoundException <init>()
+  ClassNotFoundException <init>(String)
+}
+
+class CloneNotSupportedException -> java.lang.CloneNotSupportedException extends Exception,Object {
+  CloneNotSupportedException <init>()
+  CloneNotSupportedException <init>(String)
+}
+
+class EnumConstantNotPresentException -> java.lang.EnumConstantNotPresentException extends RuntimeException,Exception,Object {
+  String constantName()
+}
+
+class IllegalAccessException -> java.lang.IllegalAccessException extends ReflectiveOperationException,Exception,Object {
+  IllegalAccessException <init>()
+  IllegalAccessException <init>(String)
+}
+
+class IllegalArgumentException -> java.lang.IllegalArgumentException extends RuntimeException,Exception,Object {
   IllegalArgumentException <init>()
+  IllegalArgumentException <init>(String)
 }
 
-class IllegalStateException -> java.lang.IllegalStateException extends Exception,Object {
+class IllegalMonitorStateException -> java.lang.IllegalMonitorStateException extends RuntimeException,Exception,Object {
+  IllegalMonitorStateException <init>()
+  IllegalMonitorStateException <init>(String)
+}
+
+class IllegalStateException -> java.lang.IllegalStateException extends RuntimeException,Exception,Object {
   IllegalStateException <init>()
+  IllegalStateException <init>(String)
 }
 
-class NumberFormatException -> java.lang.NumberFormatException extends Exception,Object {
+class IllegalThreadStateException -> java.lang.IllegalThreadStateException extends IllegalArgumentException,RuntimeException,Exception,Object {
+  IllegalThreadStateException <init>()
+  IllegalThreadStateException <init>(String)
+}
+
+class IndexOutOfBoundsException -> java.lang.IndexOutOfBoundsException extends RuntimeException,Exception,Object {
+  IndexOutOfBoundsException <init>()
+  IndexOutOfBoundsException <init>(String)
+}
+
+class InstantiationException -> java.lang.InstantiationException extends ReflectiveOperationException,Exception,Object {
+  InstantiationException <init>()
+  InstantiationException <init>(String)
+}
+
+class InterruptedException -> java.lang.InterruptedException extends Exception,Object {
+  InterruptedException <init>()
+  InterruptedException <init>(String)
+}
+
+class NegativeArraySizeException -> java.lang.NegativeArraySizeException extends RuntimeException,Exception,Object {
+  NegativeArraySizeException <init>()
+  NegativeArraySizeException <init>(String)
+}
+
+class NoSuchFieldException -> java.lang.NoSuchFieldException extends ReflectiveOperationException,Exception,Object {
+  NoSuchFieldException <init>()
+  NoSuchFieldException <init>(String)
+}
+
+class NoSuchMethodException -> java.lang.NoSuchMethodException extends ReflectiveOperationException,Exception,Object {
+  NoSuchMethodException <init>()
+  NoSuchMethodException <init>(String)
+}
+
+class NullPointerException -> java.lang.NullPointerException extends RuntimeException,Exception,Object {
+  NullPointerException <init>()
+  NullPointerException <init>(String)
+}
+
+class NumberFormatException -> java.lang.NumberFormatException extends RuntimeException,Exception,Object {
   NumberFormatException <init>()
+  NumberFormatException <init>(String)
+}
+
+class ReflectiveOperationException -> java.lang.ReflectiveOperationException extends Exception,Object {
+  ReflectiveOperationException <init>()
+  ReflectiveOperationException <init>(String)
+}
+
+class RuntimeException -> java.lang.RuntimeException extends Exception,Object {
+  RuntimeException <init>()
+}
+
+class SecurityException -> java.lang.SecurityException extends RuntimeException,Exception,Object {
+  SecurityException <init>()
+  SecurityException <init>(String)
+}
+
+class StringIndexOutOfBoundsException -> java.lang.StringIndexOutOfBoundsException extends IndexOutOfBoundsException,RuntimeException,Exception,Object {
+  StringIndexOutOfBoundsException <init>()
+  StringIndexOutOfBoundsException <init>(String)
+}
+
+class TypeNotPresentException -> java.lang.TypeNotPresentException extends RuntimeException,Exception,Object {
+  String typeName()
+}
+
+class UnsupportedOperationException -> java.lang.UnsupportedOperationException extends RuntimeException,Exception,Object {
+  UnsupportedOperationException <init>()
+  UnsupportedOperationException <init>(String)
 }
 
 # ES Scripting API
@@ -312,22 +809,22 @@ class GeoPoint -> org.elasticsearch.common.geo.GeoPoint extends Object {
   double getLon()
 }
 
-class Strings -> org.elasticsearch.index.fielddata.ScriptDocValues$Strings extends List,Collection,Object {
+class Strings -> org.elasticsearch.index.fielddata.ScriptDocValues$Strings extends List,Collection,Iterable,Object {
   String getValue()
   List getValues()
 }
 
-class Longs -> org.elasticsearch.index.fielddata.ScriptDocValues$Longs extends List,Collection,Object {
+class Longs -> org.elasticsearch.index.fielddata.ScriptDocValues$Longs extends List,Collection,Iterable,Object {
   long getValue()
   List getValues()
 }
 
-class Doubles -> org.elasticsearch.index.fielddata.ScriptDocValues$Doubles extends List,Collection,Object {
+class Doubles -> org.elasticsearch.index.fielddata.ScriptDocValues$Doubles extends List,Collection,Iterable,Object {
   double getValue()
   List getValues()
 }
 
-class GeoPoints -> org.elasticsearch.index.fielddata.ScriptDocValues$GeoPoints extends List,Collection,Object {
+class GeoPoints -> org.elasticsearch.index.fielddata.ScriptDocValues$GeoPoints extends List,Collection,Iterable,Object {
   GeoPoint getValue()
   List getValues()
   double getLat()
