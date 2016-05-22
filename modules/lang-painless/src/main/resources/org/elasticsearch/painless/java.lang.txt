@@ -504,10 +504,13 @@ class String -> java.lang.String extends CharSequence,Comparable,Object {
   String copyValueOf(char[],int,int)
   boolean endsWith(String)
   boolean equalsIgnoreCase(String)
+  String format(Locale,String,def[])
+  String format(String,def[])
   void getChars(int,int,char[],int)
   int indexOf(String)
   int indexOf(String,int)
   boolean isEmpty()
+  String join(CharSequence,Iterable)
   int lastIndexOf(String)
   int lastIndexOf(String,int)
   int offsetByCodePoints(int,int)
@@ -520,7 +523,9 @@ class String -> java.lang.String extends CharSequence,Comparable,Object {
   String substring(int,int)
   char[] toCharArray()
   String toLowerCase()
+  String toLowerCase(Locale)
   String toUpperCase()
+  String toUpperCase(Locale)
   String trim()
   String valueOf(def)
 }
@@ -580,6 +585,7 @@ class StringBuilder -> java.lang.StringBuilder extends CharSequence,Appendable,O
 }
 
 class System -> java.lang.System extends Object {
+  void arraycopy(Object,int,Object,int,int)
   long currentTimeMillis()
   long nanoTime()
 }
@@ -591,6 +597,10 @@ class System -> java.lang.System extends Object {
 
 class Void -> java.lang.Void extends Object {
 }
+
+#### Enums
+
+# Character.UnicodeScript: TODO
 
 #### Exceptions
 
