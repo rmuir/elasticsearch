@@ -42,6 +42,7 @@ public final class Definition {
         Arrays.asList("org.elasticsearch.txt", 
                       "java.lang.txt",
                       "java.math.txt",
+                      "java.text.txt",
                       "java.util.txt"));
 
     private static final Definition INSTANCE = new Definition();
@@ -784,7 +785,7 @@ public final class Definition {
         for (int count = 0; count < children.size(); ++count) {
             final Struct child = structsMap.get(children.get(count));
 
-            if (struct == null) {
+            if (child == null) {
                 throw new IllegalArgumentException("Child struct [" + children.get(count) + "]" +
                     " not defined for copy to owner struct [" + owner.name + "].");
             }
