@@ -39,7 +39,10 @@ import java.util.Objects;
 public final class Definition {
     
     private static final List<String> DEFINITION_FILES = Collections.unmodifiableList(
-        Arrays.asList("org.elasticsearch.txt", "java.lang.txt", "java.util.txt"));
+        Arrays.asList("org.elasticsearch.txt", 
+                      "java.lang.txt",
+                      "java.math.txt",
+                      "java.util.txt"));
 
     private static final Definition INSTANCE = new Definition();
     

@@ -205,8 +205,113 @@ class Character -> java.lang.Character extends Comparable,Object {
   Character valueOf(char)
 }
 
-# Character.Subset: TODO
-# Character.UnicodeBlock: TODO
+class Character.Subset -> java.lang.Character$Subset extends Object {
+}
+
+class Character.UnicodeBlock -> java.lang.Character$UnicodeBlock extends Character.Subset,Object {
+  Character.UnicodeBlock AEGEAN_NUMBERS
+  Character.UnicodeBlock ALCHEMICAL_SYMBOLS
+  Character.UnicodeBlock ALPHABETIC_PRESENTATION_FORMS
+  Character.UnicodeBlock ANCIENT_GREEK_MUSICAL_NOTATION
+  Character.UnicodeBlock ANCIENT_GREEK_NUMBERS
+  Character.UnicodeBlock ANCIENT_SYMBOLS
+  Character.UnicodeBlock ARABIC
+  Character.UnicodeBlock ARABIC_EXTENDED_A
+  Character.UnicodeBlock ARABIC_MATHEMATICAL_ALPHABETIC_SYMBOLS
+  Character.UnicodeBlock ARABIC_PRESENTATION_FORMS_A
+  Character.UnicodeBlock ARABIC_PRESENTATION_FORMS_B
+  Character.UnicodeBlock ARABIC_SUPPLEMENT
+  Character.UnicodeBlock ARMENIAN
+  Character.UnicodeBlock ARROWS
+  Character.UnicodeBlock AVESTAN
+  Character.UnicodeBlock BALINESE
+  Character.UnicodeBlock BAMUM
+  Character.UnicodeBlock BAMUM_SUPPLEMENT
+  Character.UnicodeBlock BASIC_LATIN
+  Character.UnicodeBlock BATAK
+  Character.UnicodeBlock BENGALI
+  Character.UnicodeBlock BLOCK_ELEMENTS
+  Character.UnicodeBlock BOPOMOFO
+  Character.UnicodeBlock BOPOMOFO_EXTENDED
+  Character.UnicodeBlock BOX_DRAWING
+  Character.UnicodeBlock BRAHMI
+  Character.UnicodeBlock BRAILLE_PATTERNS
+  Character.UnicodeBlock BUGINESE
+  Character.UnicodeBlock BUHID
+  Character.UnicodeBlock BYZANTINE_MUSICAL_SYMBOLS
+  Character.UnicodeBlock CARIAN
+  Character.UnicodeBlock CHAKMA
+  Character.UnicodeBlock CHAM
+  Character.UnicodeBlock CHEROKEE
+  Character.UnicodeBlock CJK_COMPATIBILITY
+  Character.UnicodeBlock CJK_COMPATIBILITY_FORMS
+  Character.UnicodeBlock CJK_COMPATIBILITY_IDEOGRAPHS
+  Character.UnicodeBlock CJK_COMPATIBILITY_IDEOGRAPHS_SUPPLEMENT
+  Character.UnicodeBlock CJK_RADICALS_SUPPLEMENT
+  Character.UnicodeBlock CJK_STROKES
+  Character.UnicodeBlock CJK_SYMBOLS_AND_PUNCTUATION
+  Character.UnicodeBlock CJK_UNIFIED_IDEOGRAPHS
+  Character.UnicodeBlock CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+  Character.UnicodeBlock CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
+  Character.UnicodeBlock CJK_UNIFIED_IDEOGRAPHS_EXTENSION_C
+  Character.UnicodeBlock CJK_UNIFIED_IDEOGRAPHS_EXTENSION_D
+  Character.UnicodeBlock COMBINING_DIACRITICAL_MARKS
+  Character.UnicodeBlock COMBINING_DIACRITICAL_MARKS_SUPPLEMENT
+  Character.UnicodeBlock COMBINING_HALF_MARKS
+  Character.UnicodeBlock COMBINING_MARKS_FOR_SYMBOLS
+  Character.UnicodeBlock COMMON_INDIC_NUMBER_FORMS
+  Character.UnicodeBlock CONTROL_PICTURES
+  Character.UnicodeBlock COPTIC
+  Character.UnicodeBlock COUNTING_ROD_NUMERALS
+  Character.UnicodeBlock CUNEIFORM
+  Character.UnicodeBlock CUNEIFORM_NUMBERS_AND_PUNCTUATION
+  Character.UnicodeBlock CURRENCY_SYMBOLS
+  Character.UnicodeBlock CYPRIOT_SYLLABARY
+  Character.UnicodeBlock CYRILLIC
+  Character.UnicodeBlock CYRILLIC_EXTENDED_A
+  Character.UnicodeBlock CYRILLIC_EXTENDED_B
+  Character.UnicodeBlock CYRILLIC_SUPPLEMENTARY
+  Character.UnicodeBlock DESERET
+  Character.UnicodeBlock DEVANAGARI
+  Character.UnicodeBlock DEVANAGARI_EXTENDED
+  Character.UnicodeBlock DINGBATS
+  Character.UnicodeBlock DOMINO_TILES
+  Character.UnicodeBlock EGYPTIAN_HIEROGLYPHS
+  Character.UnicodeBlock EMOTICONS
+  Character.UnicodeBlock ENCLOSED_ALPHANUMERIC_SUPPLEMENT
+  Character.UnicodeBlock ENCLOSED_ALPHANUMERICS
+  Character.UnicodeBlock ENCLOSED_CJK_LETTERS_AND_MONTHS
+  Character.UnicodeBlock ENCLOSED_IDEOGRAPHIC_SUPPLEMENT
+  Character.UnicodeBlock ETHIOPIC
+  Character.UnicodeBlock ETHIOPIC_EXTENDED
+  Character.UnicodeBlock ETHIOPIC_EXTENDED_A
+  Character.UnicodeBlock ETHIOPIC_SUPPLEMENT
+  Character.UnicodeBlock GENERAL_PUNCTUATION
+  Character.UnicodeBlock GEOMETRIC_SHAPES
+  Character.UnicodeBlock GEORGIAN
+  Character.UnicodeBlock GEORGIAN_SUPPLEMENT
+  Character.UnicodeBlock GLAGOLITIC
+  Character.UnicodeBlock GOTHIC
+  Character.UnicodeBlock GREEK
+  Character.UnicodeBlock GREEK_EXTENDED
+  Character.UnicodeBlock GUJARATI
+  Character.UnicodeBlock GURMUKHI
+  Character.UnicodeBlock HALFWIDTH_AND_FULLWIDTH_FORMS
+  Character.UnicodeBlock HANGUL_COMPATIBILITY_JAMO
+  Character.UnicodeBlock HANGUL_JAMO
+  Character.UnicodeBlock HANGUL_JAMO_EXTENDED_A
+  Character.UnicodeBlock HANGUL_JAMO_EXTENDED_B
+  Character.UnicodeBlock HANGUL_SYLLABLES
+  Character.UnicodeBlock HANUNOO
+  Character.UnicodeBlock HEBREW
+  Character.UnicodeBlock HIGH_PRIVATE_USE_SURROGATES
+  Character.UnicodeBlock HIGH_SURROGATES
+  Character.UnicodeBlock HIRAGANA
+  # TODO: keep slaving
+  Character.UnicodeBlock forName(String)
+  Character.UnicodeBlock of(int)
+}
+
 # Class: skipped for obvious reasons
 # ClassLoader: ...
 # ClassValue: ...
@@ -600,7 +705,20 @@ class Void -> java.lang.Void extends Object {
 
 #### Enums
 
-# Character.UnicodeScript: TODO
+class Character.UnicodeScript -> java.lang.Character$UnicodeScript extends Enum,Object {
+  Character.UnicodeScript ARABIC
+  Character.UnicodeScript ARMENIAN
+  Character.UnicodeScript AVESTAN
+  Character.UnicodeScript BALINESE
+  Character.UnicodeScript BAMUM
+  Character.UnicodeScript BATAK
+  Character.UnicodeScript BENGALI
+  # TODO: keep slaving
+  Character.UnicodeScript forName(String)
+  Character.UnicodeScript of(int)
+  Character.UnicodeScript valueOf(String)
+  Character.UnicodeScript[] values()
+}
 
 #### Exceptions
 
