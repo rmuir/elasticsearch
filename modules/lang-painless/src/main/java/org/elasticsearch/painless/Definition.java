@@ -38,7 +38,8 @@ import java.util.Objects;
  */
 public final class Definition {
     
-    private static final String DEFINITION_FILE = "definition.txt";
+    private static final List<String> DEFINITION_FILES = Collections.unmodifiableList(
+        Arrays.asList("org.elasticsearch.txt", "java.lang.txt", "java.util.txt"));
 
     private static final Definition INSTANCE = new Definition();
     
@@ -420,97 +421,101 @@ public final class Definition {
     /** adds classes from definition. returns hierarchy */
     private Map<String,List<String>> addStructs() {
         final Map<String,List<String>> hierarchy = new HashMap<>();
-        int currentLine = -1;
-        try {
-            try (InputStream stream = Definition.class.getResourceAsStream(DEFINITION_FILE);
-                    LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    currentLine = reader.getLineNumber();
-                    line = line.trim();
-                    if (line.length() == 0 || line.charAt(0) == '#') {
-                        continue;
-                    }
-                    if (line.startsWith("class ")) {
-                        String elements[] = line.split("\u0020");
-                        assert elements[2].equals("->");
-                        if (elements.length == 7) {
-                            hierarchy.put(elements[1], Arrays.asList(elements[5].split(",")));
-                        } else {
-                            assert elements.length == 5;
+        for (String file : DEFINITION_FILES) {
+            int currentLine = -1;
+            try {
+                try (InputStream stream = Definition.class.getResourceAsStream(file);
+                        LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                    String line = null;
+                    while ((line = reader.readLine()) != null) {
+                        currentLine = reader.getLineNumber();
+                        line = line.trim();
+                        if (line.length() == 0 || line.charAt(0) == '#') {
+                            continue;
                         }
-                        String className = elements[1];
-                        String javaPeer = elements[3];
-                        final Class<?> javaClazz;
-                        switch (javaPeer) {
-                            case "void":
-                                javaClazz = void.class;
-                                break;
-                            case "boolean":
-                                javaClazz = boolean.class;
-                                break;
-                            case "byte":
-                                javaClazz = byte.class;
-                                break;
-                            case "short":
-                                javaClazz = short.class;
-                                break;
-                            case "char":
-                                javaClazz = char.class;
-                                break;
-                            case "int":
-                                javaClazz = int.class;
-                                break;
-                            case "long":
-                                javaClazz = long.class;
-                                break;
-                            case "float":
-                                javaClazz = float.class;
-                                break;
-                            case "double":
-                                javaClazz = double.class;
-                                break;
-                            default:
-                                javaClazz = Class.forName(javaPeer);
-                                break;
+                        if (line.startsWith("class ")) {
+                            String elements[] = line.split("\u0020");
+                            assert elements[2].equals("->");
+                            if (elements.length == 7) {
+                                hierarchy.put(elements[1], Arrays.asList(elements[5].split(",")));
+                            } else {
+                                assert elements.length == 5;
+                            }
+                            String className = elements[1];
+                            String javaPeer = elements[3];
+                            final Class<?> javaClazz;
+                            switch (javaPeer) {
+                                case "void":
+                                    javaClazz = void.class;
+                                    break;
+                                case "boolean":
+                                    javaClazz = boolean.class;
+                                    break;
+                                case "byte":
+                                    javaClazz = byte.class;
+                                    break;
+                                case "short":
+                                    javaClazz = short.class;
+                                    break;
+                                case "char":
+                                    javaClazz = char.class;
+                                    break;
+                                case "int":
+                                    javaClazz = int.class;
+                                    break;
+                                case "long":
+                                    javaClazz = long.class;
+                                    break;
+                                case "float":
+                                    javaClazz = float.class;
+                                    break;
+                                case "double":
+                                    javaClazz = double.class;
+                                    break;
+                                default:
+                                    javaClazz = Class.forName(javaPeer);
+                                    break;
+                            }
+                            addStruct(className, javaClazz);
                         }
-                        addStruct(className, javaClazz);
                     }
                 }
+            } catch (Exception e) {
+                throw new RuntimeException("syntax error in " + file + ", line: " + currentLine, e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("syntax error in definition line: " + currentLine, e);
         }
         return hierarchy;
     }
 
     /** adds class methods/fields/ctors */
     private void addElements() {
-        int currentLine = -1;
-        try {
-            try (InputStream stream = Definition.class.getResourceAsStream(DEFINITION_FILE);
-                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-                String line = null;
-                String currentClass = null;
-                while ((line = reader.readLine()) != null) {
-                    currentLine = reader.getLineNumber();
-                    line = line.trim();
-                    if (line.length() == 0 || line.charAt(0) == '#') {
-                        continue;
-                    } else if (line.startsWith("class ")) {
-                        assert currentClass == null;
-                        currentClass = line.split("\u0020")[1];
-                    } else if (line.equals("}")) {
-                        assert currentClass != null;
-                        currentClass = null;
-                    } else {
-                        assert currentClass != null;
-                        addSignature(currentClass, line);
+        for (String file : DEFINITION_FILES) {
+            int currentLine = -1;
+            try {
+                try (InputStream stream = Definition.class.getResourceAsStream(file);
+                        LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                    String line = null;
+                    String currentClass = null;
+                    while ((line = reader.readLine()) != null) {
+                        currentLine = reader.getLineNumber();
+                        line = line.trim();
+                        if (line.length() == 0 || line.charAt(0) == '#') {
+                            continue;
+                        } else if (line.startsWith("class ")) {
+                            assert currentClass == null;
+                            currentClass = line.split("\u0020")[1];
+                        } else if (line.equals("}")) {
+                            assert currentClass != null;
+                            currentClass = null;
+                        } else {
+                            assert currentClass != null;
+                            addSignature(currentClass, line);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                throw new RuntimeException("syntax error in " + file + ", line: " + currentLine, e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("syntax error in definition line: " + currentLine, e);
         }
     }
 
