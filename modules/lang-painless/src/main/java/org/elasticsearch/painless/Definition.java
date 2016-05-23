@@ -159,17 +159,26 @@ public final class Definition {
     }
 
     public static final class Constructor {
-        public final String name;
-        public final Struct owner;
-        public final List<Type> arguments;
-        public final org.objectweb.asm.commons.Method method;
+        private final Type[] arguments;
 
-        private Constructor(String name, Struct owner, List<Type> arguments,
-                            org.objectweb.asm.commons.Method method) {
-            this.name = name;
-            this.owner = owner;
-            this.arguments = Collections.unmodifiableList(arguments);
-            this.method = method;
+        private Constructor(Type[] arguments) {
+            this.arguments = arguments;
+        }
+        
+        public org.objectweb.asm.commons.Method toAsmMethod() {
+            org.objectweb.asm.Type types[] = new org.objectweb.asm.Type[arguments.length];
+            for (int i = 0; i < types.length; i++) {
+                types[i] = arguments[i].type;
+            }
+            return new org.objectweb.asm.commons.Method("<init>", org.objectweb.asm.Type.VOID_TYPE, types);
+        }
+        
+        public Type argumentAt(int index) {
+            return arguments[index];
+        }
+        
+        public int numberOfArguments() {
+            return arguments.length;
         }
     }
 
@@ -177,20 +186,37 @@ public final class Definition {
         public final String name;
         public final Struct owner;
         public final Type rtn;
-        public final List<Type> arguments;
-        public final org.objectweb.asm.commons.Method method;
         public final int modifiers;
         public final MethodHandle handle;
+        
+        private final String javaName;
+        private final Type[] arguments;
 
-        private Method(String name, Struct owner, Type rtn, List<Type> arguments,
-                       org.objectweb.asm.commons.Method method, int modifiers, MethodHandle handle) {
+        private Method(String name, Struct owner, Type rtn, Type[] arguments,
+                       String javaName, int modifiers, MethodHandle handle) {
             this.name = name;
             this.owner = owner;
             this.rtn = rtn;
-            this.arguments = Collections.unmodifiableList(arguments);
-            this.method = method;
+            this.arguments = arguments;
+            this.javaName = javaName;
             this.modifiers = modifiers;
             this.handle = handle;
+        }
+        
+        public org.objectweb.asm.commons.Method toAsmMethod() {
+            org.objectweb.asm.Type types[] = new org.objectweb.asm.Type[arguments.length];
+            for (int i = 0; i < types.length; i++) {
+              types[i] = arguments[i].type;
+            }
+            return new org.objectweb.asm.commons.Method(javaName, rtn.type, types);
+        }
+        
+        public int numberOfArguments() {
+            return arguments.length;
+        }
+        
+        public Type argumentAt(int index) {
+            return arguments[index];
         }
     }
 
@@ -536,20 +562,15 @@ public final class Definition {
         simpleTypesMap.put(name, getTypeInternal(name));
     }
 
-    private final void addConstructorInternal(final String struct, final String name, final Type[] args) {
+    private final void addConstructorInternal(String struct, final Type[] args) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
             throw new IllegalArgumentException(
-                "Owner struct [" + struct + "] not defined for constructor [" + name + "].");
+                "Owner struct [" + struct + "] not defined for constructor [" + struct + "].");
         }
 
-        if (!name.matches("^[_a-zA-Z][_a-zA-Z0-9]*$")) {
-            throw new IllegalArgumentException(
-                "Invalid constructor name [" + name + "] with the struct [" + owner.name + "].");
-        }
-
-        MethodKey methodKey = new MethodKey(name, args.length);
+        MethodKey methodKey = new MethodKey("<init>", args.length);
 
         if (owner.constructors.containsKey(methodKey)) {
             throw new IllegalArgumentException(
@@ -572,17 +593,14 @@ public final class Definition {
             classes[count] = args[count].clazz;
         }
 
-        final java.lang.reflect.Constructor<?> reflect;
-
         try {
-            reflect = owner.clazz.getConstructor(classes);
+            owner.clazz.getConstructor(classes);
         } catch (final NoSuchMethodException exception) {
-            throw new IllegalArgumentException("Constructor [" + name + "] not found for class" +
+            throw new IllegalArgumentException("Constructor not found for class" +
                 " [" + owner.clazz.getName() + "] with arguments " + Arrays.toString(classes) + ".");
         }
 
-        final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
-        final Constructor constructor = new Constructor(name, owner, Arrays.asList(args), asm);
+        final Constructor constructor = new Constructor(args);
 
         owner.constructors.put(methodKey, constructor);
     }
@@ -624,7 +642,7 @@ public final class Definition {
                 if (!elements[0].equals(className)) {
                     throw new IllegalArgumentException("Constructors must return their own type");
                 }
-                addConstructorInternal(className, "new", args);
+                addConstructorInternal(className, args);
             } else {
                 if (methodName.indexOf('/') >= 0) {
                     String nameAndAlias[] = methodName.split("/");
@@ -692,8 +710,6 @@ public final class Definition {
                 " within the struct [" + owner.name + "].");
         }
 
-        final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
-
         MethodHandle handle;
 
         try {
@@ -705,7 +721,7 @@ public final class Definition {
         }
 
         final int modifiers = reflect.getModifiers();
-        final Method method = new Method(name, owner, rtn, Arrays.asList(args), asm, modifiers, handle);
+        final Method method = new Method(name, owner, rtn, args, reflect.getName(), modifiers, handle);
 
         if (java.lang.reflect.Modifier.isStatic(modifiers)) {
             owner.staticMethods.put(methodKey, method);
@@ -798,7 +814,7 @@ public final class Definition {
                 Method method = kvPair.getValue();
                 if (owner.methods.get(methodKey) == null) {
                     owner.methods.put(methodKey,
-                        new Method(method.name, owner, method.rtn, method.arguments, method.method, method.modifiers, method.handle));
+                        new Method(method.name, owner, method.rtn, method.arguments, method.javaName, method.modifiers, method.handle));
                 }
             }
 
@@ -830,7 +846,7 @@ public final class Definition {
             final String name = method.getKey().name;
             final Method m = method.getValue();
 
-            if (m.arguments.size() == 0 &&
+            if (m.numberOfArguments() == 0 &&
                 name.startsWith("get") &&
                 name.length() > 3 &&
                 Character.isUpperCase(name.charAt(3))) {
@@ -838,7 +854,7 @@ public final class Definition {
                 newName.append(Character.toLowerCase(name.charAt(3)));
                 newName.append(name.substring(4));
                 getters.putIfAbsent(newName.toString(), m.handle);
-            } else if (m.arguments.size() == 0 &&
+            } else if (m.numberOfArguments() == 0 &&
                 name.startsWith("is") &&
                 name.length() > 2 &&
                 Character.isUpperCase(name.charAt(2))) {
@@ -848,7 +864,7 @@ public final class Definition {
                 getters.putIfAbsent(newName.toString(), m.handle);
             }
 
-            if (m.arguments.size() == 1 &&
+            if (m.numberOfArguments() == 1 &&
                 name.startsWith("set") &&
                 name.length() > 3 &&
                 Character.isUpperCase(name.charAt(3))) {

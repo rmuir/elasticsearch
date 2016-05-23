@@ -62,7 +62,7 @@ public final class LCall extends ALink {
             for (int argument = 0; argument < arguments.size(); ++argument) {
                 final AExpression expression = arguments.get(argument);
 
-                expression.expected = method.arguments.get(argument);
+                expression.expected = method.argumentAt(argument);
                 expression.internal = true;
                 expression.analyze(variables);
                 arguments.set(argument, expression.cast(variables));
@@ -95,11 +95,11 @@ public final class LCall extends ALink {
         }
 
         if (java.lang.reflect.Modifier.isStatic(method.modifiers)) {
-            adapter.invokeStatic(method.owner.type, method.method);
+            adapter.invokeStatic(method.owner.type, method.toAsmMethod());
         } else if (java.lang.reflect.Modifier.isInterface(method.owner.clazz.getModifiers())) {
-            adapter.invokeInterface(method.owner.type, method.method);
+            adapter.invokeInterface(method.owner.type, method.toAsmMethod());
         } else {
-            adapter.invokeVirtual(method.owner.type, method.method);
+            adapter.invokeVirtual(method.owner.type, method.toAsmMethod());
         }
 
         if (!method.rtn.clazz.equals(method.handle.type().returnType())) {

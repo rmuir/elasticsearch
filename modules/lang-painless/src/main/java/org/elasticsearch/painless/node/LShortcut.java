@@ -49,22 +49,22 @@ final class LShortcut extends ALink {
         getter = struct.methods.get(new Definition.MethodKey("get" + Character.toUpperCase(value.charAt(0)) + value.substring(1), 0));
         setter = struct.methods.get(new Definition.MethodKey("set" + Character.toUpperCase(value.charAt(0)) + value.substring(1), 1));
 
-        if (getter != null && (getter.rtn.sort == Sort.VOID || !getter.arguments.isEmpty())) {
+        if (getter != null && (getter.rtn.sort == Sort.VOID || getter.numberOfArguments() > 0)) {
             throw new IllegalArgumentException(error(
                 "Illegal get shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
-        if (setter != null && (setter.rtn.sort != Sort.VOID || setter.arguments.size() != 1)) {
+        if (setter != null && (setter.rtn.sort != Sort.VOID || setter.numberOfArguments() != 1)) {
             throw new IllegalArgumentException(error(
                 "Illegal set shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
-        if (getter != null && setter != null && setter.arguments.get(0) != getter.rtn) {
+        if (getter != null && setter != null && setter.argumentAt(0) != getter.rtn) {
             throw new IllegalArgumentException(error("Shortcut argument types must match."));
         }
 
         if ((getter != null || setter != null) && (!load || getter != null) && (!store || setter != null)) {
-            after = setter != null ? setter.arguments.get(0) : getter.rtn;
+            after = setter != null ? setter.argumentAt(0) : getter.rtn;
         } else {
             throw new IllegalArgumentException(error("Illegal shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
@@ -80,9 +80,9 @@ final class LShortcut extends ALink {
     @Override
     void load(MethodWriter adapter) {
         if (java.lang.reflect.Modifier.isInterface(getter.owner.clazz.getModifiers())) {
-            adapter.invokeInterface(getter.owner.type, getter.method);
+            adapter.invokeInterface(getter.owner.type, getter.toAsmMethod());
         } else {
-            adapter.invokeVirtual(getter.owner.type, getter.method);
+            adapter.invokeVirtual(getter.owner.type, getter.toAsmMethod());
         }
 
         if (!getter.rtn.clazz.equals(getter.handle.type().returnType())) {
@@ -93,9 +93,9 @@ final class LShortcut extends ALink {
     @Override
     void store(MethodWriter adapter) {
         if (java.lang.reflect.Modifier.isInterface(setter.owner.clazz.getModifiers())) {
-            adapter.invokeInterface(setter.owner.type, setter.method);
+            adapter.invokeInterface(setter.owner.type, setter.toAsmMethod());
         } else {
-            adapter.invokeVirtual(setter.owner.type, setter.method);
+            adapter.invokeVirtual(setter.owner.type, setter.toAsmMethod());
         }
 
         adapter.writePop(setter.rtn.sort.size);
