@@ -1,0 +1,194 @@
+#
+# Licensed to Elasticsearch under one or more contributor
+# license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright
+# ownership. Elasticsearch licenses this file to you under
+# the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+#
+# Painless definition file. This defines the hierarchy of classes,
+# what methods and fields they have, etc.
+#
+
+#### Interfaces
+
+class BaseStream -> java.util.stream.BaseStream {
+  Iterator iterator()
+  BaseStream sequential()
+  BaseStream unordered()  
+}
+
+class Collector -> java.util.stream.Collector {
+  BiConsumer accumulator()
+  Set characteristics()
+  BinaryOperator combiner()
+  Function finisher()
+  Collector of(Supplier,BiConsumer,BinaryOperator,Function,Collector.Characteristics[])
+  Collector of(Supplier,BiConsumer,BinaryOperator,Collector.Characteristics[])
+  Supplier supplier()
+}
+
+class DoubleStream -> java.util.stream.DoubleStream extends BaseStream {
+  boolean allMatch(DoublePredicate)
+  boolean anyMatch(DoublePredicate)
+  OptionalDouble average()
+  Stream boxed()
+  DoubleStream.Builder builder()
+  def collect(Supplier,ObjDoubleConsumer,BiConsumer)
+  DoubleStream concat(DoubleStream,DoubleStream)
+  long count()
+  DoubleStream distinct()
+  DoubleStream empty()
+  DoubleStream filter(DoublePredicate)
+  OptionalDouble findAny()
+  OptionalDouble findFirst()
+  DoubleStream flatMap(DoubleFunction)
+  void forEach(DoubleConsumer)
+  void forEachOrdered(DoubleConsumer)
+  DoubleStream generate(DoubleSupplier)
+  DoubleStream iterate(double,DoubleUnaryOperator)
+  # PrimitiveIterator.OfDouble iterator()
+  DoubleStream limit(long)
+  DoubleStream map(DoubleUnaryOperator)
+  IntStream mapToInt(DoubleToIntFunction)
+  LongStream mapToLong(DoubleToLongFunction)
+  OptionalDouble max()
+  OptionalDouble min()
+  boolean noneMatch(DoublePredicate)
+  DoubleStream of(double[])
+  DoubleStream peek(DoubleConsumer)
+  OptionalDouble reduce(DoubleBinaryOperator)
+  double reduce(double,DoubleBinaryOperator)
+  DoubleStream sequential()
+  DoubleStream skip(long)
+  DoubleStream sorted()
+  # SplitIterator.OfDouble spliterator()
+  double sum()
+  # DoubleSummaryStatistics summaryStatistics()
+  double[] toArray()
+}
+
+class DoubleStream.Builder -> java.util.stream.DoubleStream$Builder extends DoubleConsumer {
+  DoubleStream.Builder add(double)
+  DoubleStream build()
+}
+
+class IntStream -> java.util.stream.IntStream extends BaseStream {
+}
+
+class IntStream.Builder -> java.util.stream.IntStream$Builder extends IntConsumer {
+  IntStream.Builder add(int)
+  IntStream build()
+}
+
+class LongStream -> java.util.stream.LongStream extends BaseStream {
+}
+
+class LongStream.Builder -> java.util.stream.LongStream$Builder extends LongConsumer {
+  LongStream.Builder add(long)
+  LongStream build()
+}
+
+class Stream -> java.util.stream.Stream extends BaseStream {
+  boolean allMatch(Predicate)
+  boolean anyMatch(Predicate)
+  Stream.Builder builder()
+  def collect(Collector)
+  def collect(Supplier,BiConsumer,BiConsumer)
+  Stream concat(Stream,Stream)
+  long count()
+  Stream distinct()
+  Stream empty()
+  Stream filter(Predicate)
+  Optional findAny()
+  Optional findFirst()
+  Stream flatMap(Function)
+  DoubleStream flatMapToDouble(Function)
+  IntStream flatMapToInt(Function)
+  LongStream flatMapToLong(Function)
+  void forEach(Consumer)
+  void forEachOrdered(Consumer)
+  Stream generate(Supplier)
+  Stream iterate(def,UnaryOperator)
+  Stream limit(long)
+  Stream map(Function)
+  DoubleStream mapToDouble(ToDoubleFunction)
+  IntStream mapToInt(ToIntFunction)
+  LongStream mapToLong(ToLongFunction)
+  Optional max(Comparator)
+  Optional min(Comparator)
+  boolean noneMatch(Predicate)
+  Stream of(def[])
+  Stream peek(Consumer)
+  Optional reduce(BinaryOperator)
+  def reduce(def,BinaryOperator)
+  def reduce(def,BiFunction,BinaryOperator)
+  Stream skip(long)
+  Stream sorted()
+  Stream sorted(Comparator)
+  def[] toArray()
+  def[] toArray(IntFunction)
+}
+
+class Stream.Builder -> java.util.stream.Stream$Builder extends Consumer {
+  Stream.Builder add(def)
+  Stream build()
+}
+
+#### Classes
+
+class Collectors -> java.util.stream.Collectors extends Object {
+  Collector averagingDouble(ToDoubleFunction)
+  Collector averagingInt(ToIntFunction)
+  Collector averagingLong(ToLongFunction)
+  Collector collectingAndThen(Collector,Function)
+  Collector counting()
+  Collector groupingBy(Function)
+  Collector groupingBy(Function,Collector)
+  Collector groupingBy(Function,Supplier,Collector)
+  Collector joining()
+  Collector joining(CharSequence)
+  Collector joining(CharSequence,CharSequence,CharSequence)
+  Collector mapping(Function,Collector)
+  Collector maxBy(Comparator)
+  Collector minBy(Comparator)
+  Collector partitioningBy(Predicate)
+  Collector partitioningBy(Predicate,Collector)
+  Collector reducing(BinaryOperator)
+  Collector reducing(def,BinaryOperator)
+  Collector reducing(def,Function,BinaryOperator)
+  Collector summarizingDouble(ToDoubleFunction)
+  Collector summarizingInt(ToIntFunction)
+  Collector summarizingLong(ToLongFunction)
+  Collector summingDouble(ToDoubleFunction)
+  Collector summingInt(ToIntFunction)
+  Collector summingLong(ToLongFunction)
+  Collector toCollection(Supplier)
+  Collector toList()
+  Collector toMap(Function,Function)
+  Collector toMap(Function,Function,BinaryOperator)
+  Collector toMap(Function,Function,BinaryOperator,Supplier)
+  Collector toSet()
+}
+
+#### Enums
+
+class Collector.Characteristics -> java.util.stream.Collector$Characteristics extends Enum,Object {
+  Collector.Characteristics CONCURRENT
+  Collector.Characteristics IDENTITY_FINISH
+  Collector.Characteristics UNORDERED
+  Collector.Characteristics valueOf(String)
+  Collector.Characteristics[] values()
+}

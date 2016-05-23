@@ -32,20 +32,33 @@ class Collection -> java.util.Collection extends Iterable {
   boolean containsAll(Collection)
   boolean isEmpty()
   boolean removeAll(Collection)
+  boolean removeIf(Predicate)
   boolean retainAll(Collection)
   int size()
+  Spliterator spliterator()
+  Stream stream()
   def[] toArray()
+  def[] toArray(def[])
 }
 
 class Comparator -> java.util.Comparator {
-  int compare(def,def);
-  boolean equals(Object);
-  Comparator naturalOrder();
-  Comparator nullsFirst(Comparator);
-  Comparator nullsLast(Comparator);
-  Comparator reversed();
-  Comparator reverseOrder();
-  Comparator thenComparing(Comparator);
+  int compare(def,def)
+  Comparator comparing(Function)
+  Comparator comparing(Function,Comparator)
+  Comparator comparingDouble(ToDoubleFunction)
+  Comparator comparingInt(ToIntFunction)
+  Comparator comparingLong(ToLongFunction)
+  boolean equals(Object)
+  Comparator naturalOrder()
+  Comparator nullsFirst(Comparator)
+  Comparator nullsLast(Comparator)
+  Comparator reversed()
+  Comparator reverseOrder()
+  Comparator thenComparing(Comparator)
+  Comparator thenComparing(Function,Comparator)
+  Comparator thenComparingDouble(ToDoubleFunction)
+  Comparator thenComparingInt(ToIntFunction)
+  Comparator thenComparingLong(ToLongFunction)
 }
 
 class Deque -> java.util.Deque extends Queue,Collection,Iterable {
@@ -82,6 +95,7 @@ class Formattable -> java.util.Formattable {
 }
 
 class Iterator -> java.util.Iterator {
+  void forEachRemaining(Consumer)
   boolean hasNext()
   def next()
   void remove()
@@ -98,6 +112,7 @@ class List -> java.util.List extends Collection,Iterable {
   ListIterator listIterator()
   ListIterator listIterator(int)
   def remove(int)
+  void replaceAll(UnaryOperator)
   def set(int,def)
   # TODO: wtf?
   int getLength/size()
@@ -115,14 +130,19 @@ class ListIterator -> java.util.ListIterator extends Iterator {
 
 class Map -> java.util.Map {
   void clear()
+  def compute(def,BiFunction)
+  def computeIfAbsent(def,Function)
+  def computeIfPresent(def,BiFunction)
   boolean containsKey(def)
   boolean containsValue(def)
   Set entrySet()
   boolean equals(Object)
+  void forEach(BiConsumer)
   def get(def)
   def getOrDefault(def,def)
   boolean isEmpty()
   Set keySet()
+  def merge(def,def,BiFunction)
   def put(def,def)
   void putAll(Map)
   def putIfAbsent(def,def)
@@ -130,6 +150,7 @@ class Map -> java.util.Map {
   boolean remove(def,def)
   def replace(def,def)
   boolean replace(def,def,def)
+  void replaceAll(BiFunction)
   int size()
   Collection values()
 }
@@ -182,6 +203,62 @@ class NavigableSet -> java.util.NavigableSet extends SortedSet,Set,Collection,It
 
 class Observer -> java.util.Observer {
   void update(Observable,Object)
+}
+
+class PrimitiveIterator -> java.util.PrimitiveIterator extends Iterator {
+  void forEachRemaining(def)
+}
+
+class PrimitiveIterator.OfDouble -> java.util.PrimitiveIterator$OfDouble extends PrimitiveIterator,Iterator {
+  Double next()
+  double nextDouble()
+}
+
+class PrimitiveIterator.OfInt -> java.util.PrimitiveIterator$OfInt extends PrimitiveIterator,Iterator {
+  Integer next()
+  int nextInt()
+}
+
+class PrimitiveIterator.OfLong -> java.util.PrimitiveIterator$OfLong extends PrimitiveIterator,Iterator {
+  Long next()
+  long nextLong()
+}
+
+class Spliterator -> java.util.Spliterator {
+  int CONCURRENT
+  int DISTINCT
+  int IMMUTABLE
+  int NONNULL
+  int ORDERED
+  int SIZED
+  int SORTED
+  int SUBSIZED
+  int characteristics()
+  long estimateSize()
+  void forEachRemaining(Consumer)
+  Comparator getComparator()
+  long getExactSizeIfKnown()
+  boolean hasCharacteristics(int)
+  boolean tryAdvance(Consumer)
+  Spliterator trySplit()
+}
+
+class Spliterator.OfPrimitive -> java.util.Spliterator$OfPrimitive extends Spliterator {
+  void forEachRemaining(def)
+  boolean tryAdvance(def)
+  Spliterator.OfPrimitive trySplit()
+}
+
+class Spliterator.OfDouble -> java.util.Spliterator$OfDouble extends Spliterator.OfPrimitive,Spliterator {
+  Spliterator.OfDouble trySplit()
+}
+
+class Spliterator.OfInt -> java.util.Spliterator$OfInt extends Spliterator.OfPrimitive,Spliterator {
+  Spliterator.OfInt trySplit()
+}
+
+class Spliterator.OfLong -> java.util.Spliterator$OfLong extends Spliterator.OfPrimitive,Spliterator {
+  Spliterator.OfLong trySplit()
 }
 
 class Queue -> java.util.Queue extends Collection,Iterable {
@@ -520,6 +597,16 @@ class Dictionary -> java.util.Dictionary extends Object {
   int size()
 }
 
+class DoubleSummaryStatistics -> java.util.DoubleSummaryStatistics extends DoubleConsumer,Object {
+  DoubleSummaryStatistics <init>()
+  void combine(DoubleSummaryStatistics)
+  double getAverage()
+  long getCount()
+  double getMax()
+  double getMin()
+  double getSum()
+}
+
 class EventListenerProxy -> java.util.EventListenerProxy extends EventListener,Object {
   EventListener getListener()
 }
@@ -581,6 +668,16 @@ class IdentityHashMap -> java.util.IdentityHashMap extends AbstractMap,Map,Objec
   IdentityHashMap <init>()
   IdentityHashMap <init>(Map)
   def clone()
+}
+
+class IntSummaryStatistics -> java.util.IntSummaryStatistics extends IntConsumer,Object {
+  IntSummaryStatistics <init>()
+  void combine(IntSummaryStatistics)
+  double getAverage()
+  long getCount()
+  int getMax()
+  int getMin()
+  long getSum()
 }
 
 class LinkedHashMap -> java.util.LinkedHashMap extends HashMap,AbstractMap,Map,Object {
@@ -693,6 +790,16 @@ class Locale.LanguageRange -> java.util.Locale$LanguageRange extends Object {
   List parse(String,Map)
 }
 
+class LongSummaryStatistics -> java.util.LongSummaryStatistics extends LongConsumer,Object {
+  LongSummaryStatistics <init>()
+  void combine(LongSummaryStatistics)
+  double getAverage()
+  long getCount()
+  long getMax()
+  long getMin()
+  long getSum()
+}
+
 class Objects -> java.util.Objects extends Object {
   int compare(def,def,Comparator)
   boolean deepEquals(Object,Object)
@@ -720,35 +827,50 @@ class Observable -> java.util.Observable extends Object {
 
 class Optional -> java.util.Optional extends Object {
   Optional empty()
+  Optional filter(Predicate)
+  Optional flatMap(Function)
   def get()
+  void ifPresent(Consumer)
   boolean isPresent()
+  Optional map(Function)
   Optional of(def)
   Optional ofNullable(def)
   def orElse(def)
+  def orElseGet(Supplier)
+  def orElseThrow(Supplier)
 }
 
 class OptionalDouble -> java.util.OptionalDouble extends Object {
   OptionalDouble empty()
   double getAsDouble()
+  void ifPresent(DoubleConsumer)
   boolean isPresent()
   OptionalDouble of(double)
   double orElse(double)
+  double orElseGet(DoubleSupplier)
+  double orElseThrow(Supplier)
 }
 
 class OptionalInt -> java.util.OptionalInt extends Object {
   OptionalInt empty()
   int getAsInt()
+  void ifPresent(IntConsumer)
   boolean isPresent()
   OptionalInt of(int)
   int orElse(int)
+  int orElseGet(IntSupplier)
+  int orElseThrow(Supplier)
 }
 
 class OptionalLong -> java.util.OptionalLong extends Object {
   OptionalLong empty()
   long getAsLong()
+  void ifPresent(LongConsumer)
   boolean isPresent()
   OptionalLong of(long)
   long orElse(long)
+  long orElseGet(LongSupplier)
+  long orElseThrow(Supplier)
 }
 
 class PriorityQueue -> java.util.PriorityQueue extends AbstractQueue,Queue,AbstractCollection,Collection,Iterable,Object {
@@ -759,6 +881,18 @@ class PriorityQueue -> java.util.PriorityQueue extends AbstractQueue,Queue,Abstr
 class Random -> java.util.Random extends Object {
   Random <init>()
   Random <init>(long)
+  DoubleStream doubles()
+  DoubleStream doubles(double,double)
+  DoubleStream doubles(long)
+  DoubleStream doubles(long,double,double)
+  IntStream ints()
+  IntStream ints(int,int)
+  IntStream ints(long)
+  IntStream ints(long,int,int)
+  LongStream longs()
+  LongStream longs(long)
+  LongStream longs(long,long)
+  LongStream longs(long,long,long)
   boolean nextBoolean()
   void nextBytes(byte[])
   double nextDouble()
@@ -787,6 +921,17 @@ class SimpleTimeZone -> java.util.SimpleTimeZone extends TimeZone,Object {
   void setStartRule(int,int,int,int)
   void setStartRule(int,int,int,int,boolean)
   void setStartYear(int)
+}
+
+class Spliterators -> java.util.Spliterators extends Object {
+  Spliterator.OfDouble emptyDoubleSpliterator()
+  Spliterator.OfInt emptyIntSpliterator()
+  Spliterator.OfLong emptyLongSpliterator()
+  Spliterator emptySpliterator()
+  Iterator iterator(Spliterator)
+  Spliterator spliterator(Collection,int)
+  Spliterator spliterator(Iterator,long,int)
+  Spliterator spliteratorUnknownSize(Iterator,int)
 }
 
 class Stack -> java.util.Stack extends Vector,AbstractList,List,AbstractCollection,Collection,Iterable,RandomAccess,Object {

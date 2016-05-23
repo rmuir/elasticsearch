@@ -43,7 +43,9 @@ public final class Definition {
                       "java.lang.txt",
                       "java.math.txt",
                       "java.text.txt",
-                      "java.util.txt"));
+                      "java.util.txt",
+                      "java.util.function.txt",
+                      "java.util.stream.txt"));
 
     private static final Definition INSTANCE = new Definition();
     

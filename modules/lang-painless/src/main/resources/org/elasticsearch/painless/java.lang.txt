@@ -33,6 +33,8 @@ class Appendable -> java.lang.Appendable {
 
 class CharSequence -> java.lang.CharSequence {
   char charAt(int)
+  IntStream chars()
+  IntStream codePoints()
   int length()
   CharSequence subSequence(int,int)
   String toString()
@@ -45,11 +47,13 @@ class Comparable -> java.lang.Comparable {
 }
 
 class Iterable -> java.lang.Iterable {
+  void forEach(Consumer)
   Iterator iterator()
+  Spliterator spliterator()
 }
 
 # Readable: i/o
-# Runnable: threads
+# Runnable: threads.
 # Thread.UncaughtExceptionHandler: threads.
 
 #### Classes
