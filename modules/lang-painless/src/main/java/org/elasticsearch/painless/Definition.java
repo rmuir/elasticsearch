@@ -163,15 +163,13 @@ public final class Definition {
         public final Struct owner;
         public final List<Type> arguments;
         public final org.objectweb.asm.commons.Method method;
-        public final java.lang.reflect.Constructor<?> reflect;
 
-        private Constructor(final String name, final Struct owner, final List<Type> arguments,
-                            final org.objectweb.asm.commons.Method method, final java.lang.reflect.Constructor<?> reflect) {
+        private Constructor(String name, Struct owner, List<Type> arguments,
+                            org.objectweb.asm.commons.Method method) {
             this.name = name;
             this.owner = owner;
             this.arguments = Collections.unmodifiableList(arguments);
             this.method = method;
-            this.reflect = reflect;
         }
     }
 
@@ -181,18 +179,17 @@ public final class Definition {
         public final Type rtn;
         public final List<Type> arguments;
         public final org.objectweb.asm.commons.Method method;
-        public final java.lang.reflect.Method reflect;
+        public final int modifiers;
         public final MethodHandle handle;
 
-        private Method(final String name, final Struct owner, final Type rtn, final List<Type> arguments,
-                       final org.objectweb.asm.commons.Method method, final java.lang.reflect.Method reflect,
-                       final MethodHandle handle) {
+        private Method(String name, Struct owner, Type rtn, List<Type> arguments,
+                       org.objectweb.asm.commons.Method method, int modifiers, MethodHandle handle) {
             this.name = name;
             this.owner = owner;
             this.rtn = rtn;
             this.arguments = Collections.unmodifiableList(arguments);
             this.method = method;
-            this.reflect = reflect;
+            this.modifiers = modifiers;
             this.handle = handle;
         }
     }
@@ -201,16 +198,17 @@ public final class Definition {
         public final String name;
         public final Struct owner;
         public final Type type;
-        public final java.lang.reflect.Field reflect;
-        public final MethodHandle getter;
-        public final MethodHandle setter;
+        public final String javaName;
+        public final int modifiers;
+        private final MethodHandle getter;
+        private final MethodHandle setter;
 
-        private Field(final String name, final Struct owner, final Type type,
-                      final java.lang.reflect.Field reflect, final MethodHandle getter, final MethodHandle setter) {
+        private Field(String name, String javaName, Struct owner, Type type, int modifiers, MethodHandle getter, MethodHandle setter) {
             this.name = name;
+            this.javaName = javaName;
             this.owner = owner;
             this.type = type;
-            this.reflect = reflect;
+            this.modifiers = modifiers;
             this.getter = getter;
             this.setter = setter;
         }
@@ -584,7 +582,7 @@ public final class Definition {
         }
 
         final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
-        final Constructor constructor = new Constructor(name, owner, Arrays.asList(args), asm, reflect);
+        final Constructor constructor = new Constructor(name, owner, Arrays.asList(args), asm);
 
         owner.constructors.put(methodKey, constructor);
     }
@@ -706,8 +704,8 @@ public final class Definition {
                 " with arguments " + Arrays.toString(classes) + ".");
         }
 
-        final Method method = new Method(name, owner, rtn, Arrays.asList(args), asm, reflect, handle);
         final int modifiers = reflect.getModifiers();
+        final Method method = new Method(name, owner, rtn, Arrays.asList(args), asm, modifiers, handle);
 
         if (java.lang.reflect.Modifier.isStatic(modifiers)) {
             owner.staticMethods.put(methodKey, method);
@@ -760,7 +758,7 @@ public final class Definition {
                 " not found for class [" + owner.clazz.getName() + "].");
         }
 
-        final Field field = new Field(name, owner, type, reflect, getter, setter);
+        final Field field = new Field(name, reflect.getName(), owner, type, modifiers, getter, setter);
 
         if (isStatic) {
             // require that all static fields are static final
@@ -775,7 +773,7 @@ public final class Definition {
         }
     }
 
-    private final void copyStruct(final String struct, List<String> children) {
+    private void copyStruct(String struct, List<String> children) {
         final Struct owner = structsMap.get(struct);
 
         if (owner == null) {
@@ -795,62 +793,19 @@ public final class Definition {
                     " is not a super type of owner struct [" + owner.name + "] in copy.");
             }
 
-            final boolean object = child.clazz.equals(Object.class) &&
-                java.lang.reflect.Modifier.isInterface(owner.clazz.getModifiers());
-
             for (Map.Entry<MethodKey,Method> kvPair : child.methods.entrySet()) {
                 MethodKey methodKey = kvPair.getKey();
                 Method method = kvPair.getValue();
                 if (owner.methods.get(methodKey) == null) {
-                    final Class<?> clazz = object ? Object.class : owner.clazz;
-
-                    java.lang.reflect.Method reflect;
-                    MethodHandle handle;
-
-                    try {
-                        reflect = clazz.getMethod(method.method.getName(), method.reflect.getParameterTypes());
-                    } catch (final NoSuchMethodException exception) {
-                        throw new IllegalArgumentException("Method [" + method.method.getName() + "] not found for" +
-                            " class [" + owner.clazz.getName() + "] with arguments " +
-                            Arrays.toString(method.reflect.getParameterTypes()) + ".");
-                    }
-
-                    try {
-                        handle = MethodHandles.publicLookup().in(owner.clazz).unreflect(reflect);
-                    } catch (final IllegalAccessException exception) {
-                        throw new IllegalArgumentException("Method [" + method.method.getName() + "] not found for" +
-                            " class [" + owner.clazz.getName() + "] with arguments " +
-                            Arrays.toString(method.reflect.getParameterTypes()) + ".");
-                    }
-
                     owner.methods.put(methodKey,
-                        new Method(method.name, owner, method.rtn, method.arguments, method.method, reflect, handle));
+                        new Method(method.name, owner, method.rtn, method.arguments, method.method, method.modifiers, method.handle));
                 }
             }
 
-            for (final Field field : child.members.values()) {
+            for (Field field : child.members.values()) {
                 if (owner.members.get(field.name) == null) {
-                    java.lang.reflect.Field reflect;
-                    MethodHandle getter;
-                    MethodHandle setter;
-
-                    try {
-                        reflect = owner.clazz.getField(field.reflect.getName());
-                    } catch (final NoSuchFieldException exception) {
-                        throw new IllegalArgumentException("Field [" + field.reflect.getName() + "]" +
-                            " not found for class [" + owner.clazz.getName() + "].");
-                    }
-
-                    try {
-                        getter = MethodHandles.publicLookup().unreflectGetter(reflect);
-                        setter = MethodHandles.publicLookup().unreflectSetter(reflect);
-                    } catch (final IllegalAccessException exception) {
-                        throw new IllegalArgumentException("Getter/Setter [" + field.name + "]" +
-                            " not found for class [" + owner.clazz.getName() + "].");
-                    }
-
                     owner.members.put(field.name,
-                        new Field(field.name, owner, field.type, reflect, getter, setter));
+                        new Field(field.name, field.javaName, owner, field.type, field.modifiers, field.getter, field.setter));
                 }
             }
         }
