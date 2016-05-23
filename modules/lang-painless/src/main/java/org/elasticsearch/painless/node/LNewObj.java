@@ -36,7 +36,6 @@ public final class LNewObj extends ALink {
     final String type;
     final List<AExpression> arguments;
 
-    Struct owner;
     Constructor constructor;
 
     public LNewObj(int line, String location, String type, List<AExpression> arguments) {
@@ -62,29 +61,32 @@ public final class LNewObj extends ALink {
             throw new IllegalArgumentException(error("Not a type [" + this.type + "]."));
         }
 
-        owner = type.struct;
-        constructor = owner.constructors.get(new Definition.MethodKey("<init>", arguments.size()));
-        if (constructor == null) {
-            throw new IllegalArgumentException(error("Unknown new call on type [" + owner.name + "]."));
-        }
+        final Struct struct = type.struct;
+        constructor = struct.constructors.get(new Definition.MethodKey("new", arguments.size()));
 
-        
-        if (constructor.numberOfArguments() != arguments.size()) {
-            throw new IllegalArgumentException(error("When calling constructor on type [" + owner.name + "]" +
-                    " expected [" + constructor.numberOfArguments() + "] arguments, but found [" + arguments.size() + "]."));
+        if (constructor != null) {
+            final Type[] types = new Type[constructor.arguments.size()];
+            constructor.arguments.toArray(types);
+
+            if (constructor.arguments.size() != arguments.size()) {
+                throw new IllegalArgumentException(error("When calling constructor on type [" + struct.name + "]" +
+                    " expected [" + constructor.arguments.size() + "] arguments, but found [" + arguments.size() + "]."));
+            }
+
+            for (int argument = 0; argument < arguments.size(); ++argument) {
+                final AExpression expression = arguments.get(argument);
+
+                expression.expected = types[argument];
+                expression.internal = true;
+                expression.analyze(variables);
+                arguments.set(argument, expression.cast(variables));
+            }
+
+            statement = true;
+            after = type;
+        } else {
+            throw new IllegalArgumentException(error("Unknown new call on type [" + struct.name + "]."));
         }
-        
-        for (int argument = 0; argument < arguments.size(); ++argument) {
-            final AExpression expression = arguments.get(argument);
-            
-            expression.expected = constructor.argumentAt(argument);
-            expression.internal = true;
-            expression.analyze(variables);
-            arguments.set(argument, expression.cast(variables));
-        }
-        
-        statement = true;
-        after = type;
 
         return this;
     }
@@ -106,7 +108,7 @@ public final class LNewObj extends ALink {
             argument.write(adapter);
         }
 
-        adapter.invokeConstructor(owner.type, constructor.toAsmMethod());
+        adapter.invokeConstructor(constructor.owner.type, constructor.method);
     }
 
     @Override
