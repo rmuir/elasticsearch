@@ -47,12 +47,22 @@ public abstract class Executable {
     public String getSource() {
         return source;
     }
-    
-    public int getStatementStart(int offset) {
+
+    /** 
+     * Finds the start of the first statement boundary that is
+     * on or before {@code offset}. If one is not found, {@code -1}
+     * is returned.
+     */
+    public int getPreviousStatement(int offset) {
         return statements.previousSetBit(offset);
     }
     
-    public int getStatementEnd(int offset) {
+    /** 
+     * Finds the start of the first statement boundary that is
+     * after {@code offset}. If one is not found, {@code -1}
+     * is returned.
+     */
+    public int getNextStatement(int offset) {
         return statements.nextSetBit(offset+1);
     }
 

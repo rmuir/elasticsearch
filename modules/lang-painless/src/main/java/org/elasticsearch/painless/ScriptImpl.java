@@ -135,11 +135,16 @@ final class ScriptImpl implements ExecutableScript, LeafSearchScript {
                     scriptStack.add("<<< unknown portion of script >>>");
                 } else {
                     offset--; // offset is 1 based, line numbers must be!
-                    int startOffset = executable.getStatementStart(offset);
-                    int endOffset = executable.getStatementEnd(startOffset);
+                    int startOffset = executable.getPreviousStatement(offset);
+                    if (startOffset == -1) {
+                        assert false; // should never happen unless we hit exc in ctor prologue...
+                        startOffset = 0;
+                    }
+                    int endOffset = executable.getNextStatement(startOffset);
                     if (endOffset == -1) {
                         endOffset = executable.getSource().length();
                     }
+                    // TODO: if this is still too long, truncate and use ellipses
                     String snippet = executable.getSource().substring(startOffset, endOffset);
                     scriptStack.add(snippet);
                     StringBuilder pointer = new StringBuilder();
@@ -165,8 +170,8 @@ final class ScriptImpl implements ExecutableScript, LeafSearchScript {
         throw new ScriptException("runtime error", t, scriptStack, name, PainlessScriptEngineService.NAME);
     }
     
-    /** methods here are part of the runtime */
-    private boolean shouldFilter(StackTraceElement element) {
+    /** returns true for methods that are part of the runtime */
+    private static boolean shouldFilter(StackTraceElement element) {
         return element.getClassName().startsWith("org.elasticsearch.painless.") ||
                element.getClassName().startsWith("java.lang.invoke.");
     }

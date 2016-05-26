@@ -109,11 +109,25 @@ public final class MethodWriter extends GeneratorAdapter {
         return names;
     }
 
+    /** 
+     * Marks a new statement boundary. 
+     * <p>
+     * This is invoked for each statement boundary (leaf {@code S*} nodes).
+     */
     public void writeStatementOffset(int offset) {
+        // ensure we don't have duplicate stuff going in here. can catch bugs
+        // (e.g. nodes get assigned wrong offsets by antlr walker)
+        assert statements.get(offset) == false;
         statements.set(offset);
     }
 
+    /** 
+     * Encodes the offset into the line number table as {@code offset + 1}.
+     * <p>
+     * This is invoked before instructions that can hit exceptions.
+     */
     public void writeDebugInfo(int offset) {
+        // TODO: maybe track these in bitsets too? this is trickier...
         Label label = new Label();
         visitLabel(label);
         visitLineNumber(offset + 1, label);
