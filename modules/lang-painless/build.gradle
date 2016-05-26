@@ -49,3 +49,7 @@ dependencies {
 
 ant.references['regenerate.classpath'] = new Path(ant.project, configurations.regenerate.asPath)
 ant.importBuild 'ant.xml'
+
+// still uses GeneralScriptException
+compileJava.options.compilerArgs << "-Xlint:-deprecation"
+compileTestJava.options.compilerArgs << "-Xlint:-deprecation"

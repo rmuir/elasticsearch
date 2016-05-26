@@ -236,7 +236,7 @@ public class ScriptService extends AbstractComponent implements Closeable {
 
         ScriptEngineService scriptEngineService = getScriptEngineServiceForLang(lang);
         if (canExecuteScript(lang, scriptEngineService, script.getType(), scriptContext) == false) {
-            throw new ScriptException("scripts of type [" + script.getType() + "], operation [" + scriptContext.getKey() + "] and lang [" + lang + "] are disabled");
+            throw new GeneralScriptException("scripts of type [" + script.getType() + "], operation [" + scriptContext.getKey() + "] and lang [" + lang + "] are disabled");
         }
 
         // TODO: fix this through some API or something, that's wrong
@@ -244,7 +244,7 @@ public class ScriptService extends AbstractComponent implements Closeable {
         boolean expression = "expression".equals(script.getLang());
         boolean notSupported = scriptContext.getKey().equals(ScriptContext.Standard.UPDATE.getKey());
         if (expression && notSupported) {
-            throw new ScriptException("scripts of type [" + script.getType() + "]," +
+            throw new GeneralScriptException("scripts of type [" + script.getType() + "]," +
                     " operation [" + scriptContext.getKey() + "] and lang [" + lang + "] are not supported");
         }
 
@@ -307,7 +307,7 @@ public class ScriptService extends AbstractComponent implements Closeable {
                 String actualName = (type == ScriptType.INLINE) ? null : name;
                 compiledScript = new CompiledScript(type, name, lang, scriptEngineService.compile(actualName, code, params));
             } catch (Exception exception) {
-                throw new ScriptException("Failed to compile " + type + " script [" + name + "] using lang [" + lang + "]", exception);
+                throw new GeneralScriptException("Failed to compile " + type + " script [" + name + "] using lang [" + lang + "]", exception);
             }
 
             //Since the cache key is the script content itself we don't need to

@@ -74,3 +74,7 @@ thirdPartyAudit.excludes = [
   'org.fusesource.jansi.Ansi', 
   'org.fusesource.jansi.AnsiRenderWriter',
 ]
+
+// still uses GeneralScriptException
+compileJava.options.compilerArgs << "-Xlint:-deprecation"
+compileTestJava.options.compilerArgs << "-Xlint:-deprecation"

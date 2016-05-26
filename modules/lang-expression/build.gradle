@@ -35,3 +35,6 @@ dependencyLicenses {
   mapping from: /asm-.*/, to: 'asm'
 }
 
+// still uses GeneralScriptException
+compileJava.options.compilerArgs << "-Xlint:-deprecation"
+compileTestJava.options.compilerArgs << "-Xlint:-deprecation"

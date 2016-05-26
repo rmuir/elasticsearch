@@ -17,37 +17,32 @@
  * under the License.
  */
 
-package org.elasticsearch.painless.node;
+package org.elasticsearch.script;
 
-import org.elasticsearch.painless.Variables;
-import org.elasticsearch.painless.MethodWriter;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.common.io.stream.StreamInput;
+
+import java.io.IOException;
 
 /**
- * Represents a continue statement.
+ * Simple exception class from a script.
+ * <p>
+ * Use of this exception should generally be avoided, it doesn't provide
+ * much context or structure to users trying to debug scripting when
+ * things go wrong.
  */
-public final class SContinue extends AStatement {
+@Deprecated
+public class GeneralScriptException extends ElasticsearchException {
 
-    public SContinue(int line, int offset, String location) {
-        super(line, offset, location);
+    public GeneralScriptException(String msg) {
+        super(msg);
     }
 
-    @Override
-    void analyze(Variables variables) {
-        if (!inLoop) {
-            throw new IllegalArgumentException(error("Continue statement outside of a loop."));
-        }
-
-        if (lastLoop) {
-            throw new IllegalArgumentException(error("Extraneous continue statement."));
-        }
-
-        allEscape = true;
-        anyContinue = true;
-        statementCount = 1;
+    public GeneralScriptException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 
-    @Override
-    void write(MethodWriter writer) {
-        writer.goTo(continu);
+    public GeneralScriptException(StreamInput in) throws IOException{
+        super(in);
     }
 }

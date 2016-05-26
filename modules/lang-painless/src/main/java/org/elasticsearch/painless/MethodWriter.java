@@ -30,6 +30,7 @@ import org.objectweb.asm.commons.Method;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Deque;
 import java.util.List;
 
@@ -86,13 +87,15 @@ import static org.elasticsearch.painless.WriterConstants.UTILITY_TYPE;
  * shared by the nodes of the Painless tree.
  */
 public final class MethodWriter extends GeneratorAdapter {
+    private final BitSet statements;
 
     private final Deque<List<org.objectweb.asm.Type>> stringConcatArgs = (INDY_STRING_CONCAT_BOOTSTRAP_HANDLE == null) ?
             null : new ArrayDeque<>();
 
-    MethodWriter(int access, Method method, org.objectweb.asm.Type[] exceptions, ClassVisitor cv) {
+    MethodWriter(int access, Method method, org.objectweb.asm.Type[] exceptions, ClassVisitor cv, BitSet statements) {
         super(Opcodes.ASM5, cv.visitMethod(access, method.getName(), method.getDescriptor(), null, getInternalNames(exceptions)),
                 access, method.getName(), method.getDescriptor());
+        this.statements = statements;
     }
 
     private static String[] getInternalNames(final org.objectweb.asm.Type[] types) {
@@ -106,8 +109,19 @@ public final class MethodWriter extends GeneratorAdapter {
         return names;
     }
 
-    public void writeLoopCounter(final int slot, final int count) {
+    public void writeStatementOffset(int offset) {
+        statements.set(offset);
+    }
+
+    public void writeDebugInfo(int offset) {
+        Label label = new Label();
+        visitLabel(label);
+        visitLineNumber(offset + 1, label);
+    }
+
+    public void writeLoopCounter(int slot, int count, int offset) {
         if (slot > -1) {
+            writeDebugInfo(offset);
             final Label end = new Label();
 
             iinc(slot, -count);

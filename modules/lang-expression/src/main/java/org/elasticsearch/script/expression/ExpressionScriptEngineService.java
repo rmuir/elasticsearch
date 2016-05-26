@@ -42,7 +42,7 @@ import org.elasticsearch.script.ClassPermission;
 import org.elasticsearch.script.CompiledScript;
 import org.elasticsearch.script.ExecutableScript;
 import org.elasticsearch.script.ScriptEngineService;
-import org.elasticsearch.script.ScriptException;
+import org.elasticsearch.script.GeneralScriptException;
 import org.elasticsearch.script.SearchScript;
 import org.elasticsearch.search.lookup.SearchLookup;
 
@@ -107,7 +107,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     // NOTE: validation is delayed to allow runtime vars, and we don't have access to per index stuff here
                     return JavascriptCompiler.compile(scriptSource, JavascriptCompiler.DEFAULT_FUNCTIONS, loader);
                 } catch (ParseException e) {
-                    throw new ScriptException("Failed to parse expression: " + scriptSource, e);
+                    throw new GeneralScriptException("Failed to parse expression: " + scriptSource, e);
                 }
             }
         });
@@ -141,7 +141,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     if (value instanceof Number) {
                         bindings.add(variable, new DoubleConstValueSource(((Number) value).doubleValue()));
                     } else {
-                        throw new ScriptException("Parameter [" + variable + "] must be a numeric type");
+                        throw new GeneralScriptException("Parameter [" + variable + "] must be a numeric type");
                     }
 
                 } else {
@@ -150,10 +150,10 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     String variablename = "value"; // .value is the default for doc['field'], its optional.
                     VariableContext[] parts = VariableContext.parse(variable);
                     if (parts[0].text.equals("doc") == false) {
-                        throw new ScriptException("Unknown variable [" + parts[0].text + "] in expression");
+                        throw new GeneralScriptException("Unknown variable [" + parts[0].text + "] in expression");
                     }
                     if (parts.length < 2 || parts[1].type != VariableContext.Type.STR_INDEX) {
-                        throw new ScriptException("Variable 'doc' in expression must be used with a specific field like: doc['myfield']");
+                        throw new GeneralScriptException("Variable 'doc' in expression must be used with a specific field like: doc['myfield']");
                     } else {
                         fieldname = parts[1].text;
                     }
@@ -163,17 +163,17 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                         } else if (parts[2].type == VariableContext.Type.MEMBER) {
                             variablename = parts[2].text;
                         } else {
-                            throw new ScriptException("Only member variables or member methods may be accessed on a field when not accessing the field directly");
+                            throw new GeneralScriptException("Only member variables or member methods may be accessed on a field when not accessing the field directly");
                         }
                     }
                     if (parts.length > 3) {
-                        throw new ScriptException("Variable [" + variable + "] does not follow an allowed format of either doc['field'] or doc['field'].method()");
+                        throw new GeneralScriptException("Variable [" + variable + "] does not follow an allowed format of either doc['field'] or doc['field'].method()");
                     }
 
                     MappedFieldType fieldType = mapper.fullName(fieldname);
 
                     if (fieldType == null) {
-                        throw new ScriptException("Field [" + fieldname + "] used in expression does not exist in mappings");
+                        throw new GeneralScriptException("Field [" + fieldname + "] used in expression does not exist in mappings");
                     }
 
                     IndexFieldData<?> fieldData = lookup.doc().fieldDataService().getForField(fieldType);
@@ -205,7 +205,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                             valueSource = NumericField.getMethod(fieldData, fieldname, methodname);
                         }
                     } else {
-                        throw new ScriptException("Field [" + fieldname + "] used in expression must be numeric, date, or geopoint");
+                        throw new GeneralScriptException("Field [" + fieldname + "] used in expression must be numeric, date, or geopoint");
                     }
                     
                     bindings.add(variable, valueSource);
@@ -215,7 +215,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
             final boolean needsScores = expr.getSortField(bindings, false).needsScores();
             return new ExpressionSearchScript(compiledScript, bindings, specialValue, needsScores);
         } catch (Exception exception) {
-            throw new ScriptException("Error during search with " + compiledScript, exception);
+            throw new GeneralScriptException("Error during search with " + compiledScript, exception);
         }
     }
 
