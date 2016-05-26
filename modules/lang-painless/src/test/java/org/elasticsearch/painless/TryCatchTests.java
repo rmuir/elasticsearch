@@ -1,11 +1,5 @@
 package org.elasticsearch.painless;
 
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.script.ScriptException;
-
-import java.io.IOException;
 import java.util.Collections;
 
 /*
@@ -31,11 +25,11 @@ import java.util.Collections;
 public class TryCatchTests extends ScriptTestCase {
 
     /** throws an exception */
-    public void testThrow() throws IOException {
-        ScriptException exception = expectThrows(ScriptException.class, () -> {
+    public void testThrow() {
+        RuntimeException exception = expectScriptThrows(RuntimeException.class, () -> {
             exec("throw new RuntimeException('test')");
         });
-        assertEquals("test", exception.getCause().getMessage());
+        assertEquals("test", exception.getMessage());
     }
     
     /** catches the exact exception */
@@ -54,25 +48,11 @@ public class TryCatchTests extends ScriptTestCase {
     
     /** tries to catch a different type of exception */
     public void testNoCatch() {
-        ScriptException exception = expectThrows(ScriptException.class, () -> {
+        RuntimeException exception = expectScriptThrows(RuntimeException.class, () -> {
            exec("try { if (params.param == 'true') throw new RuntimeException('test'); } " + 
                 "catch (ArithmeticException e) { return 1; } return 2;", 
                 Collections.singletonMap("param", "true"));
         });
-        assertEquals("test", exception.getCause().getMessage());
-    }
-    
-    /** throws an exception */
-    public void testThrow2() throws IOException {
-        ScriptException exception = expectThrows(ScriptException.class, () -> {
-            exec("params << 5");
-        });
-        
-        XContentBuilder json = XContentFactory.jsonBuilder().prettyPrint();
-        json.startObject();
-        exception.toXContent(json, ToXContent.EMPTY_PARAMS);
-        json.endObject();
-        System.out.println(json.string());
-        exception.printStackTrace();
+        assertEquals("test", exception.getMessage());
     }
 }

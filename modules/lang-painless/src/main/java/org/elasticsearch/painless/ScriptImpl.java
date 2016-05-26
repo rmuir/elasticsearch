@@ -155,7 +155,14 @@ final class ScriptImpl implements ExecutableScript, LeafSearchScript {
                 scriptStack.add(element.toString());
             }
         }
-        throw new ScriptException(t.getMessage(), t, scriptStack);
+        // build a name for the script:
+        final String name;
+        if (PainlessScriptEngineService.INLINE_NAME.equals(executable.getName())) {
+            name = executable.getSource();
+        } else {
+            name = executable.getName();
+        }
+        throw new ScriptException(t.getMessage(), t, scriptStack, name);
     }
     
     /** methods here are part of the runtime */
