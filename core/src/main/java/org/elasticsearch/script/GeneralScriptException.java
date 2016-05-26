@@ -30,6 +30,9 @@ import java.io.IOException;
  * Use of this exception should generally be avoided, it doesn't provide
  * much context or structure to users trying to debug scripting when
  * things go wrong.
+ * @deprecated Use ScriptException for exceptions from the scripting engine,
+ *             otherwise use a more appropriate exception (e.g. if thrown
+ *             from various abstractions)
  */
 @Deprecated
 public class GeneralScriptException extends ElasticsearchException {
