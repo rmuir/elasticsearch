@@ -324,7 +324,7 @@ public class MoreExpressionTests extends ESIntegTestCase {
             assertThat(e.toString() + "should have contained ScriptException",
                     e.toString().contains("ScriptException"), equalTo(true));
             assertThat(e.toString() + "should have contained compilation failure",
-                    e.toString().contains("Failed to parse expression"), equalTo(true));
+                    e.toString().contains("compile error"), equalTo(true));
         }
     }
 

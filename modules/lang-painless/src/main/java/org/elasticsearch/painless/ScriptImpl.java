@@ -162,7 +162,7 @@ final class ScriptImpl implements ExecutableScript, LeafSearchScript {
         } else {
             name = executable.getName();
         }
-        throw new ScriptException(t.getMessage(), t, scriptStack, name);
+        throw new ScriptException("runtime error", t, scriptStack, name, PainlessScriptEngineService.NAME);
     }
     
     /** methods here are part of the runtime */

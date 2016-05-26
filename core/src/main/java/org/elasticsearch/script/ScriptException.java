@@ -34,17 +34,20 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 public class ScriptException extends ElasticsearchException {
     private final List<String> scriptStack;
     private final String script;
+    private final String lang;
     
-    public ScriptException(String message, Throwable cause, List<String> scriptStack, String script) {
+    public ScriptException(String message, Throwable cause, List<String> scriptStack, String script, String lang) {
         super(message, cause);
         this.scriptStack = Objects.requireNonNull(scriptStack);
         this.script = Objects.requireNonNull(script);
+        this.lang = Objects.requireNonNull(lang);
     }
 
     public ScriptException(StreamInput in) throws IOException {
         super(in);
         scriptStack = Arrays.asList(in.readStringArray());
         script = in.readString();
+        lang = in.readString();
     }
 
     @Override
@@ -52,6 +55,7 @@ public class ScriptException extends ElasticsearchException {
         super.writeTo(out);
         out.writeStringArray(scriptStack.toArray(new String[0]));
         out.writeString(script);
+        out.writeString(lang);
     }
     
     @Override
@@ -59,6 +63,7 @@ public class ScriptException extends ElasticsearchException {
         super.innerToXContent(builder, params);
         builder.field("script_stack", scriptStack);
         builder.field("script", script);
+        builder.field("lang", lang);
     }
 
     public List<String> getScriptStack() {

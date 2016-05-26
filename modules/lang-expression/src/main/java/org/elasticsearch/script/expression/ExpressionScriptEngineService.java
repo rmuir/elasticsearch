@@ -42,7 +42,7 @@ import org.elasticsearch.script.ClassPermission;
 import org.elasticsearch.script.CompiledScript;
 import org.elasticsearch.script.ExecutableScript;
 import org.elasticsearch.script.ScriptEngineService;
-import org.elasticsearch.script.GeneralScriptException;
+import org.elasticsearch.script.ScriptException;
 import org.elasticsearch.script.SearchScript;
 import org.elasticsearch.search.lookup.SearchLookup;
 
@@ -50,7 +50,7 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.ParseException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +107,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     // NOTE: validation is delayed to allow runtime vars, and we don't have access to per index stuff here
                     return JavascriptCompiler.compile(scriptSource, JavascriptCompiler.DEFAULT_FUNCTIONS, loader);
                 } catch (ParseException e) {
-                    throw new GeneralScriptException("Failed to parse expression: " + scriptSource, e);
+                    throw convertToScriptException("compile error", scriptSource, scriptSource, e);
                 }
             }
         });
@@ -115,15 +115,15 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
 
     @Override
     public SearchScript search(CompiledScript compiledScript, SearchLookup lookup, @Nullable Map<String, Object> vars) {
-        try {
-            Expression expr = (Expression)compiledScript.compiled();
-            MapperService mapper = lookup.doc().mapperService();
-            // NOTE: if we need to do anything complicated with bindings in the future, we can just extend Bindings,
-            // instead of complicating SimpleBindings (which should stay simple)
-            SimpleBindings bindings = new SimpleBindings();
-            ReplaceableConstValueSource specialValue = null;
-
-            for (String variable : expr.variables) {
+        Expression expr = (Expression)compiledScript.compiled();
+        MapperService mapper = lookup.doc().mapperService();
+        // NOTE: if we need to do anything complicated with bindings in the future, we can just extend Bindings,
+        // instead of complicating SimpleBindings (which should stay simple)
+        SimpleBindings bindings = new SimpleBindings();
+        ReplaceableConstValueSource specialValue = null;
+        
+        for (String variable : expr.variables) {
+            try {
                 if (variable.equals("_score")) {
                     bindings.add(new SortField("_score", SortField.Type.SCORE));
                 } else if (variable.equals("_value")) {
@@ -132,7 +132,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     // noop: _value is special for aggregations, and is handled in ExpressionScriptBindings
                     // TODO: if some uses it in a scoring expression, they will get a nasty failure when evaluating...need a
                     // way to know this is for aggregations and so _value is ok to have...
-
+                    
                 } else if (vars != null && vars.containsKey(variable)) {
                     // TODO: document and/or error if vars contains _score?
                     // NOTE: by checking for the variable in vars first, it allows masking document fields with a global constant,
@@ -141,19 +141,19 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     if (value instanceof Number) {
                         bindings.add(variable, new DoubleConstValueSource(((Number) value).doubleValue()));
                     } else {
-                        throw new GeneralScriptException("Parameter [" + variable + "] must be a numeric type");
+                        throw new ParseException("Parameter [" + variable + "] must be a numeric type", 0);
                     }
-
+                    
                 } else {
                     String fieldname = null;
                     String methodname = null;
                     String variablename = "value"; // .value is the default for doc['field'], its optional.
                     VariableContext[] parts = VariableContext.parse(variable);
                     if (parts[0].text.equals("doc") == false) {
-                        throw new GeneralScriptException("Unknown variable [" + parts[0].text + "] in expression");
+                        throw new ParseException("Unknown variable [" + parts[0].text + "]", 0);
                     }
                     if (parts.length < 2 || parts[1].type != VariableContext.Type.STR_INDEX) {
-                        throw new GeneralScriptException("Variable 'doc' in expression must be used with a specific field like: doc['myfield']");
+                        throw new ParseException("Variable 'doc' must be used with a specific field like: doc['myfield']", 3);
                     } else {
                         fieldname = parts[1].text;
                     }
@@ -163,19 +163,19 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                         } else if (parts[2].type == VariableContext.Type.MEMBER) {
                             variablename = parts[2].text;
                         } else {
-                            throw new GeneralScriptException("Only member variables or member methods may be accessed on a field when not accessing the field directly");
+                            throw new IllegalArgumentException("Only member variables or member methods may be accessed on a field when not accessing the field directly");
                         }
                     }
                     if (parts.length > 3) {
-                        throw new GeneralScriptException("Variable [" + variable + "] does not follow an allowed format of either doc['field'] or doc['field'].method()");
+                        throw new IllegalArgumentException("Variable [" + variable + "] does not follow an allowed format of either doc['field'] or doc['field'].method()");
                     }
-
+                    
                     MappedFieldType fieldType = mapper.fullName(fieldname);
-
+                    
                     if (fieldType == null) {
-                        throw new GeneralScriptException("Field [" + fieldname + "] used in expression does not exist in mappings");
+                        throw new ParseException("Field [" + fieldname + "] does not exist in mappings", 5);
                     }
-
+                    
                     IndexFieldData<?> fieldData = lookup.doc().fieldDataService().getForField(fieldType);
                     
                     // delegate valuesource creation based on field's type
@@ -205,18 +205,37 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                             valueSource = NumericField.getMethod(fieldData, fieldname, methodname);
                         }
                     } else {
-                        throw new GeneralScriptException("Field [" + fieldname + "] used in expression must be numeric, date, or geopoint");
+                        throw new ParseException("Field [" + fieldname + "] must be numeric, date, or geopoint", 5);
                     }
                     
                     bindings.add(variable, valueSource);
                 }
+            } catch (Exception e) {
+                // we defer "binding" of variables until here: give context for that variable
+                throw convertToScriptException("link error", expr.sourceText, variable, e);
             }
-
-            final boolean needsScores = expr.getSortField(bindings, false).needsScores();
-            return new ExpressionSearchScript(compiledScript, bindings, specialValue, needsScores);
-        } catch (Exception exception) {
-            throw new GeneralScriptException("Error during search with " + compiledScript, exception);
         }
+        
+        final boolean needsScores = expr.getSortField(bindings, false).needsScores();
+        return new ExpressionSearchScript(compiledScript, bindings, specialValue, needsScores);
+    }
+    
+    /**
+     * converts a ParseException at compile-time or link-time to a ScriptException
+     */
+    private ScriptException convertToScriptException(String message, String source, String portion, Throwable cause) {
+        List<String> stack = new ArrayList<>();
+        stack.add(portion);
+        StringBuilder pointer = new StringBuilder();
+        if (cause instanceof ParseException) {
+            int offset = ((ParseException) cause).getErrorOffset();
+            for (int i = 0; i < offset; i++) {
+                pointer.append(' ');
+            }
+        }
+        pointer.append("^---- HERE");
+        stack.add(pointer.toString());
+        throw new ScriptException(message, cause, stack, source, NAME);
     }
 
     @Override
