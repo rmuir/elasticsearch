@@ -132,7 +132,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     // noop: _value is special for aggregations, and is handled in ExpressionScriptBindings
                     // TODO: if some uses it in a scoring expression, they will get a nasty failure when evaluating...need a
                     // way to know this is for aggregations and so _value is ok to have...
-                    
+
                 } else if (vars != null && vars.containsKey(variable)) {
                     // TODO: document and/or error if vars contains _score?
                     // NOTE: by checking for the variable in vars first, it allows masking document fields with a global constant,
@@ -143,7 +143,7 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     } else {
                         throw new ParseException("Parameter [" + variable + "] must be a numeric type", 0);
                     }
-                    
+
                 } else {
                     String fieldname = null;
                     String methodname = null;
@@ -169,13 +169,13 @@ public class ExpressionScriptEngineService extends AbstractComponent implements 
                     if (parts.length > 3) {
                         throw new IllegalArgumentException("Variable [" + variable + "] does not follow an allowed format of either doc['field'] or doc['field'].method()");
                     }
-                    
+
                     MappedFieldType fieldType = mapper.fullName(fieldname);
-                    
+
                     if (fieldType == null) {
                         throw new ParseException("Field [" + fieldname + "] does not exist in mappings", 5);
                     }
-                    
+
                     IndexFieldData<?> fieldData = lookup.doc().fieldDataService().getForField(fieldType);
                     
                     // delegate valuesource creation based on field's type
