@@ -434,6 +434,12 @@ public final class Definition {
         for (Map.Entry<String,List<String>> clazz : hierarchy.entrySet()) {
             copyStruct(clazz.getKey(), clazz.getValue());
         }
+        // if someone declares an interface type, its still an Object
+        for (Map.Entry<String,Struct> clazz : structsMap.entrySet()) {
+            if (clazz.getValue().clazz.isInterface()) {
+                copyStruct(clazz.getKey(), Collections.singletonList("Object"));
+            }
+        }
         // precompute runtime classes
         for (Struct struct : structsMap.values()) {
           addRuntimeClass(struct);
