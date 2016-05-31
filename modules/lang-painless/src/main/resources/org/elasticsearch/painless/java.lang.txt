@@ -587,7 +587,7 @@ class Long -> java.lang.Long extends Number,Comparable,Object {
   Long valueOf(String,int)
 }
 
-class Math -> java.lang.Math {
+class Math -> java.lang.Math extends Object {
   double E
   double PI
   double abs(double)
@@ -679,7 +679,7 @@ class StackTraceElement -> java.lang.StackTraceElement extends Object {
   boolean isNativeMethod()
 }
 
-class StrictMath -> java.lang.StrictMath {
+class StrictMath -> java.lang.StrictMath extends Object {
   double E
   double PI
   double abs(double)

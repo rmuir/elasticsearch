@@ -436,8 +436,14 @@ public final class Definition {
         }
         // if someone declares an interface type, its still an Object
         for (Map.Entry<String,Struct> clazz : structsMap.entrySet()) {
-            if (clazz.getValue().clazz.isInterface()) {
-                copyStruct(clazz.getKey(), Collections.singletonList("Object"));
+            String name = clazz.getKey();
+            Class<?> javaPeer = clazz.getValue().clazz;
+            if (javaPeer.isInterface()) {
+                copyStruct(name, Collections.singletonList("Object"));
+            } else if (name.equals("def") == false && name.equals("Object") == false && javaPeer.isPrimitive() == false) {
+                // but otherwise, unless its a primitive type, it really should
+                assert hierarchy.get(name) != null : "class '" + name + "' does not extend Object!";
+                assert hierarchy.get(name).contains("Object") : "class '" + name + "' does not extend Object!";
             }
         }
         // precompute runtime classes
