@@ -516,6 +516,7 @@ class Integer -> java.lang.Integer extends Number,Comparable,Object {
   int SIZE
   int bitCount(int)
   int compare(int,int)
+  int compareTo(Integer)
   int compareUnsigned(int,int)
   Integer decode(String)
   int divideUnsigned(int,int)

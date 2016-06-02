@@ -19,30 +19,109 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Variables;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+
+import static org.elasticsearch.painless.WriterConstants.LAMBDA_BOOTSTRAP_HANDLE;
+
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents a function reference.
  */
 public class EFunctionRef extends AExpression {
-    public String type;
-    public String call;
+    public final String type;
+    public final String call;
+    
+    private String invokedName;
+    private Type invokedType;
+    private Handle implMethod;
+    private Type samMethodType;
 
     public EFunctionRef(int line, int offset, String location, String type, String call) {
         super(line, offset, location);
-
         this.type = type;
         this.call = call;
     }
 
     @Override
     void analyze(Variables variables) {
-        throw new UnsupportedOperationException(error("Function references [" + type + "::" + call + "] are not currently supported."));
+        if (expected == null) {
+            throw new UnsupportedOperationException("dynamic case not implemented yet");
+        }
+        // check its really a functional interface
+        // for e.g. Comparable
+        java.lang.reflect.Method method = getFunctionalMethod(expected.clazz);
+        // e.g. compareTo
+        invokedName = method.getName();
+        // e.g. (Object)Comparator
+        invokedType = Type.getMethodType(Type.getType(expected.clazz)); // TODO: args????
+        // lookup requested method
+        Definition.Struct struct = Definition.getType(type).struct;
+        Definition.Method impl = struct.staticMethods.get(new Definition.MethodKey(call, method.getParameterCount()));
+        if (impl == null) {
+            impl = struct.methods.get(new Definition.MethodKey(call, method.getParameterCount()-1));
+        }
+        if (impl == null) {
+            assert false : method + "/" + method.getParameterCount();
+        }
+        
+        int tag = Opcodes.H_INVOKEVIRTUAL;
+        if (Modifier.isStatic(impl.modifiers)) {
+            tag = Opcodes.H_INVOKESTATIC;
+        }
+        implMethod = new Handle(tag, struct.type.getInternalName(), impl.name, impl.method.getDescriptor());
+        // e.g. (Object,Object)int
+        Type[] argTypes = impl.method.getArgumentTypes();
+        Type[] params = new Type[argTypes.length + 1];
+        System.arraycopy(argTypes, 0, params, 1, argTypes.length);
+        params[0] = struct.type;
+        samMethodType = Type.getMethodType(impl.method.getReturnType(), params);
+        // ok we're good
+        actual = expected;
     }
 
     @Override
     void write(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        if (expected == null) {
+            throw new IllegalStateException(error("Illegal tree structure."));
+        }
+        writer.writeDebugInfo(offset);
+        System.out.println("Lambda: invokedType=" + invokedType.getDescriptor() + ",samMethodType=" + samMethodType + ",implMethod=" + implMethod);
+        writer.visitInvokeDynamicInsn(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
+                                      samMethodType, implMethod, samMethodType);
+    }
+    
+    static final Set<Definition.MethodKey> OBJECT_METHODS = new HashSet<>();
+    static {
+        for (java.lang.reflect.Method m : Object.class.getMethods()) {
+            OBJECT_METHODS.add(new Definition.MethodKey(m.getName(), m.getParameterCount()));
+        }
+    }
+    
+    
+    java.lang.reflect.Method getFunctionalMethod(Class<?> clazz) {
+        if (!clazz.isInterface()) {
+            throw new IllegalArgumentException(error("Cannot convert function reference [" 
+                                                     + type + "::" + call + "] to [" + expected.name + "]"));
+        }
+        for (java.lang.reflect.Method m : clazz.getMethods()) {
+            if (m.isDefault()) {
+                continue;
+            }
+            if (OBJECT_METHODS.contains(new Definition.MethodKey(m.getName(), m.getParameterCount()))) {
+                continue;
+            }
+            return m;
+        }
+        throw new IllegalArgumentException(error("Cannot convert function reference [" 
+                                                     + type + "::" + call + "] to [" + expected.name + "]"));
     }
 }
