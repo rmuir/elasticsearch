@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Variables;
 import org.objectweb.asm.Opcodes;
 import org.elasticsearch.painless.MethodWriter;
@@ -29,8 +30,8 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class ENull extends AExpression {
 
-    public ENull(int offset) {
-        super(offset);
+    public ENull(Location location) {
+        super(location);
     }
 
     @Override
@@ -39,7 +40,7 @@ public final class ENull extends AExpression {
 
         if (expected != null) {
             if (expected.sort.primitive) {
-                throw error2(new IllegalArgumentException("Cannot cast null to a primitive type [" + expected.name + "]."));
+                throw createError(new IllegalArgumentException("Cannot cast null to a primitive type [" + expected.name + "]."));
             }
 
             actual = expected;

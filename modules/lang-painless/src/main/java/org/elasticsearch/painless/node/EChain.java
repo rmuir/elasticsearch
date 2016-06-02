@@ -23,6 +23,7 @@ import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Definition.Cast;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Type;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.AnalyzerCaster;
 import org.elasticsearch.painless.Operation;
 import org.elasticsearch.painless.Variables;
@@ -46,9 +47,9 @@ public final class EChain extends AExpression {
     Cast there = null;
     Cast back = null;
 
-    public EChain(int offset, List<ALink> links,
+    public EChain(Location location, List<ALink> links,
                   boolean pre, boolean post, Operation operation, AExpression expression) {
-        super(offset);
+        super(location);
 
         this.links = links;
         this.pre = pre;
@@ -114,40 +115,40 @@ public final class EChain extends AExpression {
         ALink last = links.get(links.size() - 1);
 
         if (pre && post) {
-            throw error2(new IllegalStateException("Illegal tree structure."));
+            throw createError(new IllegalStateException("Illegal tree structure."));
         } else if (pre || post) {
             if (expression != null) {
-                throw error2(new IllegalStateException("Illegal tree structure."));
+                throw createError(new IllegalStateException("Illegal tree structure."));
             }
 
             Sort sort = last.after.sort;
 
             if (operation == Operation.INCR) {
                 if (sort == Sort.DOUBLE) {
-                    expression = new EConstant(offset, 1D);
+                    expression = new EConstant(location, 1D);
                 } else if (sort == Sort.FLOAT) {
-                    expression = new EConstant(offset, 1F);
+                    expression = new EConstant(location, 1F);
                 } else if (sort == Sort.LONG) {
-                    expression = new EConstant(offset, 1L);
+                    expression = new EConstant(location, 1L);
                 } else {
-                    expression = new EConstant(offset, 1);
+                    expression = new EConstant(location, 1);
                 }
 
                 operation = Operation.ADD;
             } else if (operation == Operation.DECR) {
                 if (sort == Sort.DOUBLE) {
-                    expression = new EConstant(offset, 1D);
+                    expression = new EConstant(location, 1D);
                 } else if (sort == Sort.FLOAT) {
-                    expression = new EConstant(offset, 1F);
+                    expression = new EConstant(location, 1F);
                 } else if (sort == Sort.LONG) {
-                    expression = new EConstant(offset, 1L);
+                    expression = new EConstant(location, 1L);
                 } else {
-                    expression = new EConstant(offset, 1);
+                    expression = new EConstant(location, 1);
                 }
 
                 operation = Operation.SUB;
             } else {
-                throw error2(new IllegalStateException("Illegal tree structure."));
+                throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
     }
@@ -180,7 +181,7 @@ public final class EChain extends AExpression {
         } else if (operation == Operation.BWOR) {
             promote = AnalyzerCaster.promoteXor(last.after, expression.actual);
         } else {
-            throw error2(new IllegalStateException("Illegal tree structure."));
+            throw createError(new IllegalStateException("Illegal tree structure."));
         }
 
         if (promote == null) {
@@ -206,8 +207,8 @@ public final class EChain extends AExpression {
 
         expression = expression.cast(variables);
 
-        there = AnalyzerCaster.getLegalCast(offset, last.after, promote, false, false);
-        back = AnalyzerCaster.getLegalCast(offset, promote, last.after, true, false);
+        there = AnalyzerCaster.getLegalCast(location, last.after, promote, false, false);
+        back = AnalyzerCaster.getLegalCast(location, promote, last.after, true, false);
 
         this.statement = true;
         this.actual = read ? last.after : Definition.VOID_TYPE;
@@ -249,7 +250,7 @@ public final class EChain extends AExpression {
     @Override
     void write(MethodWriter writer) {
         if (cat) {
-            writer.writeDebugInfo(offset);
+            writer.writeDebugInfo(location);
         }
 
         if (cat) {
@@ -292,7 +293,7 @@ public final class EChain extends AExpression {
 
                     writer.writeCast(there);
                     expression.write(writer);
-                    writer.writeBinaryInstruction(offset, promote, operation);
+                    writer.writeBinaryInstruction(location, promote, operation);
 
                     writer.writeCast(back);
 

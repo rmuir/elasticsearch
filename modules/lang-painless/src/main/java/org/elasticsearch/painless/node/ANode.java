@@ -19,22 +19,22 @@
 
 package org.elasticsearch.painless.node;
 
-import org.elasticsearch.painless.Errors;
+import org.elasticsearch.painless.Location;
 
 /**
  * The superclass for all other nodes.
  */
 public abstract class ANode {
     /**
-     * The character offset in the original source used for debugging and errors.
+     * The identifier of the script and character offset used for debugging and errors.
      */
-    final int offset;
+    final Location location;
 
-    ANode(int offset) {
-        this.offset = offset;
+    ANode(Location location) {
+        this.location = location;
     }
     
-    public RuntimeException error2(RuntimeException exception) {
-        return Errors.error(offset, exception);
+    public RuntimeException createError(RuntimeException exception) {
+        return location.createError(exception);
     }
 }

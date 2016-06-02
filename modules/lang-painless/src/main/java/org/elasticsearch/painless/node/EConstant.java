@@ -21,6 +21,7 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Definition.Sort;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Variables;
 import org.elasticsearch.painless.MethodWriter;
 
@@ -30,8 +31,8 @@ import org.elasticsearch.painless.MethodWriter;
  */
 final class EConstant extends AExpression {
 
-    EConstant(int offset, Object constant) {
-        super(offset);
+    EConstant(Location location, Object constant) {
+        super(location);
 
         this.constant = constant;
     }
@@ -57,7 +58,7 @@ final class EConstant extends AExpression {
         } else if (constant instanceof Boolean) {
             actual = Definition.BOOLEAN_TYPE;
         } else {
-            throw error2(new IllegalStateException("Illegal tree structure."));
+            throw createError(new IllegalStateException("Illegal tree structure."));
         }
     }
 
@@ -85,7 +86,7 @@ final class EConstant extends AExpression {
 
                 break;
             default:
-                throw error2(new IllegalStateException("Illegal tree structure."));
+                throw createError(new IllegalStateException("Illegal tree structure."));
         }
 
         if (sort != Sort.BOOL) {

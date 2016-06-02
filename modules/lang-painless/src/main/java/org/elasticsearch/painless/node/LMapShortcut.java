@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Variables;
@@ -34,8 +35,8 @@ final class LMapShortcut extends ALink {
     Method getter;
     Method setter;
 
-    LMapShortcut(int offset, AExpression index) {
-        super(offset, 2);
+    LMapShortcut(Location location, AExpression index) {
+        super(location, 2);
 
         this.index = index;
     }
@@ -46,16 +47,16 @@ final class LMapShortcut extends ALink {
         setter = before.struct.methods.get(new Definition.MethodKey("put", 2));
 
         if (getter != null && (getter.rtn.sort == Sort.VOID || getter.arguments.size() != 1)) {
-            throw error2(new IllegalArgumentException("Illegal map get shortcut for type [" + before.name + "]."));
+            throw createError(new IllegalArgumentException("Illegal map get shortcut for type [" + before.name + "]."));
         }
 
         if (setter != null && setter.arguments.size() != 2) {
-            throw error2(new IllegalArgumentException("Illegal map set shortcut for type [" + before.name + "]."));
+            throw createError(new IllegalArgumentException("Illegal map set shortcut for type [" + before.name + "]."));
         }
 
         if (getter != null && setter != null &&
             (!getter.arguments.get(0).equals(setter.arguments.get(0)) || !getter.rtn.equals(setter.arguments.get(1)))) {
-            throw error2(new IllegalArgumentException("Shortcut argument types must match."));
+            throw createError(new IllegalArgumentException("Shortcut argument types must match."));
         }
 
         if ((load || store) && (!load || getter != null) && (!store || setter != null)) {
@@ -65,7 +66,7 @@ final class LMapShortcut extends ALink {
 
             after = setter != null ? setter.arguments.get(1) : getter.rtn;
         } else {
-            throw error2(new IllegalArgumentException("Illegal map shortcut for type [" + before.name + "]."));
+            throw createError(new IllegalArgumentException("Illegal map shortcut for type [" + before.name + "]."));
         }
 
         return this;
@@ -78,7 +79,7 @@ final class LMapShortcut extends ALink {
 
     @Override
     void load(MethodWriter writer) {
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         if (java.lang.reflect.Modifier.isInterface(getter.owner.clazz.getModifiers())) {
             writer.invokeInterface(getter.owner.type, getter.method);
         } else {
@@ -92,7 +93,7 @@ final class LMapShortcut extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         if (java.lang.reflect.Modifier.isInterface(setter.owner.clazz.getModifiers())) {
             writer.invokeInterface(setter.owner.type, setter.method);
         } else {

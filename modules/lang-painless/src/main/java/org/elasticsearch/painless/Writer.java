@@ -83,7 +83,7 @@ final class Writer {
             new String[] { WriterConstants.NEEDS_SCORE_TYPE.getInternalName() } : null;
 
         writer.visit(version, access, name, null, base, interfaces);
-        writer.visitSource(Errors.computeSourceName(scriptName,source), null);
+        writer.visitSource(Location.computeSourceName(scriptName,source), null);
     }
 
     private void writeConstructor() {
@@ -99,8 +99,8 @@ final class Writer {
         if (variables.reserved.score) {
             // if the _score value is used, we do this once:
             // final double _score = scorer.score();
-            final Variable scorer = variables.getVariable(-1, Reserved.SCORER);
-            final Variable score = variables.getVariable(-1, Reserved.SCORE);
+            final Variable scorer = variables.getVariable(null, Reserved.SCORER);
+            final Variable score = variables.getVariable(null, Reserved.SCORE);
 
             adapter.visitVarInsn(Opcodes.ALOAD, scorer.slot);
             adapter.invokeVirtual(WriterConstants.SCORER_TYPE, WriterConstants.SCORER_SCORE);
@@ -112,8 +112,8 @@ final class Writer {
             // if the _ctx value is used, we do this once:
             // final Map<String,Object> ctx = input.get("ctx");
 
-            final Variable input = variables.getVariable(-1, Reserved.PARAMS);
-            final Variable ctx = variables.getVariable(-1, Reserved.CTX);
+            final Variable input = variables.getVariable(null, Reserved.PARAMS);
+            final Variable ctx = variables.getVariable(null, Reserved.CTX);
 
             adapter.visitVarInsn(Opcodes.ALOAD, input.slot);
             adapter.push(Reserved.CTX);
@@ -125,7 +125,7 @@ final class Writer {
             // if there is infinite loop protection, we do this once:
             // int #loop = settings.getMaxLoopCounter()
 
-            final Variable loop = variables.getVariable(-1, Reserved.LOOP);
+            final Variable loop = variables.getVariable(null, Reserved.LOOP);
 
             adapter.push(settings.getMaxLoopCounter());
             adapter.visitVarInsn(Opcodes.ISTORE, loop.slot);

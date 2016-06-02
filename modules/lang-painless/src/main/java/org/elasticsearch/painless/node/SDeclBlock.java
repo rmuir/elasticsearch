@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Variables;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 
 import java.util.Collections;
@@ -32,8 +33,8 @@ public final class SDeclBlock extends AStatement {
 
     final List<SDeclaration> declarations;
 
-    public SDeclBlock(int offset, List<SDeclaration> declarations) {
-        super(offset);
+    public SDeclBlock(Location location, List<SDeclaration> declarations) {
+        super(location);
 
         this.declarations = Collections.unmodifiableList(declarations);
     }

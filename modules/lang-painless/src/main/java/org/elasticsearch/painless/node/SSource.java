@@ -21,6 +21,7 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Variables;
 import org.objectweb.asm.Opcodes;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 
 import java.util.Collections;
@@ -33,8 +34,8 @@ public final class SSource extends AStatement {
 
     final List<AStatement> statements;
 
-    public SSource(int offset, List<AStatement> statements) {
-        super(offset);
+    public SSource(Location location, List<AStatement> statements) {
+        super(location);
 
         this.statements = Collections.unmodifiableList(statements);
     }
@@ -42,7 +43,7 @@ public final class SSource extends AStatement {
     @Override
     public void analyze(Variables variables) {
         if (statements == null || statements.isEmpty()) {
-            throw error2(new IllegalArgumentException("Cannot generate an empty script."));
+            throw createError(new IllegalArgumentException("Cannot generate an empty script."));
         }
 
         variables.incrementScope();
@@ -52,7 +53,7 @@ public final class SSource extends AStatement {
         for (AStatement statement : statements) {
             // TODO: why are we checking only statements 0..n-1 (this effectively checks only the previous statement)
             if (allEscape) {
-                throw error2(new IllegalArgumentException("Unreachable statement."));
+                throw createError(new IllegalArgumentException("Unreachable statement."));
             }
 
             statement.lastSource = statement == last;

@@ -69,7 +69,7 @@ public final class Variables {
     }
 
     public static final class Variable {
-        public final int offset;
+        public final Location location;
         public final String name;
         public final Type type;
         public final int slot;
@@ -77,8 +77,8 @@ public final class Variables {
 
         public boolean read = false;
 
-        private Variable(int offset, String name, Type type, int slot, boolean readonly) {
-            this.offset = offset;
+        private Variable(Location location, String name, Type type, int slot, boolean readonly) {
+            this.location = location;
             this.name = name;
             this.type = type;
             this.slot = slot;
@@ -100,35 +100,35 @@ public final class Variables {
         // Method variables.
 
         // This reference.  Internal use only.
-        addVariable(-1, Definition.getType("Object"), Reserved.THIS, true, true);
+        addVariable(null, Definition.getType("Object"), Reserved.THIS, true, true);
 
         // Input map of variables passed to the script.
-        addVariable(-1, Definition.getType("Map"), Reserved.PARAMS, true, true);
+        addVariable(null, Definition.getType("Map"), Reserved.PARAMS, true, true);
 
         // Scorer parameter passed to the script.  Internal use only.
-        addVariable(-1, Definition.DEF_TYPE, Reserved.SCORER, true, true);
+        addVariable(null, Definition.DEF_TYPE, Reserved.SCORER, true, true);
 
         // Doc parameter passed to the script. TODO: Currently working as a Map, we can do better?
-        addVariable(-1, Definition.getType("Map"), Reserved.DOC, true, true);
+        addVariable(null, Definition.getType("Map"), Reserved.DOC, true, true);
 
         // Aggregation _value parameter passed to the script.
-        addVariable(-1, Definition.DEF_TYPE, Reserved.VALUE, true, true);
+        addVariable(null, Definition.DEF_TYPE, Reserved.VALUE, true, true);
 
         // Shortcut variables.
 
         // Document's score as a read-only double.
         if (reserved.score) {
-            addVariable(-1, Definition.DOUBLE_TYPE, Reserved.SCORE, true, true);
+            addVariable(null, Definition.DOUBLE_TYPE, Reserved.SCORE, true, true);
         }
 
         // The ctx map set by executable scripts as a read-only map.
         if (reserved.ctx) {
-            addVariable(-1, Definition.getType("Map"), Reserved.CTX, true, true);
+            addVariable(null, Definition.getType("Map"), Reserved.CTX, true, true);
         }
 
         // Loop counter to catch infinite loops.  Internal use only.
         if (reserved.loop) {
-            addVariable(-1, Definition.INT_TYPE, Reserved.LOOP, true, true);
+            addVariable(null, Definition.INT_TYPE, Reserved.LOOP, true, true);
         }
     }
 
@@ -144,14 +144,14 @@ public final class Variables {
             
             // TODO: is this working? the code reads backwards...
             if (variable.read) {
-                throw Errors.error(variable.offset, new IllegalArgumentException("Variable [" + variable.name + "] never used."));
+                throw variable.location.createError(new IllegalArgumentException("Variable [" + variable.name + "] never used."));
             }
             
             --remove;
         }
     }
 
-    public Variable getVariable(int offset, String name) {
+    public Variable getVariable(Location location, String name) {
          Iterator<Variable> itr = variables.iterator();
 
         while (itr.hasNext()) {
@@ -162,16 +162,16 @@ public final class Variables {
             }
         }
 
-        throw Errors.error(offset, new IllegalArgumentException("Variable [" + name + "] not defined."));
+        throw location.createError(new IllegalArgumentException("Variable [" + name + "] not defined."));
     }
 
     private boolean variableExists(String name) {
         return variables.contains(name);
     }
 
-    public Variable addVariable(int offset, Type type, String name, boolean readonly, boolean reserved) {
+    public Variable addVariable(Location location, Type type, String name, boolean readonly, boolean reserved) {
         if (!reserved && this.reserved.isReserved(name)) {
-            throw Errors.error(offset, new IllegalArgumentException("Variable name [" + name + "] is reserved."));
+            throw location.createError(new IllegalArgumentException("Variable name [" + name + "] is reserved."));
         }
 
         if (variableExists(name)) {
@@ -191,7 +191,7 @@ public final class Variables {
             slot = previous.slot + previous.type.type.getSize();
         }
 
-        Variable variable = new Variable(offset, name, type, slot, readonly);
+        Variable variable = new Variable(location, name, type, slot, readonly);
         variables.push(variable);
 
         int update = scopes.pop() + 1;

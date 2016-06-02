@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Struct;
@@ -36,8 +37,8 @@ final class LShortcut extends ALink {
     Method getter = null;
     Method setter = null;
 
-    LShortcut(int offset, String value) {
-        super(offset, 1);
+    LShortcut(Location location, String value) {
+        super(location, 1);
 
         this.value = value;
     }
@@ -55,23 +56,23 @@ final class LShortcut extends ALink {
         setter = struct.methods.get(new Definition.MethodKey("set" + Character.toUpperCase(value.charAt(0)) + value.substring(1), 1));
 
         if (getter != null && (getter.rtn.sort == Sort.VOID || !getter.arguments.isEmpty())) {
-            throw error2(new IllegalArgumentException(
+            throw createError(new IllegalArgumentException(
                 "Illegal get shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
         if (setter != null && (setter.rtn.sort != Sort.VOID || setter.arguments.size() != 1)) {
-            throw error2(new IllegalArgumentException(
+            throw createError(new IllegalArgumentException(
                 "Illegal set shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
         if (getter != null && setter != null && setter.arguments.get(0) != getter.rtn) {
-            throw error2(new IllegalArgumentException("Shortcut argument types must match."));
+            throw createError(new IllegalArgumentException("Shortcut argument types must match."));
         }
 
         if ((getter != null || setter != null) && (!load || getter != null) && (!store || setter != null)) {
             after = setter != null ? setter.arguments.get(0) : getter.rtn;
         } else {
-            throw error2(new IllegalArgumentException("Illegal shortcut on field [" + value + "] for type [" + struct.name + "]."));
+            throw createError(new IllegalArgumentException("Illegal shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
         return this;
@@ -84,7 +85,7 @@ final class LShortcut extends ALink {
 
     @Override
     void load(MethodWriter writer) {
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         if (java.lang.reflect.Modifier.isInterface(getter.owner.clazz.getModifiers())) {
             writer.invokeInterface(getter.owner.type, getter.method);
         } else {
@@ -98,7 +99,7 @@ final class LShortcut extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         if (java.lang.reflect.Modifier.isInterface(setter.owner.clazz.getModifiers())) {
             writer.invokeInterface(setter.owner.type, setter.method);
         } else {

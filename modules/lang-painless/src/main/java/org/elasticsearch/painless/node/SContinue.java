@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Variables;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 
 /**
@@ -27,18 +28,18 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class SContinue extends AStatement {
 
-    public SContinue(int offset) {
-        super(offset);
+    public SContinue(Location location) {
+        super(location);
     }
 
     @Override
     void analyze(Variables variables) {
         if (!inLoop) {
-            throw error2(new IllegalArgumentException("Continue statement outside of a loop."));
+            throw createError(new IllegalArgumentException("Continue statement outside of a loop."));
         }
 
         if (lastLoop) {
-            throw error2(new IllegalArgumentException("Extraneous continue statement."));
+            throw createError(new IllegalArgumentException("Extraneous continue statement."));
         }
 
         allEscape = true;

@@ -19,17 +19,45 @@
 
 package org.elasticsearch.painless;
 
-public final class Errors {
-    // no instance
-    private Errors() {}
+import java.util.Objects;
 
-    // This maximum length is theoretically 65535 bytes, but as it's CESU-8 encoded we dont know how large it is in bytes, so be safe
-    private static final int MAX_NAME_LENGTH = 256;
+public final class Location {
+    private final String sourceName;
+    private final int offset;
     
-    public static RuntimeException error(int offset, RuntimeException exception) {
+    public Location(String sourceName, int offset) {
+        this.sourceName = Objects.requireNonNull(sourceName);
+        this.offset = offset;
+    }
+    
+    /**
+     *
+     */
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    /**
+     *
+     */
+    public int getOffset() {
+        return offset;
+    }
+
+
+    public RuntimeException createError(RuntimeException exception) {
+        // TODO: add fake frame
+        return exception;
+    }
+    
+    public static RuntimeException createErrorStatically(int offset, RuntimeException exception) {
         // TODO: add fake frame
         throw exception;
     }
+    
+
+    // This maximum length is theoretically 65535 bytes, but as it's CESU-8 encoded we dont know how large it is in bytes, so be safe
+    private static final int MAX_NAME_LENGTH = 256;
     
     /** Computes the file name (mostly important for stacktraces) */
     public static String computeSourceName(String scriptName, String source) {

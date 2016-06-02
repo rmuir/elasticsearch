@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Definition.Cast;
 import org.elasticsearch.painless.AnalyzerCaster;
 import org.elasticsearch.painless.Variables;
@@ -34,8 +35,8 @@ public final class LCast extends ALink {
 
     Cast cast = null;
 
-    public LCast(int offset, String type) {
-        super(offset, -1);
+    public LCast(Location location, String type) {
+        super(location, -1);
 
         this.type = type;
     }
@@ -43,25 +44,25 @@ public final class LCast extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before == null) {
-            throw error2(new IllegalStateException("Illegal cast without a target."));
+            throw createError(new IllegalStateException("Illegal cast without a target."));
         } else if (store) {
-            throw error2(new IllegalArgumentException("Cannot assign a value to a cast."));
+            throw createError(new IllegalArgumentException("Cannot assign a value to a cast."));
         }
 
         try {
             after = Definition.getType(type);
         } catch (IllegalArgumentException exception) {
-            throw error2(new IllegalArgumentException("Not a type [" + type + "]."));
+            throw createError(new IllegalArgumentException("Not a type [" + type + "]."));
         }
 
-        cast = AnalyzerCaster.getLegalCast(offset, before, after, true, false);
+        cast = AnalyzerCaster.getLegalCast(location, before, after, true, false);
 
         return cast != null ? this : null;
     }
 
     @Override
     void write(MethodWriter writer) {
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         writer.writeCast(cast);
     }
 
@@ -72,6 +73,6 @@ public final class LCast extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw error2(new IllegalStateException("Illegal tree structure."));
+        throw createError(new IllegalStateException("Illegal tree structure."));
     }
 }

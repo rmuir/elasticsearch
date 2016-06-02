@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Struct;
@@ -38,8 +39,8 @@ public final class LCall extends ALink {
 
     Method method = null;
 
-    public LCall(int offset, String name, List<AExpression> arguments) {
-        super(offset, -1);
+    public LCall(Location location, String name, List<AExpression> arguments) {
+        super(location, -1);
 
         this.name = name;
         this.arguments = arguments;
@@ -48,11 +49,11 @@ public final class LCall extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before == null) {
-            throw error2(new IllegalArgumentException("Illegal call [" + name + "] made without target."));
+            throw createError(new IllegalArgumentException("Illegal call [" + name + "] made without target."));
         } else if (before.sort == Sort.ARRAY) {
-            throw error2(new IllegalArgumentException("Illegal call [" + name + "] on array type."));
+            throw createError(new IllegalArgumentException("Illegal call [" + name + "] on array type."));
         } else if (store) {
-            throw error2(new IllegalArgumentException("Cannot assign a value to a call [" + name + "]."));
+            throw createError(new IllegalArgumentException("Cannot assign a value to a call [" + name + "]."));
         }
 
         Definition.MethodKey methodKey = new Definition.MethodKey(name, arguments.size());
@@ -74,13 +75,13 @@ public final class LCall extends ALink {
 
             return this;
         } else if (before.sort == Sort.DEF) {
-            ALink link = new LDefCall(offset, name, arguments);
+            ALink link = new LDefCall(location, name, arguments);
             link.copy(this);
 
             return link.analyze(variables);
         }
 
-        throw error2(new IllegalArgumentException("Unknown call [" + name + "] with [" + arguments.size() +
+        throw createError(new IllegalArgumentException("Unknown call [" + name + "] with [" + arguments.size() +
                                                  "] arguments on type [" + struct.name + "]."));
     }
 
@@ -91,7 +92,7 @@ public final class LCall extends ALink {
 
     @Override
     void load(MethodWriter writer) {
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         for (AExpression argument : arguments) {
             argument.write(writer);
         }
@@ -111,6 +112,6 @@ public final class LCall extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw error2(new IllegalStateException("Illegal tree structure."));
+        throw createError(new IllegalStateException("Illegal tree structure."));
     }
 }
