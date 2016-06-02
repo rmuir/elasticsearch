@@ -34,8 +34,8 @@ final class LMapShortcut extends ALink {
     Method getter;
     Method setter;
 
-    LMapShortcut(int line, int offset, String location, AExpression index) {
-        super(line, offset, location, 2);
+    LMapShortcut(int offset, AExpression index) {
+        super(offset, 2);
 
         this.index = index;
     }
@@ -46,16 +46,16 @@ final class LMapShortcut extends ALink {
         setter = before.struct.methods.get(new Definition.MethodKey("put", 2));
 
         if (getter != null && (getter.rtn.sort == Sort.VOID || getter.arguments.size() != 1)) {
-            throw new IllegalArgumentException(error("Illegal map get shortcut for type [" + before.name + "]."));
+            throw error2(new IllegalArgumentException("Illegal map get shortcut for type [" + before.name + "]."));
         }
 
         if (setter != null && setter.arguments.size() != 2) {
-            throw new IllegalArgumentException(error("Illegal map set shortcut for type [" + before.name + "]."));
+            throw error2(new IllegalArgumentException("Illegal map set shortcut for type [" + before.name + "]."));
         }
 
         if (getter != null && setter != null &&
             (!getter.arguments.get(0).equals(setter.arguments.get(0)) || !getter.rtn.equals(setter.arguments.get(1)))) {
-            throw new IllegalArgumentException(error("Shortcut argument types must match."));
+            throw error2(new IllegalArgumentException("Shortcut argument types must match."));
         }
 
         if ((load || store) && (!load || getter != null) && (!store || setter != null)) {
@@ -65,7 +65,7 @@ final class LMapShortcut extends ALink {
 
             after = setter != null ? setter.arguments.get(1) : getter.rtn;
         } else {
-            throw new IllegalArgumentException(error("Illegal map shortcut for type [" + before.name + "]."));
+            throw error2(new IllegalArgumentException("Illegal map shortcut for type [" + before.name + "]."));
         }
 
         return this;

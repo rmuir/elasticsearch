@@ -32,8 +32,8 @@ public final class SBlock extends AStatement {
 
     final List<AStatement> statements;
 
-    public SBlock(int line, int offset, String location, List<AStatement> statements) {
-        super(line, offset, location);
+    public SBlock(int offset, List<AStatement> statements) {
+        super(offset);
 
         this.statements = Collections.unmodifiableList(statements);
     }
@@ -41,14 +41,14 @@ public final class SBlock extends AStatement {
     @Override
     void analyze(Variables variables) {
         if (statements == null || statements.isEmpty()) {
-            throw new IllegalArgumentException(error("A block must contain at least one statement."));
+            throw error2(new IllegalArgumentException("A block must contain at least one statement."));
         }
 
         final AStatement last = statements.get(statements.size() - 1);
 
         for (AStatement statement : statements) {
             if (allEscape) {
-                throw new IllegalArgumentException(error("Unreachable statement."));
+                throw error2(new IllegalArgumentException("Unreachable statement."));
             }
 
             statement.inLoop = inLoop;

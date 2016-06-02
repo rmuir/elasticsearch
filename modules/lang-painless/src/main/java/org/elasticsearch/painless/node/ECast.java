@@ -34,8 +34,8 @@ final class ECast extends AExpression {
 
     Cast cast = null;
 
-    ECast(int line, int offset, String location, AExpression child, Cast cast) {
-        super(line, offset, location);
+    ECast(int offset, AExpression child, Cast cast) {
+        super(offset);
 
         this.type = null;
         this.child = child;
@@ -45,7 +45,7 @@ final class ECast extends AExpression {
 
     @Override
     void analyze(Variables variables) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 
     @Override

@@ -30,8 +30,8 @@ public final class SReturn extends AStatement {
 
     AExpression expression;
 
-    public SReturn(int line, int offset, String location, AExpression expression) {
-        super(line, offset, location);
+    public SReturn(int offset, AExpression expression) {
+        super(offset);
 
         this.expression = expression;
     }

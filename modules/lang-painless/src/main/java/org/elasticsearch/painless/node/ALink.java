@@ -73,8 +73,8 @@ public abstract class ALink extends ANode {
      */
     String string = null;
 
-    ALink(int line, int offset, String location, int size) {
-        super(line, offset, location);
+    ALink(int offset, int size) {
+        super(offset);
 
         this.size = size;
     }

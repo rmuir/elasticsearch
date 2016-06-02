@@ -37,8 +37,8 @@ public final class SDeclaration extends AStatement {
 
     Variable variable;
 
-    public SDeclaration(int line, int offset, String location, String type, String name, AExpression expression) {
-        super(line, offset, location);
+    public SDeclaration(int offset, String type, String name, AExpression expression) {
+        super(offset);
 
         this.type = type;
         this.name = name;
@@ -52,7 +52,7 @@ public final class SDeclaration extends AStatement {
         try {
             type = Definition.getType(this.type);
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException(error("Not a type [" + this.type + "]."));
+            throw error2(new IllegalArgumentException("Not a type [" + this.type + "]."));
         }
 
         if (expression != null) {
@@ -61,7 +61,7 @@ public final class SDeclaration extends AStatement {
             expression = expression.cast(variables);
         }
 
-        variable = variables.addVariable(location, type, name, false, false);
+        variable = variables.addVariable(offset, type, name, false, false);
     }
 
     @Override
@@ -69,7 +69,7 @@ public final class SDeclaration extends AStatement {
         writer.writeStatementOffset(offset);
         if (expression == null) {
             switch (variable.type.sort) {
-                case VOID:   throw new IllegalStateException(error("Illegal tree structure."));
+                case VOID:   throw error2(new IllegalStateException("Illegal tree structure."));
                 case BOOL:
                 case BYTE:
                 case SHORT:

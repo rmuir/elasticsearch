@@ -29,8 +29,8 @@ public class EFunctionRef extends AExpression {
     public String type;
     public String call;
 
-    public EFunctionRef(int line, int offset, String location, String type, String call) {
-        super(line, offset, location);
+    public EFunctionRef(int offset, String type, String call) {
+        super(offset);
 
         this.type = type;
         this.call = call;
@@ -38,11 +38,11 @@ public class EFunctionRef extends AExpression {
 
     @Override
     void analyze(Variables variables) {
-        throw new UnsupportedOperationException(error("Function references [" + type + "::" + call + "] are not currently supported."));
+        throw error2(new UnsupportedOperationException("Function references [" + type + "::" + call + "] are not currently supported."));
     }
 
     @Override
     void write(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

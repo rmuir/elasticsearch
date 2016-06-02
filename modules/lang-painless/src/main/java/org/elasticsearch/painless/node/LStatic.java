@@ -30,8 +30,8 @@ public final class LStatic extends ALink {
 
     final String type;
 
-    public LStatic(int line, int offset, String location, String type) {
-        super(line, offset, location, 0);
+    public LStatic(int offset, String type) {
+        super(offset, 0);
 
         this.type = type;
     }
@@ -39,14 +39,14 @@ public final class LStatic extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before != null) {
-            throw new IllegalArgumentException(error("Illegal static type [" + type + "] after target already defined."));
+            throw error2(new IllegalArgumentException("Illegal static type [" + type + "] after target already defined."));
         }
 
         try {
             after = Definition.getType(type);
             statik = true;
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException(error("Not a type [" + type + "]."));
+            throw error2(new IllegalArgumentException("Not a type [" + type + "]."));
         }
 
         return this;
@@ -54,16 +54,16 @@ public final class LStatic extends ALink {
 
     @Override
     void write(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 
     @Override
     void load(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

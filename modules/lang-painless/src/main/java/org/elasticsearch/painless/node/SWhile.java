@@ -33,8 +33,8 @@ public final class SWhile extends AStatement {
     AExpression condition;
     final SBlock block;
 
-    public SWhile(int line, int offset, String location, int maxLoopCounter, AExpression condition, SBlock block) {
-        super(line, offset, location);
+    public SWhile(int offset, int maxLoopCounter, AExpression condition, SBlock block) {
+        super(offset);
 
         this.maxLoopCounter = maxLoopCounter;
         this.condition = condition;
@@ -55,11 +55,11 @@ public final class SWhile extends AStatement {
             continuous = (boolean)condition.constant;
 
             if (!continuous) {
-                throw new IllegalArgumentException(error("Extraneous while loop."));
+                throw error2(new IllegalArgumentException("Extraneous while loop."));
             }
 
             if (block == null) {
-                throw new IllegalArgumentException(error("While loop has no escape."));
+                throw error2(new IllegalArgumentException("While loop has no escape."));
             }
         }
 
@@ -70,7 +70,7 @@ public final class SWhile extends AStatement {
             block.analyze(variables);
 
             if (block.loopEscape && !block.anyContinue) {
-                throw new IllegalArgumentException(error("Extraneous while loop."));
+                throw error2(new IllegalArgumentException("Extraneous while loop."));
             }
 
             if (continuous && !block.anyBreak) {
@@ -84,7 +84,7 @@ public final class SWhile extends AStatement {
         statementCount = 1;
 
         if (maxLoopCounter > 0) {
-            loopCounterSlot = variables.getVariable(location, "#loop").slot;
+            loopCounterSlot = variables.getVariable(offset, "#loop").slot;
         }
 
         variables.decrementScope();

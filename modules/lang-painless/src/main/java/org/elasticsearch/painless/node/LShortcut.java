@@ -36,8 +36,8 @@ final class LShortcut extends ALink {
     Method getter = null;
     Method setter = null;
 
-    LShortcut(int line, int offset, String location, String value) {
-        super(line, offset, location, 1);
+    LShortcut(int offset, String value) {
+        super(offset, 1);
 
         this.value = value;
     }
@@ -55,23 +55,23 @@ final class LShortcut extends ALink {
         setter = struct.methods.get(new Definition.MethodKey("set" + Character.toUpperCase(value.charAt(0)) + value.substring(1), 1));
 
         if (getter != null && (getter.rtn.sort == Sort.VOID || !getter.arguments.isEmpty())) {
-            throw new IllegalArgumentException(error(
+            throw error2(new IllegalArgumentException(
                 "Illegal get shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
         if (setter != null && (setter.rtn.sort != Sort.VOID || setter.arguments.size() != 1)) {
-            throw new IllegalArgumentException(error(
+            throw error2(new IllegalArgumentException(
                 "Illegal set shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
         if (getter != null && setter != null && setter.arguments.get(0) != getter.rtn) {
-            throw new IllegalArgumentException(error("Shortcut argument types must match."));
+            throw error2(new IllegalArgumentException("Shortcut argument types must match."));
         }
 
         if ((getter != null || setter != null) && (!load || getter != null) && (!store || setter != null)) {
             after = setter != null ? setter.arguments.get(0) : getter.rtn;
         } else {
-            throw new IllegalArgumentException(error("Illegal shortcut on field [" + value + "] for type [" + struct.name + "]."));
+            throw error2(new IllegalArgumentException("Illegal shortcut on field [" + value + "] for type [" + struct.name + "]."));
         }
 
         return this;

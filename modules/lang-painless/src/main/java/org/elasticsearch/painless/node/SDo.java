@@ -33,8 +33,8 @@ public final class SDo extends AStatement {
     final SBlock block;
     AExpression condition;
 
-    public SDo(int line, int offset, String location, int maxLoopCounter, SBlock block, AExpression condition) {
-        super(line, offset, location);
+    public SDo(int offset, int maxLoopCounter, SBlock block, AExpression condition) {
+        super(offset);
 
         this.condition = condition;
         this.block = block;
@@ -46,7 +46,7 @@ public final class SDo extends AStatement {
         variables.incrementScope();
 
         if (block == null) {
-            throw new IllegalArgumentException(error("Extraneous do while loop."));
+            throw error2(new IllegalArgumentException("Extraneous do while loop."));
         }
 
         block.beginLoop = true;
@@ -55,7 +55,7 @@ public final class SDo extends AStatement {
         block.analyze(variables);
 
         if (block.loopEscape && !block.anyContinue) {
-            throw new IllegalArgumentException(error("Extraneous do while loop."));
+            throw error2(new IllegalArgumentException("Extraneous do while loop."));
         }
 
         condition.expected = Definition.BOOLEAN_TYPE;
@@ -66,7 +66,7 @@ public final class SDo extends AStatement {
             final boolean continuous = (boolean)condition.constant;
 
             if (!continuous) {
-                throw new IllegalArgumentException(error("Extraneous do while loop."));
+                throw error2(new IllegalArgumentException("Extraneous do while loop."));
             }
 
             if (!block.anyBreak) {
@@ -78,7 +78,7 @@ public final class SDo extends AStatement {
         statementCount = 1;
 
         if (maxLoopCounter > 0) {
-            loopCounterSlot = variables.getVariable(location, "#loop").slot;
+            loopCounterSlot = variables.getVariable(offset, "#loop").slot;
         }
 
         variables.decrementScope();

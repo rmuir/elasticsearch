@@ -27,18 +27,18 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class SContinue extends AStatement {
 
-    public SContinue(int line, int offset, String location) {
-        super(line, offset, location);
+    public SContinue(int offset) {
+        super(offset);
     }
 
     @Override
     void analyze(Variables variables) {
         if (!inLoop) {
-            throw new IllegalArgumentException(error("Continue statement outside of a loop."));
+            throw error2(new IllegalArgumentException("Continue statement outside of a loop."));
         }
 
         if (lastLoop) {
-            throw new IllegalArgumentException(error("Extraneous continue statement."));
+            throw error2(new IllegalArgumentException("Extraneous continue statement."));
         }
 
         allEscape = true;

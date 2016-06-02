@@ -32,8 +32,8 @@ public final class SIf extends AStatement {
     AExpression condition;
     final SBlock ifblock;
 
-    public SIf(int line, int offset, String location, AExpression condition, SBlock ifblock) {
-        super(line, offset, location);
+    public SIf(int offset, AExpression condition, SBlock ifblock) {
+        super(offset);
 
         this.condition = condition;
         this.ifblock = ifblock;
@@ -46,11 +46,11 @@ public final class SIf extends AStatement {
         condition = condition.cast(variables);
 
         if (condition.constant != null) {
-            throw new IllegalArgumentException(error("Extraneous if statement."));
+            throw error2(new IllegalArgumentException("Extraneous if statement."));
         }
 
         if (ifblock == null) {
-            throw new IllegalArgumentException(error("Extraneous if statement."));
+            throw error2(new IllegalArgumentException("Extraneous if statement."));
         }
 
         ifblock.lastSource = lastSource;

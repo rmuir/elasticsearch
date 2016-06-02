@@ -34,8 +34,8 @@ public final class STry extends AStatement {
     final SBlock block;
     final List<SCatch> catches;
 
-    public STry(int line, int offset, String location, SBlock block, List<SCatch> traps) {
-        super(line, offset, location);
+    public STry(int offset, SBlock block, List<SCatch> traps) {
+        super(offset);
 
         this.block = block;
         this.catches = Collections.unmodifiableList(traps);
@@ -44,7 +44,7 @@ public final class STry extends AStatement {
     @Override
     void analyze(Variables variables) {
         if (block == null) {
-            throw new IllegalArgumentException(error("Extraneous try statement."));
+            throw error2(new IllegalArgumentException("Extraneous try statement."));
         }
 
         block.lastSource = lastSource;

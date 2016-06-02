@@ -28,8 +28,8 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class LString extends ALink {
 
-    public LString(int line, int offset, String location, String string) {
-        super(line, offset, location, -1);
+    public LString(int offset, String string) {
+        super(offset, -1);
 
         this.string = string;
     }
@@ -37,11 +37,11 @@ public final class LString extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before != null) {
-            throw new IllegalArgumentException(error("Illegal String constant [" + string + "]."));
+            throw error2(new IllegalArgumentException("Illegal String constant [" + string + "]."));
         } else if (store) {
-            throw new IllegalArgumentException(error("Cannot write to read-only String constant [" + string + "]."));
+            throw error2(new IllegalArgumentException("Cannot write to read-only String constant [" + string + "]."));
         } else if (!load) {
-            throw new IllegalArgumentException(error("Must read String constant [" + string + "]."));
+            throw error2(new IllegalArgumentException("Must read String constant [" + string + "]."));
         }
 
         after = Definition.STRING_TYPE;
@@ -61,6 +61,6 @@ public final class LString extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

@@ -33,8 +33,8 @@ public final class LVariable extends ALink {
 
     int slot;
 
-    public LVariable(int line, int offset, String location, String name) {
-        super(line, offset, location, 0);
+    public LVariable(int offset, String name) {
+        super(offset, 0);
 
         this.name = name;
     }
@@ -42,13 +42,13 @@ public final class LVariable extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before != null) {
-            throw new IllegalArgumentException(error("Illegal variable [" + name + "] access with target already defined."));
+            throw error2(new IllegalArgumentException("Illegal variable [" + name + "] access with target already defined."));
         }
 
-        Variable variable = variables.getVariable(location, name);
+        Variable variable = variables.getVariable(offset, name);
 
         if (store && variable.readonly) {
-            throw new IllegalArgumentException(error("Variable [" + variable.name + "] is read-only."));
+            throw error2(new IllegalArgumentException("Variable [" + variable.name + "] is read-only."));
         }
 
         slot = variable.slot;

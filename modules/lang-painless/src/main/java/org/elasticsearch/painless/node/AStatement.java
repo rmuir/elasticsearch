@@ -107,8 +107,8 @@ public abstract class AStatement extends ANode {
      */
     Label brake = null;
 
-    AStatement(int line, int offset, String location) {
-        super(line, offset, location);
+    AStatement(int offset) {
+        super(offset);
     }
 
     /**

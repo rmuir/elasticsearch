@@ -34,8 +34,8 @@ public final class LCast extends ALink {
 
     Cast cast = null;
 
-    public LCast(int line, int offset, String location, String type) {
-        super(line, offset, location, -1);
+    public LCast(int offset, String type) {
+        super(offset, -1);
 
         this.type = type;
     }
@@ -43,18 +43,18 @@ public final class LCast extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before == null) {
-            throw new IllegalStateException(error("Illegal cast without a target."));
+            throw error2(new IllegalStateException("Illegal cast without a target."));
         } else if (store) {
-            throw new IllegalArgumentException(error("Cannot assign a value to a cast."));
+            throw error2(new IllegalArgumentException("Cannot assign a value to a cast."));
         }
 
         try {
             after = Definition.getType(type);
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException(error("Not a type [" + type + "]."));
+            throw error2(new IllegalArgumentException("Not a type [" + type + "]."));
         }
 
-        cast = AnalyzerCaster.getLegalCast(location, before, after, true, false);
+        cast = AnalyzerCaster.getLegalCast(offset, before, after, true, false);
 
         return cast != null ? this : null;
     }
@@ -72,6 +72,6 @@ public final class LCast extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

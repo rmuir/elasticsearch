@@ -25,13 +25,13 @@ import org.elasticsearch.painless.Variables;
 import org.elasticsearch.painless.MethodWriter;
 
 /**
- * Respresents a constant.  Note this replaces any other expression
+ * Represents a constant.  Note this replaces any other expression
  * node with a constant value set during a cast.  (Internal only.)
  */
 final class EConstant extends AExpression {
 
-    EConstant(int line, int offset, String location, Object constant) {
-        super(line, offset, location);
+    EConstant(int offset, Object constant) {
+        super(offset);
 
         this.constant = constant;
     }
@@ -57,7 +57,7 @@ final class EConstant extends AExpression {
         } else if (constant instanceof Boolean) {
             actual = Definition.BOOLEAN_TYPE;
         } else {
-            throw new IllegalStateException(error("Illegal tree structure."));
+            throw error2(new IllegalStateException("Illegal tree structure."));
         }
     }
 
@@ -85,7 +85,7 @@ final class EConstant extends AExpression {
 
                 break;
             default:
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
         }
 
         if (sort != Sort.BOOL) {

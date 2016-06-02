@@ -30,8 +30,8 @@ public final class LArrayLength extends ALink {
 
     final String value;
 
-    LArrayLength(int line, int offset, String location, String value) {
-        super(line, offset, location, -1);
+    LArrayLength(int offset, String value) {
+        super(offset, -1);
 
         this.value = value;
     }
@@ -40,14 +40,14 @@ public final class LArrayLength extends ALink {
     ALink analyze(Variables variables) {
         if ("length".equals(value)) {
             if (!load) {
-                throw new IllegalArgumentException(error("Must read array field [length]."));
+                throw error2(new IllegalArgumentException("Must read array field [length]."));
             } else if (store) {
-                throw new IllegalArgumentException(error("Cannot write to read-only array field [length]."));
+                throw error2(new IllegalArgumentException("Cannot write to read-only array field [length]."));
             }
 
             after = Definition.INT_TYPE;
         } else {
-            throw new IllegalArgumentException(error("Illegal field access [" + value + "]."));
+            throw error2(new IllegalArgumentException("Illegal field access [" + value + "]."));
         }
 
         return this;
@@ -66,6 +66,6 @@ public final class LArrayLength extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

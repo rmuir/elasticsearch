@@ -31,8 +31,8 @@ public final class SExpression extends AStatement {
 
     AExpression expression;
 
-    public SExpression(int line, int offset, String location, AExpression expression) {
-        super(line, offset, location);
+    public SExpression(int offset, AExpression expression) {
+        super(offset);
 
         this.expression = expression;
     }
@@ -43,7 +43,7 @@ public final class SExpression extends AStatement {
         expression.analyze(variables);
 
         if (!lastSource && !expression.statement) {
-            throw new IllegalArgumentException(error("Not a statement."));
+            throw error2(new IllegalArgumentException("Not a statement."));
         }
 
         final boolean rtn = lastSource && expression.actual.sort != Sort.VOID;

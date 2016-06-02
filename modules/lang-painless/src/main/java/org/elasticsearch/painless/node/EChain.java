@@ -46,9 +46,9 @@ public final class EChain extends AExpression {
     Cast there = null;
     Cast back = null;
 
-    public EChain(int line, int offset, String location, List<ALink> links,
+    public EChain(int offset, List<ALink> links,
                   boolean pre, boolean post, Operation operation, AExpression expression) {
-        super(line, offset, location);
+        super(offset);
 
         this.links = links;
         this.pre = pre;
@@ -114,40 +114,40 @@ public final class EChain extends AExpression {
         ALink last = links.get(links.size() - 1);
 
         if (pre && post) {
-            throw new IllegalStateException(error("Illegal tree structure."));
+            throw error2(new IllegalStateException("Illegal tree structure."));
         } else if (pre || post) {
             if (expression != null) {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
 
             Sort sort = last.after.sort;
 
             if (operation == Operation.INCR) {
                 if (sort == Sort.DOUBLE) {
-                    expression = new EConstant(line, offset, location, 1D);
+                    expression = new EConstant(offset, 1D);
                 } else if (sort == Sort.FLOAT) {
-                    expression = new EConstant(line, offset, location, 1F);
+                    expression = new EConstant(offset, 1F);
                 } else if (sort == Sort.LONG) {
-                    expression = new EConstant(line, offset, location, 1L);
+                    expression = new EConstant(offset, 1L);
                 } else {
-                    expression = new EConstant(line, offset, location, 1);
+                    expression = new EConstant(offset, 1);
                 }
 
                 operation = Operation.ADD;
             } else if (operation == Operation.DECR) {
                 if (sort == Sort.DOUBLE) {
-                    expression = new EConstant(line, offset, location, 1D);
+                    expression = new EConstant(offset, 1D);
                 } else if (sort == Sort.FLOAT) {
-                    expression = new EConstant(line, offset, location, 1F);
+                    expression = new EConstant(offset, 1F);
                 } else if (sort == Sort.LONG) {
-                    expression = new EConstant(line, offset, location, 1L);
+                    expression = new EConstant(offset, 1L);
                 } else {
-                    expression = new EConstant(line, offset, location, 1);
+                    expression = new EConstant(offset, 1);
                 }
 
                 operation = Operation.SUB;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
     }
@@ -180,7 +180,7 @@ public final class EChain extends AExpression {
         } else if (operation == Operation.BWOR) {
             promote = AnalyzerCaster.promoteXor(last.after, expression.actual);
         } else {
-            throw new IllegalStateException(error("Illegal tree structure."));
+            throw error2(new IllegalStateException("Illegal tree structure."));
         }
 
         if (promote == null) {
@@ -206,8 +206,8 @@ public final class EChain extends AExpression {
 
         expression = expression.cast(variables);
 
-        there = AnalyzerCaster.getLegalCast(location, last.after, promote, false, false);
-        back = AnalyzerCaster.getLegalCast(location, promote, last.after, true, false);
+        there = AnalyzerCaster.getLegalCast(offset, last.after, promote, false, false);
+        back = AnalyzerCaster.getLegalCast(offset, promote, last.after, true, false);
 
         this.statement = true;
         this.actual = read ? last.after : Definition.VOID_TYPE;
@@ -292,7 +292,7 @@ public final class EChain extends AExpression {
 
                     writer.writeCast(there);
                     expression.write(writer);
-                    writer.writeBinaryInstruction(location, promote, operation);
+                    writer.writeBinaryInstruction(offset, promote, operation);
 
                     writer.writeCast(back);
 

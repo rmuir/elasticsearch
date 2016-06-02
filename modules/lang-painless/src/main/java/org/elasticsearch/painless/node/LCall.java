@@ -38,8 +38,8 @@ public final class LCall extends ALink {
 
     Method method = null;
 
-    public LCall(int line, int offset, String location, String name, List<AExpression> arguments) {
-        super(line, offset, location, -1);
+    public LCall(int offset, String name, List<AExpression> arguments) {
+        super(offset, -1);
 
         this.name = name;
         this.arguments = arguments;
@@ -48,11 +48,11 @@ public final class LCall extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before == null) {
-            throw new IllegalArgumentException(error("Illegal call [" + name + "] made without target."));
+            throw error2(new IllegalArgumentException("Illegal call [" + name + "] made without target."));
         } else if (before.sort == Sort.ARRAY) {
-            throw new IllegalArgumentException(error("Illegal call [" + name + "] on array type."));
+            throw error2(new IllegalArgumentException("Illegal call [" + name + "] on array type."));
         } else if (store) {
-            throw new IllegalArgumentException(error("Cannot assign a value to a call [" + name + "]."));
+            throw error2(new IllegalArgumentException("Cannot assign a value to a call [" + name + "]."));
         }
 
         Definition.MethodKey methodKey = new Definition.MethodKey(name, arguments.size());
@@ -74,13 +74,13 @@ public final class LCall extends ALink {
 
             return this;
         } else if (before.sort == Sort.DEF) {
-            ALink link = new LDefCall(line, offset, location, name, arguments);
+            ALink link = new LDefCall(offset, name, arguments);
             link.copy(this);
 
             return link.analyze(variables);
         }
 
-        throw new IllegalArgumentException(error("Unknown call [" + name + "] with [" + arguments.size() +
+        throw error2(new IllegalArgumentException("Unknown call [" + name + "] with [" + arguments.size() +
                                                  "] arguments on type [" + struct.name + "]."));
     }
 
@@ -111,6 +111,6 @@ public final class LCall extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

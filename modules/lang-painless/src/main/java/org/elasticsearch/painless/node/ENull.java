@@ -29,8 +29,8 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class ENull extends AExpression {
 
-    public ENull(int line, int offset, String location) {
-        super(line, offset, location);
+    public ENull(int offset) {
+        super(offset);
     }
 
     @Override
@@ -39,7 +39,7 @@ public final class ENull extends AExpression {
 
         if (expected != null) {
             if (expected.sort.primitive) {
-                throw new IllegalArgumentException(error("Cannot cast null to a primitive type [" + expected.name + "]."));
+                throw error2(new IllegalArgumentException("Cannot cast null to a primitive type [" + expected.name + "]."));
             }
 
             actual = expected;

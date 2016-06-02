@@ -38,8 +38,8 @@ public final class EBinary extends AExpression {
 
     boolean cat = false;
 
-    public EBinary(int line, int offset, String location, Operation operation, AExpression left, AExpression right) {
-        super(line, offset, location);
+    public EBinary(int offset, Operation operation, AExpression left, AExpression right) {
+        super(offset);
 
         this.operation = operation;
         this.left = left;
@@ -71,7 +71,7 @@ public final class EBinary extends AExpression {
         } else if (operation == Operation.BWOR) {
             analyzeBWOr(variables);
         } else {
-            throw new IllegalStateException(error("Illegal tree structure."));
+            throw error2(new IllegalStateException("Illegal tree structure."));
         }
     }
 
@@ -82,7 +82,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply multiply [*] to types " +
+            throw error2(new ClassCastException("Cannot apply multiply [*] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -104,7 +104,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.DOUBLE) {
                 constant = (double)left.constant * (double)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -118,7 +118,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply divide [/] to types " +
+            throw error2(new ClassCastException("Cannot apply divide [/] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -140,7 +140,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.DOUBLE) {
                 constant = (double)left.constant / (double)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -154,7 +154,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply remainder [%] to types " +
+            throw error2(new ClassCastException("Cannot apply remainder [%] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -176,7 +176,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.DOUBLE) {
                 constant = (double)left.constant % (double)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -190,7 +190,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteAdd(left.actual, right.actual);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply add [+] to types " +
+            throw error2(new ClassCastException("Cannot apply add [+] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -228,7 +228,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.STRING) {
                 constant = "" + left.constant + right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -242,7 +242,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply subtract [-] to types " +
+            throw error2(new ClassCastException("Cannot apply subtract [-] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -264,7 +264,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.DOUBLE) {
                 constant = (double)left.constant - (double)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -278,7 +278,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, false);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply left shift [<<] to types " +
+            throw error2(new ClassCastException("Cannot apply left shift [<<] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -297,7 +297,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.LONG) {
                 constant = (long)left.constant << (int)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -311,7 +311,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, false);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply right shift [>>] to types " +
+            throw error2(new ClassCastException("Cannot apply right shift [>>] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -330,7 +330,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.LONG) {
                 constant = (long)left.constant >> (int)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -344,7 +344,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, false);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply unsigned shift [>>>] to types " +
+            throw error2(new ClassCastException("Cannot apply unsigned shift [>>>] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -363,7 +363,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.LONG) {
                 constant = (long)left.constant >>> (int)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -377,7 +377,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, false);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply and [&] to types " +
+            throw error2(new ClassCastException("Cannot apply and [&] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -395,7 +395,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.LONG) {
                 constant = (long)left.constant & (long)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -409,7 +409,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteXor(left.actual, right.actual);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply xor [^] to types " +
+            throw error2(new ClassCastException("Cannot apply xor [^] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -429,7 +429,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.LONG) {
                 constant = (long)left.constant ^ (long)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -443,7 +443,7 @@ public final class EBinary extends AExpression {
         Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, false);
 
         if (promote == null) {
-            throw new ClassCastException(error("Cannot apply or [|] to types " +
+            throw error2(new ClassCastException("Cannot apply or [|] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
@@ -461,7 +461,7 @@ public final class EBinary extends AExpression {
             } else if (sort == Sort.LONG) {
                 constant = (long)left.constant | (long)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -495,7 +495,7 @@ public final class EBinary extends AExpression {
             left.write(writer);
             right.write(writer);
 
-            writer.writeBinaryInstruction(location, actual, operation);
+            writer.writeBinaryInstruction(offset, actual, operation);
         }
 
         writer.writeBranch(tru, fals);

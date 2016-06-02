@@ -19,33 +19,22 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Errors;
+
 /**
  * The superclass for all other nodes.
  */
 public abstract class ANode {
-
-    /**
-     * The line number in the original source used for debugging and errors.
-     */
-    final int line;
-
     /**
      * The character offset in the original source used for debugging and errors.
      */
     final int offset;
 
-    /**
-     * The location in the original source to be printed in error messages.
-     */
-    final String location;
-
-    ANode(int line, int offset, String location) {
-        this.line = line;
+    ANode(int offset) {
         this.offset = offset;
-        this.location = location;
     }
-
-    public String error(final String message) {
-        return "Error " + location  + ": " + message;
+    
+    public RuntimeException error2(RuntimeException exception) {
+        return Errors.error(offset, exception);
     }
 }

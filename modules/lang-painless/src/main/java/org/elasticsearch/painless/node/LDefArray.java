@@ -34,8 +34,8 @@ final class LDefArray extends ALink implements IDefLink {
 
     AExpression index;
 
-    LDefArray(int line, int offset, String location, AExpression index) {
-        super(line, offset, location, 2);
+    LDefArray(int offset, AExpression index) {
+        super(offset, 2);
 
         this.index = index;
     }

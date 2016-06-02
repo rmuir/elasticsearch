@@ -33,8 +33,8 @@ public final class SSource extends AStatement {
 
     final List<AStatement> statements;
 
-    public SSource(int line, int offset, String location, List<AStatement> statements) {
-        super(line, offset, location);
+    public SSource(int offset, List<AStatement> statements) {
+        super(offset);
 
         this.statements = Collections.unmodifiableList(statements);
     }
@@ -42,7 +42,7 @@ public final class SSource extends AStatement {
     @Override
     public void analyze(Variables variables) {
         if (statements == null || statements.isEmpty()) {
-            throw new IllegalArgumentException(error("Cannot generate an empty script."));
+            throw error2(new IllegalArgumentException("Cannot generate an empty script."));
         }
 
         variables.incrementScope();
@@ -50,8 +50,9 @@ public final class SSource extends AStatement {
         final AStatement last = statements.get(statements.size() - 1);
 
         for (AStatement statement : statements) {
+            // TODO: why are we checking only statements 0..n-1 (this effectively checks only the previous statement)
             if (allEscape) {
-                throw new IllegalArgumentException(error("Unreachable statement."));
+                throw error2(new IllegalArgumentException("Unreachable statement."));
             }
 
             statement.lastSource = statement == last;

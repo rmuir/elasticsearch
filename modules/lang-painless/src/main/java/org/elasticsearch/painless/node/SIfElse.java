@@ -33,8 +33,8 @@ public final class SIfElse extends AStatement {
     final SBlock ifblock;
     final SBlock elseblock;
 
-    public SIfElse(int line, int offset, String location, AExpression condition, SBlock ifblock, SBlock elseblock) {
-        super(line, offset, location);
+    public SIfElse(int offset, AExpression condition, SBlock ifblock, SBlock elseblock) {
+        super(offset);
 
         this.condition = condition;
         this.ifblock = ifblock;
@@ -48,11 +48,11 @@ public final class SIfElse extends AStatement {
         condition = condition.cast(variables);
 
         if (condition.constant != null) {
-            throw new IllegalArgumentException(error("Extraneous if statement."));
+            throw error2(new IllegalArgumentException("Extraneous if statement."));
         }
 
         if (ifblock == null) {
-            throw new IllegalArgumentException(error("Extraneous if statement."));
+            throw error2(new IllegalArgumentException("Extraneous if statement."));
         }
 
         ifblock.lastSource = lastSource;
@@ -68,7 +68,7 @@ public final class SIfElse extends AStatement {
         statementCount = ifblock.statementCount;
 
         if (elseblock == null) {
-            throw new IllegalArgumentException(error("Extraneous else statement."));
+            throw error2(new IllegalArgumentException("Extraneous else statement."));
         }
 
         elseblock.lastSource = lastSource;

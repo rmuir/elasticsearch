@@ -98,8 +98,8 @@ public abstract class AExpression extends ANode {
      */
     protected Label fals = null;
 
-    public AExpression(int line, int offset, String location) {
-        super(line, offset, location);
+    public AExpression(int offset) {
+        super(offset);
     }
 
     /**
@@ -118,24 +118,24 @@ public abstract class AExpression extends ANode {
      * @return The new child node for the parent node calling this method.
      */
     AExpression cast(Variables variables) {
-        final Cast cast = AnalyzerCaster.getLegalCast(location, actual, expected, explicit, internal);
+        final Cast cast = AnalyzerCaster.getLegalCast(offset, actual, expected, explicit, internal);
 
         if (cast == null) {
             if (constant == null || this instanceof EConstant) {
                 return this;
             } else {
-                final EConstant econstant = new EConstant(line, offset, location, constant);
+                final EConstant econstant = new EConstant(offset, constant);
                 econstant.analyze(variables);
 
                 if (!expected.equals(econstant.actual)) {
-                    throw new IllegalStateException(error("Illegal tree structure."));
+                    throw error2(new IllegalStateException("Illegal tree structure."));
                 }
 
                 return econstant;
             }
         } else {
             if (constant == null) {
-                final ECast ecast = new ECast(line, offset, location, this, cast);
+                final ECast ecast = new ECast(offset, this, cast);
                 ecast.statement = statement;
                 ecast.actual = expected;
                 ecast.isNull = isNull;
@@ -143,30 +143,30 @@ public abstract class AExpression extends ANode {
                 return ecast;
             } else {
                 if (expected.sort.constant) {
-                    constant = AnalyzerCaster.constCast(location, constant, cast);
+                    constant = AnalyzerCaster.constCast(offset, constant, cast);
 
-                    final EConstant econstant = new EConstant(line, offset, location, constant);
+                    final EConstant econstant = new EConstant(offset, constant);
                     econstant.analyze(variables);
 
                     if (!expected.equals(econstant.actual)) {
-                        throw new IllegalStateException(error("Illegal tree structure."));
+                        throw error2(new IllegalStateException("Illegal tree structure."));
                     }
 
                     return econstant;
                 } else if (this instanceof EConstant) {
-                    final ECast ecast = new ECast(line, offset, location, this, cast);
+                    final ECast ecast = new ECast(offset, this, cast);
                     ecast.actual = expected;
 
                     return ecast;
                 } else {
-                    final EConstant econstant = new EConstant(line, offset, location, constant);
+                    final EConstant econstant = new EConstant(offset, constant);
                     econstant.analyze(variables);
 
                     if (!actual.equals(econstant.actual)) {
-                        throw new IllegalStateException(error("Illegal tree structure."));
+                        throw error2(new IllegalStateException("Illegal tree structure."));
                     }
 
-                    final ECast ecast = new ECast(line, offset, location, econstant, cast);
+                    final ECast ecast = new ECast(offset, econstant, cast);
                     ecast.actual = expected;
 
                     return ecast;

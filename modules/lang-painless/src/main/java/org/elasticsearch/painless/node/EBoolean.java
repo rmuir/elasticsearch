@@ -28,8 +28,8 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class EBoolean extends AExpression {
 
-    public EBoolean(int line, int offset, String location, boolean constant) {
-        super(line, offset, location);
+    public EBoolean(int offset, boolean constant) {
+        super(offset);
 
         this.constant = constant;
     }
@@ -41,6 +41,6 @@ public final class EBoolean extends AExpression {
 
     @Override
     void write(MethodWriter adapter) {
-        throw new IllegalArgumentException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

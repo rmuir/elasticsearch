@@ -281,14 +281,14 @@ public final class MethodWriter extends GeneratorAdapter {
         }
     }
 
-    public void writeBinaryInstruction(final String location, final Type type, final Operation operation) {
+    public void writeBinaryInstruction(int offset, Type type, Operation operation) {
         final Sort sort = type.sort;
 
         if ((sort == Sort.FLOAT || sort == Sort.DOUBLE) &&
                 (operation == Operation.LSH || operation == Operation.USH ||
                 operation == Operation.RSH || operation == Operation.BWAND ||
                 operation == Operation.XOR || operation == Operation.BWOR)) {
-            throw new IllegalStateException("Error " + location + ": Illegal tree structure.");
+            throw Errors.error(offset, new IllegalStateException("Illegal tree structure."));
         }
 
         if (sort == Sort.DEF) {
@@ -305,7 +305,7 @@ public final class MethodWriter extends GeneratorAdapter {
                 case XOR:   invokeStatic(DEF_UTIL_TYPE, DEF_XOR_CALL); break;
                 case BWOR:  invokeStatic(DEF_UTIL_TYPE, DEF_OR_CALL);  break;
                 default:
-                    throw new IllegalStateException("Error " + location + ": Illegal tree structure.");
+                    throw Errors.error(offset, new IllegalStateException("Illegal tree structure."));
             }
         } else {
             switch (operation) {
@@ -321,7 +321,7 @@ public final class MethodWriter extends GeneratorAdapter {
                 case XOR:   math(GeneratorAdapter.XOR,  type.type); break;
                 case BWOR:  math(GeneratorAdapter.OR,   type.type); break;
                 default:
-                    throw new IllegalStateException("Error " + location + ": Illegal tree structure.");
+                    throw Errors.error(offset, new IllegalStateException("Illegal tree structure."));
             }
         }
     }

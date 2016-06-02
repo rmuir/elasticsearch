@@ -34,8 +34,8 @@ public final class EBool extends AExpression {
     AExpression left;
     AExpression right;
 
-    public EBool(int line, int offset, String location, Operation operation, AExpression left, AExpression right) {
-        super(line, offset, location);
+    public EBool(int offset, Operation operation, AExpression left, AExpression right) {
+        super(offset);
 
         this.operation = operation;
         this.left = left;
@@ -58,7 +58,7 @@ public final class EBool extends AExpression {
             } else if (operation == Operation.OR) {
                 constant = (boolean)left.constant || (boolean)right.constant;
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -95,7 +95,7 @@ public final class EBool extends AExpression {
                     writer.mark(localtru);
                 }
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         } else {
             if (operation == Operation.AND) {
@@ -131,7 +131,7 @@ public final class EBool extends AExpression {
                 writer.push(false);
                 writer.mark(end);
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
     }

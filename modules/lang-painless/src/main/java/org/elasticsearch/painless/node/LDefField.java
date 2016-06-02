@@ -34,8 +34,8 @@ final class LDefField extends ALink implements IDefLink {
 
     final String value;
 
-    LDefField(int line, int offset, String location, String value) {
-        super(line, offset, location, 1);
+    LDefField(int offset, String value) {
+        super(offset, 1);
 
         this.value = value;
     }

@@ -34,8 +34,8 @@ public final class LNewArray extends ALink {
     final String type;
     final List<AExpression> arguments;
 
-    public LNewArray(int line, int offset, String location, String type, List<AExpression> arguments) {
-        super(line, offset, location, -1);
+    public LNewArray(int offset, String type, List<AExpression> arguments) {
+        super(offset, -1);
 
         this.type = type;
         this.arguments = arguments;
@@ -44,11 +44,11 @@ public final class LNewArray extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before != null) {
-            throw new IllegalArgumentException(error("Cannot create a new array with a target already defined."));
+            throw error2(new IllegalArgumentException("Cannot create a new array with a target already defined."));
         } else if (store) {
-            throw new IllegalArgumentException(error("Cannot assign a value to a new array."));
+            throw error2(new IllegalArgumentException("Cannot assign a value to a new array."));
         } else if (!load) {
-            throw new IllegalArgumentException(error("A newly created array must be read."));
+            throw error2(new IllegalArgumentException("A newly created array must be read."));
         }
 
         final Type type;
@@ -56,7 +56,7 @@ public final class LNewArray extends ALink {
         try {
             type = Definition.getType(this.type);
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException(error("Not a type [" + this.type + "]."));
+            throw error2(new IllegalArgumentException("Not a type [" + this.type + "]."));
         }
 
         for (int argument = 0; argument < arguments.size(); ++argument) {
@@ -93,6 +93,6 @@ public final class LNewArray extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

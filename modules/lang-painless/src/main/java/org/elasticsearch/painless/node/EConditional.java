@@ -35,8 +35,8 @@ public final class EConditional extends AExpression {
     AExpression left;
     AExpression right;
 
-    public EConditional(int line, int offset, String location, AExpression condition, AExpression left, AExpression right) {
-        super(line, offset, location);
+    public EConditional(int offset, AExpression condition, AExpression left, AExpression right) {
+        super(offset);
 
         this.condition = condition;
         this.left = left;
@@ -50,7 +50,7 @@ public final class EConditional extends AExpression {
         condition = condition.cast(variables);
 
         if (condition.constant != null) {
-            throw new IllegalArgumentException(error("Extraneous conditional statement."));
+            throw error2(new IllegalArgumentException("Extraneous conditional statement."));
         }
 
         left.expected = expected;

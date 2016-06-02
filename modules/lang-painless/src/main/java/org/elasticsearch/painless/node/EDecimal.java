@@ -30,8 +30,8 @@ public final class EDecimal extends AExpression {
 
     final String value;
 
-    public EDecimal(int line, int offset, String location, String value) {
-        super(line, offset, location);
+    public EDecimal(int offset, String value) {
+        super(offset);
 
         this.value = value;
     }
@@ -43,20 +43,20 @@ public final class EDecimal extends AExpression {
                 constant = Float.parseFloat(value.substring(0, value.length() - 1));
                 actual = Definition.FLOAT_TYPE;
             } catch (NumberFormatException exception) {
-                throw new IllegalArgumentException(error("Invalid float constant [" + value + "]."));
+                throw error2(new IllegalArgumentException("Invalid float constant [" + value + "]."));
             }
         } else {
             try {
                 constant = Double.parseDouble(value);
                 actual = Definition.DOUBLE_TYPE;
             } catch (NumberFormatException exception) {
-                throw new IllegalArgumentException(error("Invalid double constant [" + value + "]."));
+                throw error2(new IllegalArgumentException("Invalid double constant [" + value + "]."));
             }
         }
     }
 
     @Override
     void write(MethodWriter writer) {
-        throw new IllegalArgumentException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

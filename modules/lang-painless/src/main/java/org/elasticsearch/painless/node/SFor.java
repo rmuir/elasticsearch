@@ -35,9 +35,9 @@ public final class SFor extends AStatement {
     AExpression afterthought;
     final SBlock block;
 
-    public SFor(int line, int offset, String location, int maxLoopCounter,
+    public SFor(int offset, int maxLoopCounter,
                 ANode initializer, AExpression condition, AExpression afterthought, SBlock block) {
-        super(line, offset, location);
+        super(offset);
 
         this.initializer = initializer;
         this.condition = condition;
@@ -62,10 +62,10 @@ public final class SFor extends AStatement {
                 initializer.analyze(variables);
 
                 if (!initializer.statement) {
-                    throw new IllegalArgumentException(initializer.error("Not a statement."));
+                    throw error2(new IllegalArgumentException("Not a statement."));
                 }
             } else {
-                throw new IllegalStateException(error("Illegal tree structure."));
+                throw error2(new IllegalStateException("Illegal tree structure."));
             }
         }
 
@@ -78,11 +78,11 @@ public final class SFor extends AStatement {
                 continuous = (boolean)condition.constant;
 
                 if (!continuous) {
-                    throw new IllegalArgumentException(error("Extraneous for loop."));
+                    throw error2(new IllegalArgumentException("Extraneous for loop."));
                 }
 
                 if (block == null) {
-                    throw new IllegalArgumentException(error("For loop has no escape."));
+                    throw error2(new IllegalArgumentException("For loop has no escape."));
                 }
             }
         } else {
@@ -94,7 +94,7 @@ public final class SFor extends AStatement {
             afterthought.analyze(variables);
 
             if (!afterthought.statement) {
-                throw new IllegalArgumentException(afterthought.error("Not a statement."));
+                throw error2(new IllegalArgumentException("Not a statement."));
             }
         }
 
@@ -105,7 +105,7 @@ public final class SFor extends AStatement {
             block.analyze(variables);
 
             if (block.loopEscape && !block.anyContinue) {
-                throw new IllegalArgumentException(error("Extraneous for loop."));
+                throw error2(new IllegalArgumentException("Extraneous for loop."));
             }
 
             if (continuous && !block.anyBreak) {
@@ -119,7 +119,7 @@ public final class SFor extends AStatement {
         statementCount = 1;
 
         if (maxLoopCounter > 0) {
-            loopCounterSlot = variables.getVariable(location, "#loop").slot;
+            loopCounterSlot = variables.getVariable(offset, "#loop").slot;
         }
 
         variables.decrementScope();

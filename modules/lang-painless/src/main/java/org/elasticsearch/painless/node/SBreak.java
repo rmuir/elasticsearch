@@ -27,14 +27,14 @@ import org.elasticsearch.painless.MethodWriter;
  */
 public final class SBreak extends AStatement {
 
-    public SBreak(int line, int offset, String location) {
-        super(line, offset, location);
+    public SBreak(int offset) {
+        super(offset);
     }
 
     @Override
     void analyze(Variables variables) {
         if (!inLoop) {
-            throw new IllegalArgumentException(error("Break statement outside of a loop."));
+            throw error2(new IllegalArgumentException("Break statement outside of a loop."));
         }
 
         loopEscape = true;

@@ -38,8 +38,8 @@ public final class LNewObj extends ALink {
 
     Constructor constructor;
 
-    public LNewObj(int line, int offset, String location, String type, List<AExpression> arguments) {
-        super(line, offset, location, -1);
+    public LNewObj(int offset, String type, List<AExpression> arguments) {
+        super(offset, -1);
 
         this.type = type;
         this.arguments = arguments;
@@ -48,9 +48,9 @@ public final class LNewObj extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before != null) {
-            throw new IllegalArgumentException(error("Illegal new call with a target already defined."));
+            throw error2(new IllegalArgumentException("Illegal new call with a target already defined."));
         } else if (store) {
-            throw new IllegalArgumentException(error("Cannot assign a value to a new call."));
+            throw error2(new IllegalArgumentException("Cannot assign a value to a new call."));
         }
 
         final Type type;
@@ -58,7 +58,7 @@ public final class LNewObj extends ALink {
         try {
             type = Definition.getType(this.type);
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException(error("Not a type [" + this.type + "]."));
+            throw error2(new IllegalArgumentException("Not a type [" + this.type + "]."));
         }
 
         Struct struct = type.struct;
@@ -69,7 +69,7 @@ public final class LNewObj extends ALink {
             constructor.arguments.toArray(types);
 
             if (constructor.arguments.size() != arguments.size()) {
-                throw new IllegalArgumentException(error("When calling constructor on type [" + struct.name + "]" +
+                throw error2(new IllegalArgumentException("When calling constructor on type [" + struct.name + "]" +
                     " expected [" + constructor.arguments.size() + "] arguments, but found [" + arguments.size() + "]."));
             }
 
@@ -85,7 +85,7 @@ public final class LNewObj extends ALink {
             statement = true;
             after = type;
         } else {
-            throw new IllegalArgumentException(error("Unknown new call on type [" + struct.name + "]."));
+            throw error2(new IllegalArgumentException("Unknown new call on type [" + struct.name + "]."));
         }
 
         return this;
@@ -114,6 +114,6 @@ public final class LNewObj extends ALink {
 
     @Override
     void store(MethodWriter writer) {
-        throw new IllegalStateException(error("Illegal tree structure."));
+        throw error2(new IllegalStateException("Illegal tree structure."));
     }
 }

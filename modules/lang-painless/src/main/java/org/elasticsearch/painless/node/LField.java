@@ -38,8 +38,8 @@ public final class LField extends ALink {
 
     Field field;
 
-    public LField(int line, int offset, String location, String value) {
-        super(line, offset, location, 1);
+    public LField(int offset, String value) {
+        super(offset, 1);
 
         this.value = value;
     }
@@ -47,15 +47,15 @@ public final class LField extends ALink {
     @Override
     ALink analyze(Variables variables) {
         if (before == null) {
-            throw new IllegalArgumentException(error("Illegal field [" + value + "] access made without target."));
+            throw error2(new IllegalArgumentException("Illegal field [" + value + "] access made without target."));
         }
 
         Sort sort = before.sort;
 
         if (sort == Sort.ARRAY) {
-            return new LArrayLength(line, offset, location, value).copy(this).analyze(variables);
+            return new LArrayLength(offset, value).copy(this).analyze(variables);
         } else if (sort == Sort.DEF) {
-            return new LDefField(line, offset, location, value).copy(this).analyze(variables);
+            return new LDefField(offset, value).copy(this).analyze(variables);
         }
 
         Struct struct = before.struct;
@@ -63,7 +63,7 @@ public final class LField extends ALink {
 
         if (field != null) {
             if (store && java.lang.reflect.Modifier.isFinal(field.modifiers)) {
-                throw new IllegalArgumentException(error(
+                throw error2(new IllegalArgumentException(
                     "Cannot write to read-only field [" + value + "] for type [" + struct.name + "]."));
             }
 
@@ -80,22 +80,22 @@ public final class LField extends ALink {
                     Character.toUpperCase(value.charAt(0)) + value.substring(1), 1));
 
             if (shortcut) {
-                return new LShortcut(line, offset, location, value).copy(this).analyze(variables);
+                return new LShortcut(offset, value).copy(this).analyze(variables);
             } else {
-                EConstant index = new EConstant(line, offset, location, value);
+                EConstant index = new EConstant(offset, value);
                 index.analyze(variables);
 
                 if (Map.class.isAssignableFrom(before.clazz)) {
-                    return new LMapShortcut(line, offset, location, index).copy(this).analyze(variables);
+                    return new LMapShortcut(offset, index).copy(this).analyze(variables);
                 }
 
                 if (List.class.isAssignableFrom(before.clazz)) {
-                    return new LListShortcut(line, offset, location, index).copy(this).analyze(variables);
+                    return new LListShortcut(offset, index).copy(this).analyze(variables);
                 }
             }
         }
 
-        throw new IllegalArgumentException(error("Unknown field [" + value + "] for type [" + struct.name + "]."));
+        throw error2(new IllegalArgumentException("Unknown field [" + value + "] for type [" + struct.name + "]."));
     }
 
     @Override
