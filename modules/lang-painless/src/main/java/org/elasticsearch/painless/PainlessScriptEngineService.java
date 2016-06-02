@@ -29,6 +29,7 @@ import org.elasticsearch.script.CompiledScript;
 import org.elasticsearch.script.ExecutableScript;
 import org.elasticsearch.script.LeafSearchScript;
 import org.elasticsearch.script.ScriptEngineService;
+import org.elasticsearch.script.ScriptException;
 import org.elasticsearch.script.SearchScript;
 import org.elasticsearch.search.lookup.SearchLookup;
 
@@ -38,6 +39,7 @@ import java.security.AccessController;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -147,13 +149,17 @@ public final class PainlessScriptEngineService extends AbstractComponent impleme
             }
         });
 
-        // Drop all permissions to actually compile the code itself.
-        return AccessController.doPrivileged(new PrivilegedAction<Executable>() {
-            @Override
-            public Executable run() {
-                return Compiler.compile(loader, scriptName == null ? INLINE_NAME : scriptName, scriptSource, compilerSettings);
-            }
-        }, COMPILATION_CONTEXT);
+        try {
+            // Drop all permissions to actually compile the code itself.
+            return AccessController.doPrivileged(new PrivilegedAction<Executable>() {
+                @Override
+                public Executable run() {
+                    return Compiler.compile(loader, scriptName == null ? INLINE_NAME : scriptName, scriptSource, compilerSettings);
+                }
+            }, COMPILATION_CONTEXT);
+        } catch (Exception e) {
+            throw convertToScriptException(scriptSource, e);
+        }
     }
 
     /**
@@ -212,5 +218,9 @@ public final class PainlessScriptEngineService extends AbstractComponent impleme
     @Override
     public void close() {
         // Nothing to do.
+    }
+    
+    private ScriptException convertToScriptException(String scriptSource, Throwable t) {
+        throw new ScriptException("compile error", t, Collections.emptyList(), scriptSource, PainlessScriptEngineService.NAME);
     }
 }
