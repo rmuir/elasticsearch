@@ -107,10 +107,10 @@ public final class WriterConstants {
     /** invokedynamic bootstrap for lambda expression/method references */
     public final static MethodType LAMBDA_BOOTSTRAP_TYPE =
             MethodType.methodType(CallSite.class, MethodHandles.Lookup.class, String.class, 
-                                  MethodType.class, MethodType.class, MethodHandle.class, MethodType.class);
+                                  MethodType.class, Object[].class);
     public final static Handle LAMBDA_BOOTSTRAP_HANDLE =
             new Handle(Opcodes.H_INVOKESTATIC, Type.getInternalName(LambdaMetafactory.class),
-                "metafactory", LAMBDA_BOOTSTRAP_TYPE.toMethodDescriptorString());
+                "altMetafactory", LAMBDA_BOOTSTRAP_TYPE.toMethodDescriptorString());
         
     /** dynamic invokedynamic bootstrap for indy string concats (Java 9+) */
     public final static Handle INDY_STRING_CONCAT_BOOTSTRAP_HANDLE;

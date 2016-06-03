@@ -19,6 +19,7 @@
 
 package org.elasticsearch.painless;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -117,13 +118,5 @@ public class BasicAPITests extends ScriptTestCase {
     public void testInterfacesHaveObject() {
         assertEquals("{}", exec("Map map = new HashMap(); return map.toString();"));
         assertEquals("{}", exec("def map = new HashMap(); return map.toString();"));
-    }
-    
-    public void testStaticMethodReference() {
-        assertEquals("1", exec("List l = new ArrayList(); l.add(2); l.add(1); l.sort(Integer::compareTo); return l.get(0);"));
-    }
-    
-    public void testVirtualMethodReference() {
-        assertEquals("2", exec("List l = new ArrayList(); l.add(1); l.add(1); return l.stream().mapToInt(Integer::intValue).sum();"));
     }
 }

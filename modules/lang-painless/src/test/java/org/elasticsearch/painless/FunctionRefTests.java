@@ -19,12 +19,59 @@
 
 package org.elasticsearch.painless;
 
+import java.util.Collections;
+
 public class FunctionRefTests extends ScriptTestCase {
-    public void testUnsupported() {
+    // not yet
+    public void testDynamicUnsupported() {
         expectScriptThrows(UnsupportedOperationException.class, () -> {
-           exec("DoubleStream.Builder builder = DoubleStream.builder();" +
+           exec("def builder = DoubleStream.builder();" +
                "builder.add(2.0); builder.add(1.0); builder.add(3.0);" +
                "builder.build().reduce(Double::unsupported);");
+        });
+    }
+
+    public void testStaticMethodReference() {
+        assertEquals(1, exec("List l = new ArrayList(); l.add(2); l.add(1); l.sort(Integer::compare); return l.get(0);"));
+    }
+
+    public void testVirtualMethodReference() {
+        assertEquals(2, exec("List l = new ArrayList(); l.add(1); l.add(1); return l.stream().mapToInt(Integer::intValue).sum();"));
+    }
+
+    // TODO: there is an ambiguity issue with constructor refs (Foo::new)
+    // TODO: even disabling ambiguity, Foo::new doesn't get parsed to a ref
+    // when this is fixed, this test should fail with:
+    //  IllegalArgumentException[Unknown reference [DoubleSummaryStatistics::new] matching [interface java.util.function.Supplier]];
+    // then we can add constructor support!
+    @AwaitsFix(bugUrl = "for jack")
+    public void testCtorMethodReference() {
+        assertEquals(5, 
+            exec("List l = new ArrayList(); l.add(1.0); l.add(2.0); " + 
+                 "DoubleStream doubleStream = l.stream().mapToDouble(Double::doubleValue);" + 
+                 "DoubleSummaryStatistics stats = doubleStream.collect(DoubleSummaryStatistics::new, " +
+                                                                      "DoubleSummaryStatistics::accept, " +
+                                                                      "DoubleSummaryStatistics::combine); " + 
+                 "return stats.getSum()", Collections.emptyMap(), Collections.emptyMap(), null));
+    }
+
+    public void testMethodMissing() {
+        IllegalArgumentException expected = expectScriptThrows(IllegalArgumentException.class, () -> {
+            exec("List l = new ArrayList(); l.add(2); l.add(1); l.sort(Integer::bogus); return l.get(0);");
+        });
+        assertTrue(expected.getMessage().contains("Unknown reference"));
+    }
+
+    public void testNotFunctionalInterface() {
+        IllegalArgumentException expected = expectScriptThrows(IllegalArgumentException.class, () -> {
+            exec("List l = new ArrayList(); l.add(2); l.add(1); l.add(Integer::bogus); return l.get(0);");
+        });
+        assertTrue(expected.getMessage().contains("Cannot convert function reference"));
+    }
+
+    public void testIncompatible() {
+        expectScriptThrows(BootstrapMethodError.class, () -> {
+            exec("List l = new ArrayList(); l.add(2); l.add(1); l.sort(String::startsWith); return l.get(0);");
         });
     }
 }

@@ -29,6 +29,7 @@ import org.objectweb.asm.Type;
 
 import static org.elasticsearch.painless.WriterConstants.LAMBDA_BOOTSTRAP_HANDLE;
 
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,6 +45,7 @@ public class EFunctionRef extends AExpression {
     private Type invokedType;
     private Handle implMethod;
     private Type samMethodType;
+    private Type interfaceType;
 
     public EFunctionRef(Location location, String type, String call) {
         super(location);
@@ -63,28 +65,41 @@ public class EFunctionRef extends AExpression {
         // e.g. compareTo
         invokedName = method.getName();
         // e.g. (Object)Comparator
-        invokedType = Type.getMethodType(Type.getType(expected.clazz)); // TODO: args????
+        invokedType = Type.getMethodType(Type.getType(expected.clazz));
+        // e.g. (Object,Object)int
+        interfaceType = Type.getMethodType(Type.getMethodDescriptor(method));
         // lookup requested method
         Definition.Struct struct = Definition.getType(type).struct;
+        // look for a static impl first
         Definition.Method impl = struct.staticMethods.get(new Definition.MethodKey(call, method.getParameterCount()));
+        // otherwise a virtual impl
         if (impl == null) {
             impl = struct.methods.get(new Definition.MethodKey(call, method.getParameterCount()-1));
         }
+        // TODO: constructor
+        // otherwise not found:
         if (impl == null) {
-            assert false : method + "/" + method.getParameterCount();
+            throw createError(new IllegalArgumentException("Unknown reference [" + type + "::" + call + "] matching " +
+                                                           "[" + expected.clazz + "]"));
         }
         
-        int tag = Opcodes.H_INVOKEVIRTUAL;
+        final int tag;
         if (Modifier.isStatic(impl.modifiers)) {
             tag = Opcodes.H_INVOKESTATIC;
+        } else {
+            tag = Opcodes.H_INVOKEVIRTUAL;
         }
         implMethod = new Handle(tag, struct.type.getInternalName(), impl.name, impl.method.getDescriptor());
         // e.g. (Object,Object)int
-        Type[] argTypes = impl.method.getArgumentTypes();
-        Type[] params = new Type[argTypes.length + 1];
-        System.arraycopy(argTypes, 0, params, 1, argTypes.length);
-        params[0] = struct.type;
-        samMethodType = Type.getMethodType(impl.method.getReturnType(), params);
+        if (Modifier.isStatic(impl.modifiers)) {
+            samMethodType = Type.getMethodType(impl.method.getReturnType(), impl.method.getArgumentTypes());
+        } else {
+            Type[] argTypes = impl.method.getArgumentTypes();
+            Type[] params = new Type[argTypes.length + 1];
+            System.arraycopy(argTypes, 0, params, 1, argTypes.length);
+            params[0] = struct.type;
+            samMethodType = Type.getMethodType(impl.method.getReturnType(), params);
+        }
         // ok we're good
         actual = expected;
     }
@@ -95,10 +110,15 @@ public class EFunctionRef extends AExpression {
             throw createError(new IllegalStateException("Illegal tree structure."));
         }
         writer.writeDebugInfo(location);
-        //System.out.println("Lambda: invokedType=" + invokedType.getDescriptor() 
-        //+ ",samMethodType=" + samMethodType + ",implMethod=" + implMethod);
-        writer.visitInvokeDynamicInsn(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
-                                      samMethodType, implMethod, samMethodType);
+        // currently if the interface differs, we ask for a bridge, but maybe we should do smarter checking?
+        // either way, stuff will fail if its wrong :)
+        if (interfaceType.equals(samMethodType)) {
+            writer.invokeDynamic(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
+                                 samMethodType, implMethod, samMethodType);
+        } else {
+            writer.invokeDynamic(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
+                                 samMethodType, implMethod, samMethodType, LambdaMetafactory.FLAG_BRIDGES, 1, interfaceType);
+        }
     }
     
     static final Set<Definition.MethodKey> OBJECT_METHODS = new HashSet<>();
@@ -107,12 +127,12 @@ public class EFunctionRef extends AExpression {
             OBJECT_METHODS.add(new Definition.MethodKey(m.getName(), m.getParameterCount()));
         }
     }
-    
-    
+
+    // TODO: move all this crap out, to Definition to compute up front
     java.lang.reflect.Method getFunctionalMethod(Class<?> clazz) {
         if (!clazz.isInterface()) {
             throw createError(new IllegalArgumentException("Cannot convert function reference [" 
-                                                     + type + "::" + call + "] to [" + expected.name + "]"));
+                                                          + type + "::" + call + "] to [" + expected.name + "]"));
         }
         for (java.lang.reflect.Method m : clazz.getMethods()) {
             if (m.isDefault()) {
