@@ -732,6 +732,12 @@ public final class Definition {
                 " method [" + name + "]" +
                 " within the struct [" + owner.name + "].");
         }
+        
+        if (reflect.isBridge()) {
+            throw new IllegalArgumentException("Method [" + name +
+                    "] in class class [" + owner.name + "]" +
+                    " with arguments " + Arrays.toString(classes) + " is a bridge method!!!!!");
+        }
 
         final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
 
