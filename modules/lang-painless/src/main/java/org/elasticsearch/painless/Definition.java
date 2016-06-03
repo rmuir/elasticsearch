@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -733,12 +734,6 @@ public final class Definition {
                 " within the struct [" + owner.name + "].");
         }
         
-        if (reflect.isBridge()) {
-            throw new IllegalArgumentException("Method [" + name +
-                    "] in class class [" + owner.name + "]" +
-                    " with arguments " + Arrays.toString(classes) + " is a bridge method!!!!!");
-        }
-
         final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
 
         MethodHandle handle;
@@ -839,11 +834,28 @@ public final class Definition {
                 throw new ClassCastException("Child struct [" + child.name + "]" +
                     " is not a super type of owner struct [" + owner.name + "] in copy.");
             }
-
+            
             for (Map.Entry<MethodKey,Method> kvPair : child.methods.entrySet()) {
                 MethodKey methodKey = kvPair.getKey();
                 Method method = kvPair.getValue();
                 if (owner.methods.get(methodKey) == null) {
+                    // sanity check, look for missing covariant override
+                    if (owner.clazz.isInterface() && child.clazz == Object.class) {
+                        // ok
+                    } else {
+                        try {
+                            Class<?> arguments[] = new Class<?>[method.arguments.size()];
+                            for (int i = 0; i < method.arguments.size(); i++) {
+                                arguments[i] = method.arguments.get(i).clazz;
+                            }
+                            java.lang.reflect.Method m = owner.clazz.getMethod(method.method.getName(), arguments);
+                            if (m.getReturnType() != method.rtn.clazz) {
+                                throw new IllegalStateException("missing covariant override for: " + m);
+                            }
+                        } catch (ReflectiveOperationException e) {
+                            throw new AssertionError(e);
+                        }
+                    }
                     owner.methods.put(methodKey,
                         new Method(method.name, owner, method.rtn, method.arguments, method.method, method.modifiers, method.handle));
                 }
