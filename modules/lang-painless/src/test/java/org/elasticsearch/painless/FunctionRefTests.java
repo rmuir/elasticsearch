@@ -39,12 +39,8 @@ public class FunctionRefTests extends ScriptTestCase {
         assertEquals(2, exec("List l = new ArrayList(); l.add(1); l.add(1); return l.stream().mapToInt(Integer::intValue).sum();"));
     }
 
-    // TODO: there is an ambiguity issue with constructor refs (Foo::new)
-    // TODO: even disabling ambiguity, Foo::new doesn't get parsed to a ref
-    // when this is fixed, this test should fail with:
-    //  IllegalArgumentException[Unknown reference [DoubleSummaryStatistics::new] matching [interface java.util.function.Supplier]];
-    // then we can add constructor support!
-    @AwaitsFix(bugUrl = "for jack")
+    // now we can add constructor support!
+    @AwaitsFix(bugUrl = "for rob")
     public void testCtorMethodReference() {
         assertEquals(5, 
             exec("List l = new ArrayList(); l.add(1.0); l.add(2.0); " + 
@@ -52,7 +48,7 @@ public class FunctionRefTests extends ScriptTestCase {
                  "DoubleSummaryStatistics stats = doubleStream.collect(DoubleSummaryStatistics::new, " +
                                                                       "DoubleSummaryStatistics::accept, " +
                                                                       "DoubleSummaryStatistics::combine); " + 
-                 "return stats.getSum()", Collections.emptyMap(), Collections.emptyMap(), null));
+                 "return stats.getSum()"));
     }
 
     public void testMethodMissing() {
