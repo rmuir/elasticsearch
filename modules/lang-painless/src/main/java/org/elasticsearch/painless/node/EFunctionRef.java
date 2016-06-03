@@ -95,7 +95,8 @@ public class EFunctionRef extends AExpression {
             throw createError(new IllegalStateException("Illegal tree structure."));
         }
         writer.writeDebugInfo(location);
-        System.out.println("Lambda: invokedType=" + invokedType.getDescriptor() + ",samMethodType=" + samMethodType + ",implMethod=" + implMethod);
+        //System.out.println("Lambda: invokedType=" + invokedType.getDescriptor() 
+        //+ ",samMethodType=" + samMethodType + ",implMethod=" + implMethod);
         writer.visitInvokeDynamicInsn(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
                                       samMethodType, implMethod, samMethodType);
     }

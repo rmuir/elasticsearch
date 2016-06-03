@@ -454,6 +454,7 @@ class Calendar -> java.util.Calendar extends Comparable,Object {
   void clear()
   void clear(int)
   def clone()
+  int compareTo(Calendar)
   int get(int)
   int getActualMaximum(int)
   int getActualMinimum(int)
@@ -584,6 +585,7 @@ class Date -> java.util.Date extends Comparable,Object {
   boolean after(Date)
   boolean before(Date)
   def clone()
+  int compareTo(Date)
   Date from(Instant)
   long getTime()
   void setTime(long)
@@ -999,6 +1001,7 @@ class TreeSet -> java.util.TreeSet extends AbstractSet,NavigableSet,SortedSet,Se
 
 class UUID -> java.util.UUID extends Comparable,Object {
   UUID <init>(long,long)
+  int compareTo(UUID)
   int clockSequence()
   UUID fromString(String)
   long getLeastSignificantBits()

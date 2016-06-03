@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.PrimitiveIterator;
+import java.util.Spliterator;
 
 /**
  * The entire API for Painless.  Also used as a whitelist for checking for legal
@@ -839,9 +841,11 @@ public final class Definition {
                 MethodKey methodKey = kvPair.getKey();
                 Method method = kvPair.getValue();
                 if (owner.methods.get(methodKey) == null) {
-                    // sanity check, look for missing covariant override
+                    // sanity check, look for missing covariant/generic override
                     if (owner.clazz.isInterface() && child.clazz == Object.class) {
                         // ok
+                    } else if (child.clazz == Spliterator.OfPrimitive.class || child.clazz == PrimitiveIterator.class) {
+                        // ok, we rely on generics erasure for these (its guaranteed in the javadocs though!!!!)
                     } else {
                         try {
                             Class<?> arguments[] = new Class<?>[method.arguments.size()];
@@ -850,7 +854,14 @@ public final class Definition {
                             }
                             java.lang.reflect.Method m = owner.clazz.getMethod(method.method.getName(), arguments);
                             if (m.getReturnType() != method.rtn.clazz) {
-                                throw new IllegalStateException("missing covariant override for: " + m);
+                                throw new IllegalStateException("missing covariant override for: " + m + " in " + owner.name);
+                            }
+                            if (m.isBridge() && !Modifier.isVolatile(method.modifiers)) {
+                                // its a bridge in the destination, but not in the source, but it might still be ok, check generics:
+                                java.lang.reflect.Method source = child.clazz.getMethod(method.method.getName(), arguments);
+                                if (!Arrays.equals(source.getGenericParameterTypes(), source.getParameterTypes())) {
+                                    throw new IllegalStateException("missing generic override for: " + m + " in " + owner.name);
+                                }
                             }
                         } catch (ReflectiveOperationException e) {
                             throw new AssertionError(e);
