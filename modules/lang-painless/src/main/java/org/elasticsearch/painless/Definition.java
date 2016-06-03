@@ -167,7 +167,7 @@ public final class Definition {
 
         @Override
         public String toString() {
-            return name + " -> " + clazz.getName();
+            return name;
         }
     }
 

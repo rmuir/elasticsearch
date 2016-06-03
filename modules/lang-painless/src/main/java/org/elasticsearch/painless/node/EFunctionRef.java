@@ -20,7 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
-import org.elasticsearch.painless.Definition.Method;
+import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Variables;
 import org.objectweb.asm.Handle;
@@ -45,8 +45,9 @@ public class EFunctionRef extends AExpression {
     private Handle implMethod;
     private Type samMethodType;
 
-    public EFunctionRef(int line, int offset, String location, String type, String call) {
-        super(line, offset, location);
+    public EFunctionRef(Location location, String type, String call) {
+        super(location);
+
         this.type = type;
         this.call = call;
     }
@@ -91,9 +92,9 @@ public class EFunctionRef extends AExpression {
     @Override
     void write(MethodWriter writer) {
         if (expected == null) {
-            throw new IllegalStateException(error("Illegal tree structure."));
+            throw createError(new IllegalStateException("Illegal tree structure."));
         }
-        writer.writeDebugInfo(offset);
+        writer.writeDebugInfo(location);
         System.out.println("Lambda: invokedType=" + invokedType.getDescriptor() + ",samMethodType=" + samMethodType + ",implMethod=" + implMethod);
         writer.visitInvokeDynamicInsn(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
                                       samMethodType, implMethod, samMethodType);
@@ -109,7 +110,7 @@ public class EFunctionRef extends AExpression {
     
     java.lang.reflect.Method getFunctionalMethod(Class<?> clazz) {
         if (!clazz.isInterface()) {
-            throw new IllegalArgumentException(error("Cannot convert function reference [" 
+            throw createError(new IllegalArgumentException("Cannot convert function reference [" 
                                                      + type + "::" + call + "] to [" + expected.name + "]"));
         }
         for (java.lang.reflect.Method m : clazz.getMethods()) {
@@ -121,7 +122,7 @@ public class EFunctionRef extends AExpression {
             }
             return m;
         }
-        throw new IllegalArgumentException(error("Cannot convert function reference [" 
+        throw createError(new IllegalArgumentException("Cannot convert function reference [" 
                                                      + type + "::" + call + "] to [" + expected.name + "]"));
     }
 }
