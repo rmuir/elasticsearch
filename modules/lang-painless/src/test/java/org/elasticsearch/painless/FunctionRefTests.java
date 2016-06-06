@@ -19,8 +19,6 @@
 
 package org.elasticsearch.painless;
 
-import java.util.Collections;
-
 public class FunctionRefTests extends ScriptTestCase {
     // not yet
     public void testDynamicUnsupported() {

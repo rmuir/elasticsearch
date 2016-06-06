@@ -134,14 +134,14 @@ public final class Def {
      * <p>
      * @param receiverClass Class of the object to invoke the method on.
      * @param name Name of the method.
-     * @param type Callsite signature. Need not match exactly, except the number of parameters.
+     * @param args args passed to callsite
      * @return pointer to matching method to invoke. never returns null.
      * @throws IllegalArgumentException if no matching whitelisted method was found.
      */
-     static MethodHandle lookupMethod(Class<?> receiverClass, String name, MethodType type) {
+     static MethodHandle lookupMethod(Class<?> receiverClass, String name, Object args[]) {
          // we don't consider receiver an argument/counting towards arity
-         type = type.dropParameterTypes(0, 1);
-         Definition.MethodKey key = new Definition.MethodKey(name, type.parameterCount());
+         int arity = args.length - 1;
+         Definition.MethodKey key = new Definition.MethodKey(name, arity);
          // check whitelist for matching method
          for (Class<?> clazz = receiverClass; clazz != null; clazz = clazz.getSuperclass()) {
              RuntimeClass struct = Definition.getRuntimeClass(clazz);
@@ -166,7 +166,7 @@ public final class Def {
          }
 
          // no matching methods in whitelist found
-         throw new IllegalArgumentException("Unable to find dynamic method [" + name + "] with signature [" + type + "] " +
+         throw new IllegalArgumentException("Unable to find dynamic method [" + name + "] with [" + arity + "] arguments " +
                  "for class [" + receiverClass.getCanonicalName() + "].");
     }
 

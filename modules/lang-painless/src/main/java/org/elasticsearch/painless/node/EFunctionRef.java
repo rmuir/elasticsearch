@@ -23,16 +23,10 @@ import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Variables;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 
 import static org.elasticsearch.painless.WriterConstants.LAMBDA_BOOTSTRAP_HANDLE;
 
 import java.lang.invoke.LambdaMetafactory;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Represents a function reference.
@@ -41,11 +35,7 @@ public class EFunctionRef extends AExpression {
     public final String type;
     public final String call;
     
-    private String invokedName;
-    private Type invokedType;
-    private Handle implMethod;
-    private Type samMethodType;
-    private Type interfaceType;
+    private FunctionRef ref;
 
     public EFunctionRef(Location location, String type, String call) {
         super(location);
@@ -57,103 +47,34 @@ public class EFunctionRef extends AExpression {
     @Override
     void analyze(Variables variables) {
         if (expected == null) {
-            throw new UnsupportedOperationException("dynamic case not implemented yet");
-        }
-        boolean isCtorReference = "new".equals(call);
-        // check its really a functional interface
-        // for e.g. Comparable
-        java.lang.reflect.Method method = getFunctionalMethod(expected.clazz);
-        // e.g. compareTo
-        invokedName = method.getName();
-        // e.g. (Object)Comparator
-        invokedType = Type.getMethodType(Type.getType(expected.clazz));
-        // e.g. (Object,Object)int
-        interfaceType = Type.getMethodType(Type.getMethodDescriptor(method));
-        // lookup requested method
-        Definition.Struct struct = Definition.getType(type).struct;
-        final Definition.Method impl;
-        // ctor ref
-        if (isCtorReference) {
-            impl = struct.constructors.get(new Definition.MethodKey("<init>", method.getParameterCount()));
+            ref = null;
+            actual = Definition.getType("String");
         } else {
-            // look for a static impl first
-            Definition.Method staticImpl = struct.staticMethods.get(new Definition.MethodKey(call, method.getParameterCount()));
-            if (staticImpl == null) {
-                // otherwise a virtual impl
-                impl = struct.methods.get(new Definition.MethodKey(call, method.getParameterCount()-1));
-            } else {
-                impl = staticImpl;
+            try {
+                ref = new FunctionRef(expected.clazz, type, call);
+            } catch (IllegalArgumentException e) {
+                throw createError(e);
             }
+            actual = expected;
         }
-        if (impl == null) {
-            throw createError(new IllegalArgumentException("Unknown reference [" + type + "::" + call + "] matching " +
-                                                           "[" + expected.clazz + "]"));
-        }
-        
-        final int tag;
-        if (isCtorReference) {
-            tag = Opcodes.H_NEWINVOKESPECIAL;
-        } else if (Modifier.isStatic(impl.modifiers)) {
-            tag = Opcodes.H_INVOKESTATIC;
-        } else {
-            tag = Opcodes.H_INVOKEVIRTUAL;
-        }
-        implMethod = new Handle(tag, struct.type.getInternalName(), impl.name, impl.method.getDescriptor());
-        if (isCtorReference) {
-            samMethodType = Type.getMethodType(interfaceType.getReturnType(), impl.method.getArgumentTypes());
-        } else if (Modifier.isStatic(impl.modifiers)) {
-            samMethodType = Type.getMethodType(impl.method.getReturnType(), impl.method.getArgumentTypes());
-        } else {
-            Type[] argTypes = impl.method.getArgumentTypes();
-            Type[] params = new Type[argTypes.length + 1];
-            System.arraycopy(argTypes, 0, params, 1, argTypes.length);
-            params[0] = struct.type;
-            samMethodType = Type.getMethodType(impl.method.getReturnType(), params);
-        }
-        // ok we're good
-        actual = expected;
     }
 
     @Override
     void write(MethodWriter writer) {
-        if (expected == null) {
-            throw createError(new IllegalStateException("Illegal tree structure."));
-        }
-        writer.writeDebugInfo(location);
-        // currently if the interface differs, we ask for a bridge, but maybe we should do smarter checking?
-        // either way, stuff will fail if its wrong :)
-        if (interfaceType.equals(samMethodType)) {
-            writer.invokeDynamic(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
-                                 samMethodType, implMethod, samMethodType, 0);
+        if (ref == null) {
+            writer.push(type + ":" + call);
         } else {
-            writer.invokeDynamic(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
-                                 samMethodType, implMethod, samMethodType, LambdaMetafactory.FLAG_BRIDGES, 1, interfaceType);
-        }
-    }
-    
-    static final Set<Definition.MethodKey> OBJECT_METHODS = new HashSet<>();
-    static {
-        for (java.lang.reflect.Method m : Object.class.getMethods()) {
-            OBJECT_METHODS.add(new Definition.MethodKey(m.getName(), m.getParameterCount()));
-        }
-    }
-
-    // TODO: move all this crap out, to Definition to compute up front
-    java.lang.reflect.Method getFunctionalMethod(Class<?> clazz) {
-        if (!clazz.isInterface()) {
-            throw createError(new IllegalArgumentException("Cannot convert function reference [" 
-                                                          + type + "::" + call + "] to [" + expected.name + "]"));
-        }
-        for (java.lang.reflect.Method m : clazz.getMethods()) {
-            if (m.isDefault()) {
-                continue;
+            writer.writeDebugInfo(location);
+            // currently if the interface differs, we ask for a bridge, but maybe we should do smarter checking?
+            // either way, stuff will fail if its wrong :)
+            if (ref.interfaceType.equals(ref.samMethodType)) {
+                writer.invokeDynamic(ref.invokedName, ref.invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
+                                     ref.samMethodType, ref.implMethod, ref.samMethodType, 0);
+            } else {
+                writer.invokeDynamic(ref.invokedName, ref.invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
+                                     ref.samMethodType, ref.implMethod, ref.samMethodType, 
+                                     LambdaMetafactory.FLAG_BRIDGES, 1, ref.interfaceType);
             }
-            if (OBJECT_METHODS.contains(new Definition.MethodKey(m.getName(), m.getParameterCount()))) {
-                continue;
-            }
-            return m;
         }
-        throw createError(new IllegalArgumentException("Cannot convert function reference [" 
-                                                     + type + "::" + call + "] to [" + expected.name + "]"));
     }
 }
