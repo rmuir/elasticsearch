@@ -28,13 +28,19 @@ import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
+/** 
+ * computes "everything you need" to call LambdaMetaFactory, given an expected interface,
+ * and reference class + method name
+ */
 public class FunctionRef {
+    // XXX: this is a mess, because of ASM versus MethodHandle types
+    // clean all this up, move reflection out of here into definition, etc etc
     public final String invokedName;
     public final Type invokedType;
     public final Handle implMethod;
     public final Type samMethodType;
     public final Type interfaceType;
-    
+
     public final MethodHandle implMethodHandle;
     
     public FunctionRef(Class<?> expected, String type, String call) {

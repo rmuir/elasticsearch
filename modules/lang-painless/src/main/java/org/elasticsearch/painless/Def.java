@@ -29,15 +29,12 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.elasticsearch.painless.WriterConstants.LAMBDA_BOOTSTRAP_HANDLE;
 
 /**
  * Support for dynamic type (def).
@@ -240,8 +237,10 @@ public final class Def {
              throw new RuntimeException(e);
          }
          try {
-             Object o = callSite.dynamicInvoker().asType(MethodType.methodType(clazz)).invoke();
-             return MethodHandles.dropArguments(MethodHandles.constant(clazz, o), 0, Object.class);
+             // create an implementation of the interface (instance)
+             Object instance = callSite.dynamicInvoker().asType(MethodType.methodType(clazz)).invoke();
+             // bind this instance as a constant replacement for the parameter
+             return MethodHandles.dropArguments(MethodHandles.constant(clazz, instance), 0, Object.class);
          } catch (Throwable e) {
              throw new RuntimeException(e);
          }
