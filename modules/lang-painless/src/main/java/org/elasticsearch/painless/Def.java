@@ -194,6 +194,7 @@ public final class Def {
 
          if (recipe != 0) {
              for (int i = 0; i < args.length; i++) {
+                 // its a functional reference, replace the argument with an impl
                  if ((recipe & (1L << (i - 1))) != 0) {
                      filters[i] = lookupReference(method.arguments.get(i - 1).clazz, (String) args[i]);
                  }
@@ -204,12 +205,13 @@ public final class Def {
          return handle;
      }
      
+     /** Returns a method handle to an implementation of clazz, given method reference signature */
      private static MethodHandle lookupReference(Class<?> clazz, String signature) {
          int separator = signature.indexOf('.');
          FunctionRef ref = new FunctionRef(clazz, signature.substring(0, separator), signature.substring(separator+1));
-         MethodHandles.Lookup lookup = MethodHandles.lookup(); // XXX: no lookuping needed
+         MethodHandles.Lookup lookup = MethodHandles.lookup(); // XXX: no lookuping needed, we should pass this from DefBootstrap!
          final CallSite callSite;
-         // XXX: clean all this up to use handles, deal with ASM in EFunctionRef
+         // XXX: clean all this up to use handles in FunctionRef, deal with ASM in EFunctionRef differently
          MethodType invokedType = MethodType.fromMethodDescriptorString(ref.invokedType.getDescriptor(), Def.class.getClassLoader());
          MethodType samMethodType = MethodType.fromMethodDescriptorString(ref.samMethodType.getDescriptor(), Def.class.getClassLoader());
          MethodType interfaceType = MethodType.fromMethodDescriptorString(ref.interfaceType.getDescriptor(), Def.class.getClassLoader());
