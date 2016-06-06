@@ -39,8 +39,6 @@ public class FunctionRefTests extends ScriptTestCase {
         assertEquals(2, exec("List l = new ArrayList(); l.add(1); l.add(1); return l.stream().mapToInt(Integer::intValue).sum();"));
     }
 
-    // now we can add constructor support!
-    @AwaitsFix(bugUrl = "for rob")
     public void testCtorMethodReference() {
         assertEquals(5, 
             exec("List l = new ArrayList(); l.add(1.0); l.add(2.0); " + 

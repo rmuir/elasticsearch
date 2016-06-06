@@ -59,6 +59,7 @@ public class EFunctionRef extends AExpression {
         if (expected == null) {
             throw new UnsupportedOperationException("dynamic case not implemented yet");
         }
+        boolean isCtorReference = "new".equals(call);
         // check its really a functional interface
         // for e.g. Comparable
         java.lang.reflect.Method method = getFunctionalMethod(expected.clazz);
@@ -70,28 +71,36 @@ public class EFunctionRef extends AExpression {
         interfaceType = Type.getMethodType(Type.getMethodDescriptor(method));
         // lookup requested method
         Definition.Struct struct = Definition.getType(type).struct;
-        // look for a static impl first
-        Definition.Method impl = struct.staticMethods.get(new Definition.MethodKey(call, method.getParameterCount()));
-        // otherwise a virtual impl
-        if (impl == null) {
-            impl = struct.methods.get(new Definition.MethodKey(call, method.getParameterCount()-1));
+        final Definition.Method impl;
+        // ctor ref
+        if (isCtorReference) {
+            impl = struct.constructors.get(new Definition.MethodKey(call, method.getParameterCount()));
+        } else {
+            // look for a static impl first
+            Definition.Method staticImpl = struct.staticMethods.get(new Definition.MethodKey(call, method.getParameterCount()));
+            if (staticImpl == null) {
+                // otherwise a virtual impl
+                impl = struct.methods.get(new Definition.MethodKey(call, method.getParameterCount()-1));
+            } else {
+                impl = staticImpl;
+            }
         }
-        // TODO: constructor
-        // otherwise not found:
         if (impl == null) {
             throw createError(new IllegalArgumentException("Unknown reference [" + type + "::" + call + "] matching " +
                                                            "[" + expected.clazz + "]"));
         }
         
         final int tag;
-        if (Modifier.isStatic(impl.modifiers)) {
+        if (isCtorReference) {
+            tag = Opcodes.H_INVOKESPECIAL;
+        } else if (Modifier.isStatic(impl.modifiers)) {
             tag = Opcodes.H_INVOKESTATIC;
         } else {
             tag = Opcodes.H_INVOKEVIRTUAL;
         }
         implMethod = new Handle(tag, struct.type.getInternalName(), impl.name, impl.method.getDescriptor());
         // e.g. (Object,Object)int
-        if (Modifier.isStatic(impl.modifiers)) {
+        if (isCtorReference || Modifier.isStatic(impl.modifiers)) {
             samMethodType = Type.getMethodType(impl.method.getReturnType(), impl.method.getArgumentTypes());
         } else {
             Type[] argTypes = impl.method.getArgumentTypes();
