@@ -573,7 +573,7 @@ public final class Definition {
                 "Owner struct [" + struct + "] not defined for constructor [" + name + "].");
         }
 
-        if (!name.matches("^[_a-zA-Z][_a-zA-Z0-9]*$")) {
+        if (!name.matches("<init>")) {
             throw new IllegalArgumentException(
                 "Invalid constructor name [" + name + "] with the struct [" + owner.name + "].");
         }
@@ -664,7 +664,7 @@ public final class Definition {
                 if (!elements[0].equals(className)) {
                     throw new IllegalArgumentException("Constructors must return their own type");
                 }
-                addConstructorInternal(className, "new", args);
+                addConstructorInternal(className, "<init>", args);
             } else {
                 if (methodName.indexOf('/') >= 0) {
                     String nameAndAlias[] = methodName.split("/");

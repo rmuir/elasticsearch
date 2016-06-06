@@ -74,7 +74,7 @@ public class EFunctionRef extends AExpression {
         final Definition.Method impl;
         // ctor ref
         if (isCtorReference) {
-            impl = struct.constructors.get(new Definition.MethodKey(call, method.getParameterCount()));
+            impl = struct.constructors.get(new Definition.MethodKey("<init>", method.getParameterCount()));
         } else {
             // look for a static impl first
             Definition.Method staticImpl = struct.staticMethods.get(new Definition.MethodKey(call, method.getParameterCount()));
@@ -92,15 +92,16 @@ public class EFunctionRef extends AExpression {
         
         final int tag;
         if (isCtorReference) {
-            tag = Opcodes.H_INVOKESPECIAL;
+            tag = Opcodes.H_NEWINVOKESPECIAL;
         } else if (Modifier.isStatic(impl.modifiers)) {
             tag = Opcodes.H_INVOKESTATIC;
         } else {
             tag = Opcodes.H_INVOKEVIRTUAL;
         }
         implMethod = new Handle(tag, struct.type.getInternalName(), impl.name, impl.method.getDescriptor());
-        // e.g. (Object,Object)int
-        if (isCtorReference || Modifier.isStatic(impl.modifiers)) {
+        if (isCtorReference) {
+            samMethodType = Type.getMethodType(interfaceType.getReturnType(), impl.method.getArgumentTypes());
+        } else if (Modifier.isStatic(impl.modifiers)) {
             samMethodType = Type.getMethodType(impl.method.getReturnType(), impl.method.getArgumentTypes());
         } else {
             Type[] argTypes = impl.method.getArgumentTypes();
@@ -123,7 +124,7 @@ public class EFunctionRef extends AExpression {
         // either way, stuff will fail if its wrong :)
         if (interfaceType.equals(samMethodType)) {
             writer.invokeDynamic(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
-                                 samMethodType, implMethod, samMethodType);
+                                 samMethodType, implMethod, samMethodType, 0);
         } else {
             writer.invokeDynamic(invokedName, invokedType.getDescriptor(), LAMBDA_BOOTSTRAP_HANDLE, 
                                  samMethodType, implMethod, samMethodType, LambdaMetafactory.FLAG_BRIDGES, 1, interfaceType);

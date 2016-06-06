@@ -40,7 +40,7 @@ public class FunctionRefTests extends ScriptTestCase {
     }
 
     public void testCtorMethodReference() {
-        assertEquals(5, 
+        assertEquals(3.0D, 
             exec("List l = new ArrayList(); l.add(1.0); l.add(2.0); " + 
                  "DoubleStream doubleStream = l.stream().mapToDouble(Double::doubleValue);" + 
                  "DoubleSummaryStatistics stats = doubleStream.collect(DoubleSummaryStatistics::new, " +
