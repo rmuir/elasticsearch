@@ -20,21 +20,21 @@
 package org.elasticsearch.painless;
 
 public class FunctionRefTests extends ScriptTestCase {
-    // not yet
-    public void testDynamicUnsupported() {
-        expectScriptThrows(UnsupportedOperationException.class, () -> {
-           exec("def builder = DoubleStream.builder();" +
-               "builder.add(2.0); builder.add(1.0); builder.add(3.0);" +
-               "builder.build().reduce(Double::unsupported);");
-        });
-    }
 
     public void testStaticMethodReference() {
         assertEquals(1, exec("List l = new ArrayList(); l.add(2); l.add(1); l.sort(Integer::compare); return l.get(0);"));
     }
+    
+    public void testStaticMethodReferenceDef() {
+        assertEquals(1, exec("def l = new ArrayList(); l.add(2); l.add(1); l.sort(Integer::compare); return l.get(0);"));
+    }
 
     public void testVirtualMethodReference() {
         assertEquals(2, exec("List l = new ArrayList(); l.add(1); l.add(1); return l.stream().mapToInt(Integer::intValue).sum();"));
+    }
+    
+    public void testVirtualMethodReferenceDef() {
+        assertEquals(2, exec("def l = new ArrayList(); l.add(1); l.add(1); return l.stream().mapToInt(Integer::intValue).sum();"));
     }
 
     public void testCtorMethodReference() {
@@ -44,6 +44,16 @@ public class FunctionRefTests extends ScriptTestCase {
                  "DoubleSummaryStatistics stats = doubleStream.collect(DoubleSummaryStatistics::new, " +
                                                                       "DoubleSummaryStatistics::accept, " +
                                                                       "DoubleSummaryStatistics::combine); " + 
+                 "return stats.getSum()"));
+    }
+    
+    public void testCtorMethodReferenceDef() {
+        assertEquals(3.0D, 
+            exec("def l = new ArrayList(); l.add(1.0); l.add(2.0); " + 
+                 "def doubleStream = l.stream().mapToDouble(Double::doubleValue);" + 
+                 "def stats = doubleStream.collect(DoubleSummaryStatistics::new, " +
+                                                  "DoubleSummaryStatistics::accept, " +
+                                                  "DoubleSummaryStatistics::combine); " + 
                  "return stats.getSum()"));
     }
 

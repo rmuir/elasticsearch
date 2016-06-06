@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.FunctionRef;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Variables;
@@ -62,7 +63,7 @@ public class EFunctionRef extends AExpression {
     @Override
     void write(MethodWriter writer) {
         if (ref == null) {
-            writer.push(type + ":" + call);
+            writer.push(type + "." + call);
         } else {
             writer.writeDebugInfo(location);
             // currently if the interface differs, we ask for a bridge, but maybe we should do smarter checking?

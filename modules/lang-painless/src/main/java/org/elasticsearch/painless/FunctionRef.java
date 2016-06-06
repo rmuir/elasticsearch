@@ -17,13 +17,13 @@
  * under the License.
  */
 
-package org.elasticsearch.painless.node;
+package org.elasticsearch.painless;
 
-import org.elasticsearch.painless.Definition;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +34,8 @@ public class FunctionRef {
     public final Handle implMethod;
     public final Type samMethodType;
     public final Type interfaceType;
+    
+    public final MethodHandle implMethodHandle;
     
     public FunctionRef(Class<?> expected, String type, String call) {
         boolean isCtorReference = "new".equals(call);
@@ -76,6 +78,7 @@ public class FunctionRef {
             tag = Opcodes.H_INVOKEVIRTUAL;
         }
         implMethod = new Handle(tag, struct.type.getInternalName(), impl.name, impl.method.getDescriptor());
+        implMethodHandle = impl.handle;
         if (isCtorReference) {
             samMethodType = Type.getMethodType(interfaceType.getReturnType(), impl.method.getArgumentTypes());
         } else if (Modifier.isStatic(impl.modifiers)) {
