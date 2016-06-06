@@ -174,21 +174,6 @@ public final class Definition {
         }
     }
 
-    public static final class Constructor {
-        public final String name;
-        public final Struct owner;
-        public final List<Type> arguments;
-        public final org.objectweb.asm.commons.Method method;
-
-        private Constructor(String name, Struct owner, List<Type> arguments,
-                            org.objectweb.asm.commons.Method method) {
-            this.name = name;
-            this.owner = owner;
-            this.arguments = Collections.unmodifiableList(arguments);
-            this.method = method;
-        }
-    }
-
     public static class Method {
         public final String name;
         public final Struct owner;
@@ -290,7 +275,7 @@ public final class Definition {
         public final Class<?> clazz;
         public final org.objectweb.asm.Type type;
 
-        public final Map<MethodKey, Constructor> constructors;
+        public final Map<MethodKey, Method> constructors;
         public final Map<MethodKey, Method> staticMethods;
         public final Map<MethodKey, Method> methods;
 
@@ -626,7 +611,18 @@ public final class Definition {
         }
 
         final org.objectweb.asm.commons.Method asm = org.objectweb.asm.commons.Method.getMethod(reflect);
-        final Constructor constructor = new Constructor(name, owner, Arrays.asList(args), asm);
+        final Type returnType = getTypeInternal("void");
+        final MethodHandle handle;
+        
+        try {
+            handle = MethodHandles.publicLookup().in(owner.clazz).unreflectConstructor(reflect);
+        } catch (final IllegalAccessException exception) {
+            throw new IllegalArgumentException("Constructor " +
+                " not found for class [" + owner.clazz.getName() + "]" +
+                " with arguments " + Arrays.toString(classes) + ".");
+        }
+        
+        final Method constructor = new Method(name, owner, returnType, Arrays.asList(args), asm, reflect.getModifiers(), handle);
 
         owner.constructors.put(methodKey, constructor);
     }
