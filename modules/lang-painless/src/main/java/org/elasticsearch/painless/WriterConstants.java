@@ -93,11 +93,6 @@ public final class WriterConstants {
     public final static Method DEF_TO_LONG_EXPLICIT   = getAsmMethod(long.class   , "DefTolongExplicit"  , Object.class);
     public final static Method DEF_TO_FLOAT_EXPLICIT  = getAsmMethod(float.class  , "DefTofloatExplicit" , Object.class);
     public final static Method DEF_TO_DOUBLE_EXPLICIT = getAsmMethod(double.class , "DefTodoubleExplicit", Object.class);
-    public final static Method DEF_MUL_CALL = getAsmMethod(Object.class , "mul", Object.class, Object.class);
-    public final static Method DEF_DIV_CALL = getAsmMethod(Object.class , "div", Object.class, Object.class);
-    public final static Method DEF_REM_CALL = getAsmMethod(Object.class , "rem", Object.class, Object.class);
-    public final static Method DEF_ADD_CALL = getAsmMethod(Object.class , "add", Object.class, Object.class);
-    public final static Method DEF_SUB_CALL = getAsmMethod(Object.class , "sub", Object.class, Object.class);
     public final static Method DEF_LSH_CALL = getAsmMethod(Object.class , "lsh", Object.class, int.class);
     public final static Method DEF_RSH_CALL = getAsmMethod(Object.class , "rsh", Object.class, int.class);
     public final static Method DEF_USH_CALL = getAsmMethod(Object.class , "ush", Object.class, int.class);

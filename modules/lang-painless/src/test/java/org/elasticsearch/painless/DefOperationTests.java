@@ -313,6 +313,29 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(2F, exec("def x = (float)1; def y = (float)1; return x + y"));
         assertEquals(2D, exec("def x = (double)1; def y = (double)1; return x + y"));
     }
+    
+    public void testAddConcat() {
+        assertEquals("a" + (byte)2, exec("def x = 'a'; def y = (byte)2; return x + y"));
+        assertEquals("a" + (short)2, exec("def x = 'a'; def y = (short)2; return x + y"));
+        assertEquals("a" + (char)2, exec("def x = 'a'; def y = (char)2; return x + y"));
+        assertEquals("a" + 2, exec("def x = 'a'; def y = (int)2; return x + y"));
+        assertEquals("a" + 2L, exec("def x = 'a'; def y = (long)2; return x + y"));
+        assertEquals("a" + 2F, exec("def x = 'a'; def y = (float)2; return x + y"));
+        assertEquals("a" + 2D, exec("def x = 'a'; def y = (double)2; return x + y"));
+        assertEquals("ab", exec("def x = 'a'; def y = 'b'; return x + y"));
+        assertEquals((byte)2 + "a", exec("def x = 'a'; def y = (byte)2; return y + x"));
+        assertEquals((short)2 + "a", exec("def x = 'a'; def y = (short)2; return y + x"));
+        assertEquals((char)2 + "a", exec("def x = 'a'; def y = (char)2; return y + x"));
+        assertEquals(2 + "a", exec("def x = 'a'; def y = (int)2; return y + x"));
+        assertEquals(2L + "a", exec("def x = 'a'; def y = (long)2; return y + x"));
+        assertEquals(2F + "a", exec("def x = 'a'; def y = (float)2; return y + x"));
+        assertEquals(2D + "a", exec("def x = 'a'; def y = (double)2; return y + x"));
+        assertEquals("anull", exec("def x = 'a'; def y = null; return x + y"));
+        assertEquals("nullb", exec("def x = null; def y = 'b'; return x + y"));
+        expectScriptThrows(NullPointerException.class, () -> {
+            exec("def x = null; def y = null; return x + y");
+        });
+    }
 
     public void testSub() {
         assertEquals(0, exec("def x = (byte)1; def y = (byte)1; return x - y"));

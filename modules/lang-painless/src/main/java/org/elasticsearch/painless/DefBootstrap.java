@@ -64,6 +64,8 @@ public final class DefBootstrap {
     public static final int REFERENCE = 6;
     /** static bootstrap parameter indicating a unary math operator, e.g. ~foo */
     public static final int UNARY_OPERATOR = 7;
+    /** static bootstrap parameter indicating a binary math operator, e.g. foo / bar */
+    public static final int BINARY_OPERATOR = 8;
 
     /**
      * CallSite that implements the polymorphic inlining cache (PIC).
@@ -84,6 +86,10 @@ public final class DefBootstrap {
             this.name = name;
             this.flavor = flavor;
             this.args = args;
+            
+            if (flavor == UNARY_OPERATOR || flavor == BINARY_OPERATOR) {
+                depth = MAX_DEPTH - 1; // use a monomorphic cache, fallback is fast.
+            }
 
             final MethodHandle fallback = FALLBACK.bindTo(this)
               .asCollector(Object[].class, type.parameterCount())
@@ -99,29 +105,52 @@ public final class DefBootstrap {
         static boolean checkClass(Class<?> clazz, Object receiver) {
             return receiver.getClass() == clazz;
         }
+        
+        static boolean checkBinary(Class<?> left, Class<?> right, Object leftObject, Object rightObject) {
+            return leftObject.getClass() == left && rightObject.getClass() == right;
+        }
 
         /**
          * Does a slow lookup against the whitelist.
          */
-        private MethodHandle lookup(int flavor, Class<?> clazz, String name, Object[] args) throws Throwable {
+        private MethodHandle lookup(int flavor, String name, Object[] args) throws Throwable {
             switch(flavor) {
                 case METHOD_CALL:
-                    return Def.lookupMethod(lookup, type(), clazz, name, args, (Long) this.args[0]);
+                    return Def.lookupMethod(lookup, type(), args[0].getClass(), name, args, (Long) this.args[0]);
                 case LOAD:
-                    return Def.lookupGetter(clazz, name);
+                    return Def.lookupGetter(args[0].getClass(), name);
                 case STORE:
-                    return Def.lookupSetter(clazz, name);
+                    return Def.lookupSetter(args[0].getClass(), name);
                 case ARRAY_LOAD:
-                    return Def.lookupArrayLoad(clazz);
+                    return Def.lookupArrayLoad(args[0].getClass());
                 case ARRAY_STORE:
-                    return Def.lookupArrayStore(clazz);
+                    return Def.lookupArrayStore(args[0].getClass());
                 case ITERATOR:
-                    return Def.lookupIterator(clazz);
+                    return Def.lookupIterator(args[0].getClass());
                 case REFERENCE:
-                    return Def.lookupReference(lookup, (String) this.args[0], clazz, name);
+                    return Def.lookupReference(lookup, (String) this.args[0], args[0].getClass(), name);
                 case UNARY_OPERATOR:
-                    return DefUnary.lookupOperator(clazz, name);
+                    return DefMath.lookupUnary(args[0].getClass(), name);
+                case BINARY_OPERATOR:
+                    if ("add".equals(name) && (args[0] instanceof String || args[1] instanceof String)) {
+                        return getGeneric(flavor, name); // can handle nulls and strings
+                    } else {
+                        return DefMath.lookupBinary(args[0].getClass(), args[1].getClass(), name);
+                    }
                 default: throw new AssertionError();
+            }
+        }
+        
+        /**
+         * Installs a permanent, generic solution that works with any parameter types, if possible.
+         */
+        private MethodHandle getGeneric(int flavor, String name) throws Throwable {
+            switch(flavor) {
+                case UNARY_OPERATOR:
+                case BINARY_OPERATOR:
+                    return DefMath.lookupGeneric(name);
+                default:
+                    return null;
             }
         }
 
@@ -131,21 +160,41 @@ public final class DefBootstrap {
          */
         @SuppressForbidden(reason = "slow path")
         Object fallback(Object[] args) throws Throwable {
-            final MethodType type = type();
-            final Object receiver = args[0];
-            final Class<?> receiverClass = receiver.getClass();
-            final MethodHandle target = lookup(flavor, receiverClass, name, args).asType(type);
-
             if (depth >= MAX_DEPTH) {
-                // revert to a vtable call
-                setTarget(target);
-                return target.invokeWithArguments(args);
+                // caching defeated
+                MethodHandle generic = getGeneric(flavor, name);
+                if (generic != null) {
+                    setTarget(generic.asType(type()));
+                    return generic.invokeWithArguments(args);
+                } else {
+                    return lookup(flavor, name, args).invokeWithArguments(args);
+                }
+            }
+            
+            final MethodType type = type();
+            final MethodHandle target = lookup(flavor, name, args).asType(type);
+
+            final MethodHandle test;
+            if (flavor == BINARY_OPERATOR) {
+                Class<?> clazz0 = args[0] == null ? null : args[0].getClass();
+                Class<?> clazz1 = args[1] == null ? null : args[1].getClass();
+                MethodHandle binaryTest = CHECK_BINARY.bindTo(clazz0).bindTo(clazz1);
+                test = binaryTest.asType(binaryTest.type()
+                                        .changeParameterType(0, type.parameterType(0))
+                                        .changeParameterType(1, type.parameterType(1)));
+            } else {
+                MethodHandle receiverTest = CHECK_CLASS.bindTo(args[0].getClass());
+                test = receiverTest.asType(receiverTest.type()
+                                        .changeParameterType(0, type.parameterType(0)));
             }
 
-            MethodHandle test = CHECK_CLASS.bindTo(receiverClass);
-            test = test.asType(test.type().changeParameterType(0, type.parameterType(0)));
-
-            final MethodHandle guard = MethodHandles.guardWithTest(test, target, getTarget());
+            MethodHandle guard = MethodHandles.guardWithTest(test, target, getTarget());
+            // this is a very special case, where even the receiver can be null (see JLS rules for string concat)
+            // we wrap + with an NPE catcher, and use our generic method in that case.
+            if (flavor == BINARY_OPERATOR && "add".equals(name)) {
+                MethodHandle handler = MethodHandles.dropArguments(getGeneric(flavor, name).asType(type()), 0, NullPointerException.class);
+                guard = MethodHandles.catchException(guard, NullPointerException.class, handler);
+            }
             
             depth++;
 
@@ -154,12 +203,15 @@ public final class DefBootstrap {
         }
 
         private static final MethodHandle CHECK_CLASS;
+        private static final MethodHandle CHECK_BINARY;
         private static final MethodHandle FALLBACK;
         static {
             final Lookup lookup = MethodHandles.lookup();
             try {
                 CHECK_CLASS = lookup.findStatic(lookup.lookupClass(), "checkClass",
                                                 MethodType.methodType(boolean.class, Class.class, Object.class));
+                CHECK_BINARY = lookup.findStatic(lookup.lookupClass(), "checkBinary",
+                                                MethodType.methodType(boolean.class, Class.class, Class.class, Object.class, Object.class));
                 FALLBACK = lookup.findVirtual(lookup.lookupClass(), "fallback",
                                               MethodType.methodType(Object.class, Object[].class));
             } catch (ReflectiveOperationException e) {
