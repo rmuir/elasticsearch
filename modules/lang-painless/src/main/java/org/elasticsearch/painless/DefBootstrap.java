@@ -31,9 +31,9 @@ import java.lang.invoke.MutableCallSite;
 /**
  * Painless invokedynamic bootstrap for the call site.
  * <p>
- * Has 5 flavors (passed as static bootstrap parameters): dynamic method call,
+ * Has 7 flavors (passed as static bootstrap parameters): dynamic method call,
  * dynamic field load (getter), and dynamic field store (setter), dynamic array load,
- * and dynamic array store.
+ * dynamic array store, iterator, and method reference.
  * <p>
  * When a new type is encountered at the call site, we lookup from the appropriate
  * whitelist, and cache with a guard. If we encounter too many types, we stop caching.
@@ -62,6 +62,8 @@ public final class DefBootstrap {
     public static final int ITERATOR = 5;
     /** static bootstrap parameter indicating a dynamic method reference, e.g. foo::bar */
     public static final int REFERENCE = 6;
+    /** static bootstrap parameter indicating a unary math operator, e.g. ~foo */
+    public static final int UNARY_OPERATOR = 7;
 
     /**
      * CallSite that implements the polymorphic inlining cache (PIC).
@@ -117,6 +119,8 @@ public final class DefBootstrap {
                     return Def.lookupIterator(clazz);
                 case REFERENCE:
                     return Def.lookupReference(lookup, (String) this.args[0], clazz, name);
+                case UNARY_OPERATOR:
+                    return DefUnary.lookupOperator(clazz, name);
                 default: throw new AssertionError();
             }
         }

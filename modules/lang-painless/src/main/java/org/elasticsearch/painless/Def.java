@@ -659,36 +659,6 @@ public final class Def {
     //       We also check for Long values first when possible since the type is more
     //       likely to be a Long than a Float.
 
-    public static Object not(final Object unary) {
-        if (unary instanceof Double || unary instanceof Long || unary instanceof Float) {
-            return ~((Number)unary).longValue();
-        } else if (unary instanceof Number) {
-            return ~((Number)unary).intValue();
-        } else if (unary instanceof Character) {
-            return ~(int)(char)unary;
-        }
-
-        throw new ClassCastException("Cannot apply [~] operation to type " +
-                "[" + unary.getClass().getCanonicalName() + "].");
-    }
-
-    public static Object neg(final Object unary) {
-        if (unary instanceof Double) {
-            return -(double)unary;
-        } else if (unary instanceof Float) {
-            return -(float)unary;
-        } else if (unary instanceof Long) {
-            return -(long)unary;
-        } else if (unary instanceof Number) {
-            return -((Number)unary).intValue();
-        } else if (unary instanceof Character) {
-            return -(char)unary;
-        }
-
-        throw new ClassCastException("Cannot apply [-] operation to type " +
-                "[" + unary.getClass().getCanonicalName() + "].");
-    }
-
     public static Object mul(final Object left, final Object right) {
         if (left instanceof Number) {
             if (right instanceof Number) {

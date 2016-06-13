@@ -24,14 +24,13 @@ import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Type;
 import org.elasticsearch.painless.AnalyzerCaster;
+import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Operation;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
 import org.elasticsearch.painless.MethodWriter;
 
-import static org.elasticsearch.painless.WriterConstants.DEF_NEG_CALL;
-import static org.elasticsearch.painless.WriterConstants.DEF_NOT_CALL;
-import static org.elasticsearch.painless.WriterConstants.DEF_UTIL_TYPE;
+import static org.elasticsearch.painless.WriterConstants.DEF_BOOTSTRAP_HANDLE;
 
 /**
  * Represents a unary math expression.
@@ -194,7 +193,8 @@ public final class EUnary extends AExpression {
 
             if (operation == Operation.BWNOT) {
                 if (sort == Sort.DEF) {
-                    writer.invokeStatic(DEF_UTIL_TYPE, DEF_NOT_CALL);
+                    org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(expected.type, child.actual.type);
+                    writer.invokeDynamic("bwnot", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.UNARY_OPERATOR);
                 } else {
                     if (sort == Sort.INT) {
                         writer.push(-1);
@@ -208,7 +208,8 @@ public final class EUnary extends AExpression {
                 }
             } else if (operation == Operation.SUB) {
                 if (sort == Sort.DEF) {
-                    writer.invokeStatic(DEF_UTIL_TYPE, DEF_NEG_CALL);
+                    org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(expected.type, child.actual.type);
+                    writer.invokeDynamic("neg", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.UNARY_OPERATOR);
                 } else {
                     writer.math(MethodWriter.NEG, type);
                 }
