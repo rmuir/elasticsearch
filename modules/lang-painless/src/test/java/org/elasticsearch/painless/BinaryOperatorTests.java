@@ -45,13 +45,12 @@ public class BinaryOperatorTests extends ScriptTestCase {
     }
 
     public void testLongShifts() {
-        // note: we always promote the results of shifts too (unlike java)
         assertEquals(1L << 2, exec("long x = 1L; int y = 2; return x << y;"));
-        assertEquals(1L << 2L, exec("long x = 1L; long y = 2L; return x << y;"));
-        assertEquals(4L >> 2L, exec("long x = 4L; long y = 2L; return x >> y;"));
+        assertEquals(1 << 2L, exec("int x = 1; long y = 2L; return x << y;"));
+        assertEquals(4 >> 2L, exec("int x = 4; long y = 2L; return x >> y;"));
         assertEquals(4L >> 2, exec("long x = 4L; int y = 2; return x >> y;"));
         assertEquals(-1L >>> 29, exec("long x = -1L; int y = 29; return x >>> y;"));
-        assertEquals(-1L >>> 29L, exec("long x = -1L; long y = 29L; return x >>> y;"));
+        assertEquals(-1 >>> 29L, exec("int x = -1; long y = 29L; return x >>> y;"));
     }
 
     public void testLongShiftsConst() {

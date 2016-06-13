@@ -756,6 +756,118 @@ public class DefMath {
                 "[" + left.getClass().getCanonicalName() + "] and [" + right.getClass().getCanonicalName() + "].");
     }
     
+    private static long longIntegralValue(Object o) {
+        if (o instanceof Long) {
+            return (long)o;
+        } else if (o instanceof Integer || o instanceof Short || o instanceof Byte) {
+            return ((Number)o).longValue();
+        } else if (o instanceof Character) {
+            return (char)o;
+        } else {
+            throw new ClassCastException("Cannot convert [" + o.getClass().getCanonicalName() + "] to an integral value.");
+        }
+    }
+    
+    private static int intIntegralValue(Object o) {
+        if (o instanceof Integer || o instanceof Short || o instanceof Byte) {
+            return ((Number)o).intValue();
+        } else if (o instanceof Character) {
+            return (char)o;
+        } else {
+            throw new ClassCastException("Cannot convert [" + o.getClass().getCanonicalName() + "] to an integral value.");
+        }
+    }
+    
+    private static int and(int a, int b) {
+        return a & b;
+    }
+    
+    private static long and(long a, long b) {
+        return a & b;
+    }
+    
+    private static float and(float a, float b) {
+        throw new ClassCastException("Cannot apply [&] operation to type [float]");    
+    }
+    
+    private static double and(double a, double b) {
+        throw new ClassCastException("Cannot apply [&] operation to type [float]");    
+    }
+    
+    private static boolean and(boolean a, boolean b) {
+        return a & b;
+    }
+    
+    private static Object and(Object left, Object right) {
+        if (left instanceof Boolean && right instanceof Boolean) {
+            return (boolean)left & (boolean)right;
+        } else if (left instanceof Long || right instanceof Long) {
+            return longIntegralValue(left) & longIntegralValue(right);
+        } else {
+            return intIntegralValue(left) & intIntegralValue(right);
+        }
+    }
+    
+    private static int xor(int a, int b) {
+        return a ^ b;
+    }
+    
+    private static long xor(long a, long b) {
+        return a ^ b;
+    }
+    
+    private static float xor(float a, float b) {
+        throw new ClassCastException("Cannot apply [^] operation to type [float]");    
+    }
+    
+    private static double xor(double a, double b) {
+        throw new ClassCastException("Cannot apply [^] operation to type [float]");    
+    }
+    
+    private static boolean xor(boolean a, boolean b) {
+        return a ^ b;
+    }
+
+    private static Object xor(Object left, Object right) {
+        if (left instanceof Boolean && right instanceof Boolean) {
+            return (boolean)left ^ (boolean)right;
+        } else if (left instanceof Long || right instanceof Long) {
+            return longIntegralValue(left) ^ longIntegralValue(right);
+        } else {
+            return intIntegralValue(left) ^ intIntegralValue(right);
+        }
+    }
+
+    private static int or(int a, int b) {
+        return a | b;
+    }
+    
+    private static long or(long a, long b) {
+        return a | b;
+    }
+    
+    private static float or(float a, float b) {
+        throw new ClassCastException("Cannot apply [|] operation to type [float]");    
+    }
+    
+    private static double or(double a, double b) {
+        throw new ClassCastException("Cannot apply [|] operation to type [float]");    
+    }
+    
+    private static boolean or(boolean a, boolean b) {
+        return a | b;
+    }
+    
+    private static Object or(Object left, Object right) {
+        if (left instanceof Boolean && right instanceof Boolean) {
+            return (boolean)left | (boolean)right;
+        } else if (left instanceof Long || right instanceof Long) {
+            return longIntegralValue(left) | longIntegralValue(right);
+        } else {
+            return intIntegralValue(left) | intIntegralValue(right);
+        }
+    }
+    
     private static Class<?> unbox(Class<?> clazz) {
         if (clazz == Boolean.class) {
             return boolean.class;
@@ -824,6 +936,9 @@ public class DefMath {
                     map.put("rem",   PRIV_LOOKUP.findStatic(clazz, "rem", binary));
                     map.put("add",   PRIV_LOOKUP.findStatic(clazz, "add", binary));
                     map.put("sub",   PRIV_LOOKUP.findStatic(clazz, "sub", binary));
+                    map.put("and",   PRIV_LOOKUP.findStatic(clazz, "and", binary));
+                    map.put("or",    PRIV_LOOKUP.findStatic(clazz, "or",  binary));
+                    map.put("xor",   PRIV_LOOKUP.findStatic(clazz, "xor", binary));
                     map.put("eq",    PRIV_LOOKUP.findStatic(clazz, "eq",  comparison));
                     map.put("lt",    PRIV_LOOKUP.findStatic(clazz, "lt",  comparison));
                     map.put("lte",   PRIV_LOOKUP.findStatic(clazz, "lte", comparison));

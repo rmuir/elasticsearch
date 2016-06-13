@@ -35,10 +35,8 @@ import java.util.Deque;
 import java.util.List;
 
 import static org.elasticsearch.painless.WriterConstants.CHAR_TO_STRING;
-import static org.elasticsearch.painless.WriterConstants.DEF_AND_CALL;
 import static org.elasticsearch.painless.WriterConstants.DEF_BOOTSTRAP_HANDLE;
 import static org.elasticsearch.painless.WriterConstants.DEF_LSH_CALL;
-import static org.elasticsearch.painless.WriterConstants.DEF_OR_CALL;
 import static org.elasticsearch.painless.WriterConstants.DEF_RSH_CALL;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_BOOLEAN;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_BYTE_EXPLICIT;
@@ -57,7 +55,6 @@ import static org.elasticsearch.painless.WriterConstants.DEF_TO_SHORT_EXPLICIT;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_SHORT_IMPLICIT;
 import static org.elasticsearch.painless.WriterConstants.DEF_USH_CALL;
 import static org.elasticsearch.painless.WriterConstants.DEF_UTIL_TYPE;
-import static org.elasticsearch.painless.WriterConstants.DEF_XOR_CALL;
 import static org.elasticsearch.painless.WriterConstants.INDY_STRING_CONCAT_BOOTSTRAP_HANDLE;
 import static org.elasticsearch.painless.WriterConstants.MAX_INDY_STRING_CONCAT_ARGS;
 import static org.elasticsearch.painless.WriterConstants.PAINLESS_ERROR_TYPE;
@@ -302,9 +299,15 @@ public final class MethodWriter extends GeneratorAdapter {
                 case LSH:   invokeStatic(DEF_UTIL_TYPE, DEF_LSH_CALL); break;
                 case USH:   invokeStatic(DEF_UTIL_TYPE, DEF_RSH_CALL); break;
                 case RSH:   invokeStatic(DEF_UTIL_TYPE, DEF_USH_CALL); break;
-                case BWAND: invokeStatic(DEF_UTIL_TYPE, DEF_AND_CALL); break;
-                case XOR:   invokeStatic(DEF_UTIL_TYPE, DEF_XOR_CALL); break;
-                case BWOR:  invokeStatic(DEF_UTIL_TYPE, DEF_OR_CALL);  break;
+                case BWAND: 
+                    invokeDynamic("and", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR);
+                    break;
+                case XOR:   
+                    invokeDynamic("xor", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR);
+                    break;
+                case BWOR:  
+                    invokeDynamic("or", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR);
+                    break;
                 default:
                     throw location.createError(new IllegalStateException("Illegal tree structure."));
             }

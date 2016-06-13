@@ -97,9 +97,6 @@ public final class WriterConstants {
     public final static Method DEF_LSH_CALL = getAsmMethod(Object.class , "lsh", Object.class, int.class);
     public final static Method DEF_RSH_CALL = getAsmMethod(Object.class , "rsh", Object.class, int.class);
     public final static Method DEF_USH_CALL = getAsmMethod(Object.class , "ush", Object.class, int.class);
-    public final static Method DEF_AND_CALL = getAsmMethod(Object.class , "and", Object.class, Object.class);
-    public final static Method DEF_XOR_CALL = getAsmMethod(Object.class , "xor", Object.class, Object.class);
-    public final static Method DEF_OR_CALL  = getAsmMethod(Object.class , "or" , Object.class, Object.class);
 
     /** invokedynamic bootstrap for lambda expression/method references */
     public final static MethodType LAMBDA_BOOTSTRAP_TYPE =
