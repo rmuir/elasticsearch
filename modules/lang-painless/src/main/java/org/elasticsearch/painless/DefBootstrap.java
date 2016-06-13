@@ -109,6 +109,10 @@ public final class DefBootstrap {
         static boolean checkBinary(Class<?> left, Class<?> right, Object leftObject, Object rightObject) {
             return leftObject.getClass() == left && rightObject.getClass() == right;
         }
+        
+        static boolean checkBinaryArg(Class<?> left, Class<?> right, Object leftObject, Object rightObject) {
+            return rightObject.getClass() == right;
+        }
 
         /**
          * Does a slow lookup against the whitelist.
@@ -176,12 +180,27 @@ public final class DefBootstrap {
 
             final MethodHandle test;
             if (flavor == BINARY_OPERATOR) {
+                // some binary operators support nulls, we handle them separate
                 Class<?> clazz0 = args[0] == null ? null : args[0].getClass();
                 Class<?> clazz1 = args[1] == null ? null : args[1].getClass();
-                MethodHandle binaryTest = CHECK_BINARY.bindTo(clazz0).bindTo(clazz1);
-                test = binaryTest.asType(binaryTest.type()
-                                        .changeParameterType(0, type.parameterType(0))
-                                        .changeParameterType(1, type.parameterType(1)));
+                if (type.parameterType(1) != Object.class) {
+                    // case 1: only the receiver is unknown, just check that
+                    MethodHandle unaryTest = CHECK_CLASS.bindTo(clazz0);
+                    test = unaryTest.asType(unaryTest.type()
+                                            .changeParameterType(0, type.parameterType(0)));
+                } else if (type.parameterType(0) != Object.class) {
+                    // case 2: only the argument is unknown, just check that
+                    MethodHandle unaryTest = CHECK_BINARY_ARG.bindTo(clazz0).bindTo(clazz1);
+                    test = unaryTest.asType(unaryTest.type()
+                                            .changeParameterType(0, type.parameterType(0))
+                                            .changeParameterType(1, type.parameterType(1)));
+                } else {
+                    // case 3: check both receiver and argument
+                    MethodHandle binaryTest = CHECK_BINARY.bindTo(clazz0).bindTo(clazz1);
+                    test = binaryTest.asType(binaryTest.type()
+                                            .changeParameterType(0, type.parameterType(0))
+                                            .changeParameterType(1, type.parameterType(1)));
+                }
             } else {
                 MethodHandle receiverTest = CHECK_CLASS.bindTo(args[0].getClass());
                 test = receiverTest.asType(receiverTest.type()
@@ -204,14 +223,17 @@ public final class DefBootstrap {
 
         private static final MethodHandle CHECK_CLASS;
         private static final MethodHandle CHECK_BINARY;
+        private static final MethodHandle CHECK_BINARY_ARG;
         private static final MethodHandle FALLBACK;
         static {
             final Lookup lookup = MethodHandles.lookup();
             try {
                 CHECK_CLASS = lookup.findStatic(lookup.lookupClass(), "checkClass",
-                                                MethodType.methodType(boolean.class, Class.class, Object.class));
+                                              MethodType.methodType(boolean.class, Class.class, Object.class));
                 CHECK_BINARY = lookup.findStatic(lookup.lookupClass(), "checkBinary",
-                                                MethodType.methodType(boolean.class, Class.class, Class.class, Object.class, Object.class));
+                                              MethodType.methodType(boolean.class, Class.class, Class.class, Object.class, Object.class));
+                CHECK_BINARY_ARG = lookup.findStatic(lookup.lookupClass(), "checkBinaryArg",
+                                              MethodType.methodType(boolean.class, Class.class, Class.class, Object.class, Object.class));
                 FALLBACK = lookup.findVirtual(lookup.lookupClass(), "fallback",
                                               MethodType.methodType(Object.class, Object[].class));
             } catch (ReflectiveOperationException e) {
