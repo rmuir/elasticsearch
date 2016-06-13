@@ -94,9 +94,6 @@ public final class WriterConstants {
     public final static Method DEF_TO_LONG_EXPLICIT   = getAsmMethod(long.class   , "DefTolongExplicit"  , Object.class);
     public final static Method DEF_TO_FLOAT_EXPLICIT  = getAsmMethod(float.class  , "DefTofloatExplicit" , Object.class);
     public final static Method DEF_TO_DOUBLE_EXPLICIT = getAsmMethod(double.class , "DefTodoubleExplicit", Object.class);
-    public final static Method DEF_LSH_CALL = getAsmMethod(Object.class , "lsh", Object.class, int.class);
-    public final static Method DEF_RSH_CALL = getAsmMethod(Object.class , "rsh", Object.class, int.class);
-    public final static Method DEF_USH_CALL = getAsmMethod(Object.class , "ush", Object.class, int.class);
 
     /** invokedynamic bootstrap for lambda expression/method references */
     public final static MethodType LAMBDA_BOOTSTRAP_TYPE =

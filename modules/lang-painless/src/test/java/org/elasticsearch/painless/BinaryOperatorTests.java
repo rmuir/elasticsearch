@@ -61,6 +61,36 @@ public class BinaryOperatorTests extends ScriptTestCase {
         assertEquals(-1L >>> 29, exec("return -1L >>> 29;"));
         assertEquals(-1 >>> 29L, exec("return -1 >>> 29L;"));
     }
+    
+    public void testBogusShifts() {
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("long x = 1L; float y = 2; return x << y;");
+        });
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("int x = 1; double y = 2L; return x << y;");
+        });
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("float x = 1F; int y = 2; return x << y;");
+        });
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("double x = 1D; int y = 2L; return x << y;");
+        });
+    }
+
+    public void testBogusShiftsConst() {
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("return 1L << 2F;");
+        });
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("return 1L << 2.0;");
+        });
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("return 1F << 2;");
+        });
+        expectScriptThrows(ClassCastException.class, ()-> {
+            exec("return 1D << 2L");
+        });
+    }
 
     public void testMixedTypes() {
         assertEquals(8, exec("int x = 4; char y = 2; return x*y;"));

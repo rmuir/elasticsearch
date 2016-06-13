@@ -36,8 +36,6 @@ import java.util.List;
 
 import static org.elasticsearch.painless.WriterConstants.CHAR_TO_STRING;
 import static org.elasticsearch.painless.WriterConstants.DEF_BOOTSTRAP_HANDLE;
-import static org.elasticsearch.painless.WriterConstants.DEF_LSH_CALL;
-import static org.elasticsearch.painless.WriterConstants.DEF_RSH_CALL;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_BOOLEAN;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_BYTE_EXPLICIT;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_BYTE_IMPLICIT;
@@ -53,7 +51,6 @@ import static org.elasticsearch.painless.WriterConstants.DEF_TO_LONG_EXPLICIT;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_LONG_IMPLICIT;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_SHORT_EXPLICIT;
 import static org.elasticsearch.painless.WriterConstants.DEF_TO_SHORT_IMPLICIT;
-import static org.elasticsearch.painless.WriterConstants.DEF_USH_CALL;
 import static org.elasticsearch.painless.WriterConstants.DEF_UTIL_TYPE;
 import static org.elasticsearch.painless.WriterConstants.INDY_STRING_CONCAT_BOOTSTRAP_HANDLE;
 import static org.elasticsearch.painless.WriterConstants.MAX_INDY_STRING_CONCAT_ARGS;
@@ -281,7 +278,7 @@ public final class MethodWriter extends GeneratorAdapter {
             org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(objectType, objectType, objectType);
             
             switch (operation) {
-                case MUL:   
+                case MUL:
                     invokeDynamic("mul", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
                 case DIV:
@@ -296,9 +293,15 @@ public final class MethodWriter extends GeneratorAdapter {
                 case SUB:
                     invokeDynamic("sub", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
-                case LSH:   invokeStatic(DEF_UTIL_TYPE, DEF_LSH_CALL); break;
-                case USH:   invokeStatic(DEF_UTIL_TYPE, DEF_RSH_CALL); break;
-                case RSH:   invokeStatic(DEF_UTIL_TYPE, DEF_USH_CALL); break;
+                case LSH:
+                    invokeDynamic("lsh", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.SHIFT_OPERATOR); 
+                    break;
+                case USH:
+                    invokeDynamic("ush", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.SHIFT_OPERATOR); 
+                    break;
+                case RSH:
+                    invokeDynamic("rsh", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.SHIFT_OPERATOR); 
+                    break;
                 case BWAND: 
                     invokeDynamic("and", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR);
                     break;

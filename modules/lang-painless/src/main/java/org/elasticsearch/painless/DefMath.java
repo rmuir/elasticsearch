@@ -868,6 +868,91 @@ public class DefMath {
         }
     }
     
+    private static int lsh(int a, long b) {
+        return a << b;
+    }
+    
+    private static long lsh(long a, long b) {
+        return a << b;
+    }
+    
+    private static float lsh(float a, long b) {
+        throw new ClassCastException("Cannot apply [<<] operation to type [float]");    
+    }
+    
+    private static double lsh(double a, long b) {
+        throw new ClassCastException("Cannot apply [<<] operation to type [double]");    
+    }
+    
+    private static boolean lsh(boolean a, long b) {
+        throw new ClassCastException("Cannot apply [<<] operation to type [boolean]");    
+    }
+    
+    public static Object lsh(Object left, long right) {
+        if (left instanceof Long) {
+            return (long)(left) << right;
+        } else {
+            return intIntegralValue(left) << right;
+        }
+    }
+    
+    private static int rsh(int a, long b) {
+        return a >> b;
+    }
+    
+    private static long rsh(long a, long b) {
+        return a >> b;
+    }
+    
+    private static float rsh(float a, long b) {
+        throw new ClassCastException("Cannot apply [>>] operation to type [float]");    
+    }
+    
+    private static double rsh(double a, long b) {
+        throw new ClassCastException("Cannot apply [>>] operation to type [double]");    
+    }
+    
+    private static boolean rsh(boolean a, long b) {
+        throw new ClassCastException("Cannot apply [>>] operation to type [boolean]");    
+    }
+
+    public static Object rsh(Object left, long right) {
+        if (left instanceof Long) {
+            long v = (long) left;
+            return v >> right;
+        } else {
+            return intIntegralValue(left) >> right;
+        }
+    }
+    
+    private static int ush(int a, long b) {
+        return a >>> b;
+    }
+    
+    private static long ush(long a, long b) {
+        return a >>> b;
+    }
+    
+    private static float ush(float a, long b) {
+        throw new ClassCastException("Cannot apply [>>>] operation to type [float]");    
+    }
+    
+    private static double ush(double a, long b) {
+        throw new ClassCastException("Cannot apply [>>>] operation to type [double]");    
+    }
+    
+    private static boolean ush(boolean a, long b) {
+        throw new ClassCastException("Cannot apply [>>>] operation to type [boolean]");    
+    }
+
+    public static Object ush(Object left, long right) {
+        if (left instanceof Long) {
+            return (long)(left) >>> right;
+        } else {
+            return intIntegralValue(left) >>> right;
+        }
+    }
+    
     private static Class<?> unbox(Class<?> clazz) {
         if (clazz == Boolean.class) {
             return boolean.class;
@@ -936,9 +1021,10 @@ public class DefMath {
                     MethodType unary = MethodType.methodType(type, type);
                     MethodType binary = MethodType.methodType(type, type, type);
                     MethodType comparison = MethodType.methodType(boolean.class, type, type);
+                    MethodType shift = MethodType.methodType(type, type, long.class);
                     Class<?> clazz = PRIV_LOOKUP.lookupClass();
-                    map.put("not", PRIV_LOOKUP.findStatic(clazz,   "not", unary));
-                    map.put("neg",   PRIV_LOOKUP.findStatic(clazz, "neg",   unary));
+                    map.put("not",   PRIV_LOOKUP.findStatic(clazz, "not", unary));
+                    map.put("neg",   PRIV_LOOKUP.findStatic(clazz, "neg", unary));
                     map.put("mul",   PRIV_LOOKUP.findStatic(clazz, "mul", binary));
                     map.put("div",   PRIV_LOOKUP.findStatic(clazz, "div", binary));
                     map.put("rem",   PRIV_LOOKUP.findStatic(clazz, "rem", binary));
@@ -952,6 +1038,9 @@ public class DefMath {
                     map.put("lte",   PRIV_LOOKUP.findStatic(clazz, "lte", comparison));
                     map.put("gt",    PRIV_LOOKUP.findStatic(clazz, "gt",  comparison));
                     map.put("gte",   PRIV_LOOKUP.findStatic(clazz, "gte", comparison));
+                    map.put("lsh",   PRIV_LOOKUP.findStatic(clazz, "lsh", shift));
+                    map.put("rsh",   PRIV_LOOKUP.findStatic(clazz, "rsh", shift));
+                    map.put("ush",   PRIV_LOOKUP.findStatic(clazz, "ush", shift));
                     return map;
                 } catch (ReflectiveOperationException e) {
                     throw new AssertionError(e);

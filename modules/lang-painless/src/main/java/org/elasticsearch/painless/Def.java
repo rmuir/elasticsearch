@@ -655,47 +655,6 @@ public final class Def {
         }
     }
 
-    // NOTE: Below methods are not cached, instead invoked directly because they are performant.
-    //       We also check for Long values first when possible since the type is more
-    //       likely to be a Long than a Float.
-
-    public static Object lsh(final Object left, final int right) {
-        if (left instanceof Double || left instanceof Long || left instanceof Float) {
-            return ((Number)left).longValue() << right;
-        } else if (left instanceof Number) {
-            return ((Number)left).intValue() << right;
-        } else if (left instanceof Character) {
-            return (char)left << right;
-        }
-
-        throw new ClassCastException("Cannot apply [<<] operation to types [" + left.getClass().getCanonicalName() + "] and [int].");
-    }
-
-    public static Object rsh(final Object left, final int right) {
-        if (left instanceof Double || left instanceof Long || left instanceof Float) {
-            return ((Number)left).longValue() >> right;
-        } else if (left instanceof Number) {
-            return ((Number)left).intValue() >> right;
-        } else if (left instanceof Character) {
-            return (char)left >> right;
-        }
-
-        throw new ClassCastException("Cannot apply [>>] operation to types [" + left.getClass().getCanonicalName() + "] and [int].");
-    }
-
-    public static Object ush(final Object left, final int right) {
-        if (left instanceof Double || left instanceof Long || left instanceof Float) {
-            return ((Number)left).longValue() >>> right;
-        } else if (left instanceof Number) {
-            return ((Number)left).intValue() >>> right;
-        } else if (left instanceof Character) {
-            return (char)left >>> right;
-        }
-
-        throw new ClassCastException("Cannot apply [>>>] operation to types [" + left.getClass().getCanonicalName() + "] and [int].");
-    }
-
-
 
     // Conversion methods for Def to primitive types.
 

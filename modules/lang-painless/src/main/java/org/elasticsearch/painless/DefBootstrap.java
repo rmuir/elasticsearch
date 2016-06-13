@@ -66,6 +66,8 @@ public final class DefBootstrap {
     public static final int UNARY_OPERATOR = 7;
     /** static bootstrap parameter indicating a binary math operator, e.g. foo / bar */
     public static final int BINARY_OPERATOR = 8;
+    /** static bootstrap parameter indicating a shift operator, e.g. foo &gt;&gt; bar */
+    public static final int SHIFT_OPERATOR = 9;
 
     /**
      * CallSite that implements the polymorphic inlining cache (PIC).
@@ -87,7 +89,7 @@ public final class DefBootstrap {
             this.flavor = flavor;
             this.args = args;
             
-            if (flavor == UNARY_OPERATOR || flavor == BINARY_OPERATOR) {
+            if (flavor == UNARY_OPERATOR || flavor == BINARY_OPERATOR || flavor == SHIFT_OPERATOR) {
                 depth = MAX_DEPTH - 1; // use a monomorphic cache, fallback is fast.
             }
 
@@ -134,6 +136,7 @@ public final class DefBootstrap {
                 case REFERENCE:
                     return Def.lookupReference(lookup, (String) this.args[0], args[0].getClass(), name);
                 case UNARY_OPERATOR:
+                case SHIFT_OPERATOR:
                     return DefMath.lookupUnary(args[0].getClass(), name);
                 case BINARY_OPERATOR:
                     if (args[0] == null || args[1] == null) {
@@ -152,6 +155,7 @@ public final class DefBootstrap {
             switch(flavor) {
                 case UNARY_OPERATOR:
                 case BINARY_OPERATOR:
+                case SHIFT_OPERATOR:
                     return DefMath.lookupGeneric(name);
                 default:
                     return null;
@@ -179,7 +183,7 @@ public final class DefBootstrap {
             final MethodHandle target = lookup(flavor, name, args).asType(type);
 
             final MethodHandle test;
-            if (flavor == BINARY_OPERATOR) {
+            if (flavor == BINARY_OPERATOR || flavor == SHIFT_OPERATOR) {
                 // some binary operators support nulls, we handle them separate
                 Class<?> clazz0 = args[0] == null ? null : args[0].getClass();
                 Class<?> clazz1 = args[1] == null ? null : args[1].getClass();
