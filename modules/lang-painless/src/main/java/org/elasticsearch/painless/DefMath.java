@@ -49,6 +49,10 @@ public class DefMath {
         throw new ClassCastException("Cannot apply not [~] to type [double]");
     }
     
+    private static boolean bwnot(boolean v) {
+        throw new ClassCastException("Cannot apply not [~] to type [boolean]");
+    }
+    
     private static Object bwnot(Object unary) {
         if (unary instanceof Long) {
             return ~(Long)unary;
@@ -80,6 +84,10 @@ public class DefMath {
     
     private static double neg(double v) {
         return -v;
+    }
+    
+    private static boolean neg(boolean v) {
+        throw new ClassCastException("Cannot apply [-] operation to type [boolean]");
     }
     
     private static Object neg(final Object unary) {
@@ -117,6 +125,10 @@ public class DefMath {
     
     private static double mul(double a, double b) {
         return a * b;
+    }
+    
+    private static boolean mul(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [*] operation to type [boolean]");
     }
     
     private static Object mul(Object left, Object right) {
@@ -178,6 +190,10 @@ public class DefMath {
         return a / b;
     }
     
+    private static boolean div(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [/] operation to type [boolean]");
+    }
+    
     private static Object div(Object left, Object right) {
         if (left instanceof Number) {
             if (right instanceof Number) {
@@ -237,6 +253,10 @@ public class DefMath {
         return a % b;
     }
     
+    private static boolean rem(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [%] operation to type [boolean]");
+    }
+    
     private static Object rem(Object left, Object right) {
         if (left instanceof Number) {
             if (right instanceof Number) {
@@ -294,6 +314,10 @@ public class DefMath {
     
     private static double add(double a, double b) {
         return a + b;
+    }
+    
+    private static boolean add(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [+] operation to type [boolean]");
     }
     
     private static Object add(Object left, Object right) {
@@ -357,6 +381,10 @@ public class DefMath {
         return a - b;
     }
     
+    private static boolean sub(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [-] operation to type [boolean]");
+    }
+    
     private static Object sub(Object left, Object right) {
         if (left instanceof Number) {
             if (right instanceof Number) {
@@ -400,20 +428,24 @@ public class DefMath {
                 "[" + left.getClass().getCanonicalName() + "] and [" + right.getClass().getCanonicalName() + "].");
     }
     
-    private static boolean eq(int left, int right) {
-        return left == right;
+    private static boolean eq(int a, int b) {
+        return a == b;
     }
     
-    private static boolean eq(long left, long right) {
-        return left == right;
+    private static boolean eq(long a, long b) {
+        return a == b;
     }
     
-    private static boolean eq(float left, float right) {
-        return left == right;
+    private static boolean eq(float a, float b) {
+        return a == b;
     }
     
-    private static boolean eq(double left, double right) {
-        return left == right;
+    private static boolean eq(double a, double b) {
+        return a == b;
+    }
+    
+    private static boolean eq(boolean a, boolean b) {
+        return a == b;
     }
     
     private static boolean eq(Object left, Object right) {
@@ -488,6 +520,10 @@ public class DefMath {
         return a < b;
     }
     
+    private static boolean lt(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [<] operation to type [boolean]");    
+    }
+    
     private static boolean lt(Object left, Object right) {
         if (left instanceof Number) {
             if (right instanceof Number) {
@@ -545,6 +581,10 @@ public class DefMath {
     
     private static boolean lte(double a, double b) {
         return a <= b;
+    }
+    
+    private static boolean lte(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [<=] operation to type [boolean]");    
     }
     
     private static boolean lte(Object left, Object right) {
@@ -606,6 +646,10 @@ public class DefMath {
         return a > b;
     }
     
+    private static boolean gt(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [>] operation to type [boolean]");    
+    }
+    
     private static boolean gt(Object left, Object right) {
         if (left instanceof Number) {
             if (right instanceof Number) {
@@ -664,6 +708,10 @@ public class DefMath {
     private static boolean gte(double a, double b) {
         return a >= b;
     }
+    
+    private static boolean gte(boolean a, boolean b) {
+        throw new ClassCastException("Cannot apply [>=] operation to type [boolean]");    
+    }
 
     private static boolean gte(Object left, Object right) {
         if (left instanceof Number) {
@@ -709,7 +757,9 @@ public class DefMath {
     }
     
     private static Class<?> unbox(Class<?> clazz) {
-        if (clazz == Byte.class) { 
+        if (clazz == Boolean.class) {
+            return boolean.class;
+        } else if (clazz == Byte.class) { 
             return byte.class; 
         } else if (clazz == Short.class) { 
             return short.class; 
@@ -737,6 +787,14 @@ public class DefMath {
     }
       
     private static Class<?> promote(Class<?> a, Class<?> b) {
+        if (a == boolean.class && b == boolean.class) {
+            return boolean.class;
+        }
+        if (a.isAssignableFrom(Number.class) == false || b.isAssignableFrom(Number.class) == false) {
+            return Object.class;
+        }
+        
+        // ordinary numeric promotion
         if (a == double.class || b == double.class) {
             return double.class;
         } else if (a == float.class || b == float.class) {
@@ -751,7 +809,7 @@ public class DefMath {
     private static final Lookup PRIV_LOOKUP = MethodHandles.lookup();
 
     private static final Map<Class<?>,Map<String,MethodHandle>> TYPE_OP_MAPPING = Collections.unmodifiableMap(
-        Stream.of(int.class, long.class, float.class, double.class, Object.class)
+        Stream.of(boolean.class, int.class, long.class, float.class, double.class, Object.class)
             .collect(Collectors.toMap(Function.identity(), type -> {
                 try {
                     Map<String,MethodHandle> map = new HashMap<>();

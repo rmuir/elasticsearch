@@ -136,10 +136,8 @@ public final class DefBootstrap {
                 case UNARY_OPERATOR:
                     return DefMath.lookupUnary(args[0].getClass(), name);
                 case BINARY_OPERATOR:
-                    if ("add".equals(name) && (args[0] instanceof String || args[1] instanceof String)) {
-                        return getGeneric(flavor, name); // can handle nulls and strings
-                    } else if ("eq".equals(name) && (args[0] instanceof Number == false || args[1] instanceof Number == false)) {
-                        return getGeneric(flavor, name); // can handle any object
+                    if (args[0] == null || args[1] == null) {
+                        return getGeneric(flavor, name); // can handle nulls
                     } else {
                         return DefMath.lookupBinary(args[0].getClass(), args[1].getClass(), name);
                     }

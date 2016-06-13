@@ -815,6 +815,13 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(false, exec("def x = (long)5; def y = (double)3; return x == y"));
         assertEquals(false, exec("def x = (float)6; def y = (double)2; return x == y"));
         assertEquals(false, exec("def x = (double)7; def y = (double)1; return x == y"));
+        
+        assertEquals(false, exec("def x = false; def y = true; return x == y"));
+        assertEquals(false, exec("def x = true; def y = false; return x == y"));
+        assertEquals(false, exec("def x = true; def y = null; return x == y"));
+        assertEquals(false, exec("def x = null; def y = true; return x == y"));
+        assertEquals(true, exec("def x = true; def y = true; return x == y"));
+        assertEquals(true, exec("def x = false; def y = false; return x == y"));
 
         assertEquals(true, exec("def x = new HashMap(); def y = new HashMap(); return x == y"));
         assertEquals(false, exec("def x = new HashMap(); x.put(3, 3); def y = new HashMap(); return x == y"));
@@ -830,6 +837,7 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(false, exec("def x = (long)5; def y = (int)3; return x === y"));
         assertEquals(false, exec("def x = (float)6; def y = (int)2; return x === y"));
         assertEquals(false, exec("def x = (double)7; def y = (int)1; return x === y"));
+        assertEquals(false, exec("def x = false; def y = true; return x === y"));
 
         assertEquals(false, exec("def x = new HashMap(); def y = new HashMap(); return x === y"));
         assertEquals(false, exec("def x = new HashMap(); x.put(3, 3); def y = new HashMap(); return x === y"));
