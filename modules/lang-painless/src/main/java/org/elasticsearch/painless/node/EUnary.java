@@ -213,7 +213,12 @@ public final class EUnary extends AExpression {
                 } else {
                     writer.math(MethodWriter.NEG, type);
                 }
-            } else if (operation != Operation.ADD) {
+            } else if (operation == Operation.ADD) {
+                if (sort == Sort.DEF) {
+                    org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(expected.type, child.actual.type);
+                    writer.invokeDynamic("plus", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.UNARY_OPERATOR);
+                } 
+            } else {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
 

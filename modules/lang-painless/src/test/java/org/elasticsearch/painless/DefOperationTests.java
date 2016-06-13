@@ -49,6 +49,16 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(-1.0F, exec("def x = 1F; return -x"));
         assertEquals(-1.0, exec("def x = 1.0; return -x"));
     }
+    
+    public void testPlus() {
+        assertEquals(+(byte)-1, exec("def x = (byte)-1; return +x"));
+        assertEquals(+(short)-1, exec("def x = (short)-1; return +x"));
+        assertEquals(+(char)-1, exec("def x = (char)-1; return +x"));
+        assertEquals(+(int)-1, exec("def x = -1; return +x"));
+        assertEquals(+(long)-1L, exec("def x = -1L; return +x"));
+        assertEquals(+(float)-1.0F, exec("def x = -1F; return +x"));
+        assertEquals(+(double)-1.0, exec("def x = -1.0; return +x"));
+    }
 
     public void testMul() {
         assertEquals(4, exec("def x = (byte)2; def y = (byte)2; return x * y"));
@@ -600,6 +610,11 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(0, exec("def x = (char)4; def y = (char)1; return x & y"));
         assertEquals(0, exec("def x = (int)4; def y = (int)1; return x & y"));
         assertEquals(0L, exec("def x = (long)4; def y = (long)1; return x & y"));
+
+        assertEquals(true,  exec("def x = true;  def y = true; return x & y"));
+        assertEquals(false, exec("def x = true;  def y = false; return x & y"));
+        assertEquals(false, exec("def x = false; def y = true; return x & y"));
+        assertEquals(false, exec("def x = false; def y = false; return x & y"));
     }
 
     public void testXor() {
@@ -614,7 +629,6 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(5, exec("def x = (char)4; def y = (byte)1; return x ^ y"));
         assertEquals(5, exec("def x = (int)4; def y = (byte)1; return x ^ y"));
         assertEquals(5L, exec("def x = (long)4; def y = (byte)1; return x ^ y"));
-
 
         assertEquals(5, exec("def x = (byte)4; def y = (short)1; return x ^ y"));
         assertEquals(5, exec("def x = (short)4; def y = (short)1; return x ^ y"));
@@ -645,6 +659,11 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(5, exec("def x = (char)4; def y = (char)1; return x ^ y"));
         assertEquals(5, exec("def x = (int)4; def y = (int)1; return x ^ y"));
         assertEquals(5L, exec("def x = (long)4; def y = (long)1; return x ^ y"));
+        
+        assertEquals(false, exec("def x = true;  def y = true; return x ^ y"));
+        assertEquals(true,  exec("def x = true;  def y = false; return x ^ y"));
+        assertEquals(true,  exec("def x = false; def y = true; return x ^ y"));
+        assertEquals(false, exec("def x = false; def y = false; return x ^ y"));
     }
 
     public void testOr() {
@@ -689,6 +708,11 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(5, exec("def x = (char)4; def y = (char)1; return x | y"));
         assertEquals(5, exec("def x = (int)4; def y = (int)1; return x | y"));
         assertEquals(5L, exec("def x = (long)4; def y = (long)1; return x | y"));
+        
+        assertEquals(true,  exec("def x = true;  def y = true; return x | y"));
+        assertEquals(true,  exec("def x = true;  def y = false; return x | y"));
+        assertEquals(true,  exec("def x = false; def y = true; return x | y"));
+        assertEquals(false, exec("def x = false; def y = false; return x | y"));
     }
 
     public void testEq() {
@@ -719,6 +743,11 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(false, exec("def x = new HashMap(); x.put(3, 3); def y = new HashMap(); return x == y"));
         assertEquals(true, exec("def x = new HashMap(); x.put(3, 3); def y = new HashMap(); y.put(3, 3); return x == y"));
         assertEquals(true, exec("def x = new HashMap(); def y = x; x.put(3, 3); y.put(3, 3); return x == y"));
+        
+        assertEquals(true,  exec("def x = true;  def y = true; return x == y"));
+        assertEquals(false, exec("def x = true;  def y = false; return x == y"));
+        assertEquals(false, exec("def x = false; def y = true; return x == y"));
+        assertEquals(true,  exec("def x = false; def y = false; return x == y"));
     }
 
     public void testEqr() {
@@ -758,6 +787,11 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(true, exec("def x = new HashMap(); x.put(3, 3); def y = new HashMap(); return x != y"));
         assertEquals(false, exec("def x = new HashMap(); x.put(3, 3); def y = new HashMap(); y.put(3, 3); return x != y"));
         assertEquals(false, exec("def x = new HashMap(); def y = x; x.put(3, 3); y.put(3, 3); return x != y"));
+        
+        assertEquals(false,  exec("def x = true;  def y = true; return x != y"));
+        assertEquals(true,   exec("def x = true;  def y = false; return x != y"));
+        assertEquals(true,   exec("def x = false; def y = true; return x != y"));
+        assertEquals(false,  exec("def x = false; def y = false; return x != y"));
     }
 
     public void testNer() {

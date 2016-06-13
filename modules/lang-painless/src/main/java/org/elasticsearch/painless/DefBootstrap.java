@@ -89,8 +89,10 @@ public final class DefBootstrap {
             this.flavor = flavor;
             this.args = args;
             
+            // For operators use a monomorphic cache, fallback is fast.
+            // Just start with a depth of MAX-1, to keep it a constant.
             if (flavor == UNARY_OPERATOR || flavor == BINARY_OPERATOR || flavor == SHIFT_OPERATOR) {
-                depth = MAX_DEPTH - 1; // use a monomorphic cache, fallback is fast.
+                depth = MAX_DEPTH - 1;
             }
 
             final MethodHandle fallback = FALLBACK.bindTo(this)
@@ -108,10 +110,18 @@ public final class DefBootstrap {
             return receiver.getClass() == clazz;
         }
         
+        /**
+         * guard method for inline caching: checks the receiver's class and the first argument
+         * are the same as the cached receiver and first argument.
+         */
         static boolean checkBinary(Class<?> left, Class<?> right, Object leftObject, Object rightObject) {
             return leftObject.getClass() == left && rightObject.getClass() == right;
         }
         
+        /**
+         * guard method for inline caching: checks the first argument is the same
+         * as the cached first argument.
+         */
         static boolean checkBinaryArg(Class<?> left, Class<?> right, Object leftObject, Object rightObject) {
             return rightObject.getClass() == right;
         }
@@ -137,6 +147,7 @@ public final class DefBootstrap {
                     return Def.lookupReference(lookup, (String) this.args[0], args[0].getClass(), name);
                 case UNARY_OPERATOR:
                 case SHIFT_OPERATOR:
+                    // shifts are treated as unary, as java allows long arguments without a cast (but bits are ignored)
                     return DefMath.lookupUnary(args[0].getClass(), name);
                 case BINARY_OPERATOR:
                     if (args[0] == null || args[1] == null) {

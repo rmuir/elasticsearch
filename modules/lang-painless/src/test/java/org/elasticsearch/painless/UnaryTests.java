@@ -39,4 +39,14 @@ public class UnaryTests extends ScriptTestCase {
         assertEquals(1, exec("return -(-1);"));
         assertEquals(0, exec("return -0;"));
     }
+    
+    public void testPlus() {
+        assertEquals(+(byte)-1, exec("byte x = (byte)-1; return +x"));
+        assertEquals(+(short)-1, exec("short x = (short)-1; return +x"));
+        assertEquals(+(char)-1, exec("char x = (char)-1; return +x"));
+        assertEquals(+(int)-1, exec("int x = -1; return +x"));
+        assertEquals(+(long)-1L, exec("long x = -1L; return +x"));
+        assertEquals(+(float)-1.0F, exec("float x = -1F; return +x"));
+        assertEquals(+(double)-1.0, exec("double x = -1.0; return +x"));
+    }
 }

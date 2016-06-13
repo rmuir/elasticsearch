@@ -30,9 +30,21 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Dynamic operators for painless. 
+ * <p>
+ * Each operator must "support" the following types:
+ * {@code int,long,float,double,boolean,Object}. Operators can throw exceptions if 
+ * the type is illegal. The {@code Object} type must be a "generic" handler that
+ * handles all legal types: it must be convertible to every possible legal signature.
+ * <p>
+ * 
+ */
 @SuppressWarnings("unused")
 public class DefMath {
     
+    // Unary not: only applicable to integral types
+
     private static int not(int v) {
         return ~v;
     }
@@ -70,6 +82,8 @@ public class DefMath {
                 "[" + unary.getClass().getCanonicalName() + "].");
     }
     
+    // unary negation and plus: applicable to all numeric types
+
     private static int neg(int v) {
         return -v;
     }
@@ -92,24 +106,67 @@ public class DefMath {
     
     private static Object neg(final Object unary) {
         if (unary instanceof Double) {
-            return -(Double)unary;
+            return -(double)unary;
         } else if (unary instanceof Long) {
-            return -(Long)unary;
+            return -(long)unary;
         } else if (unary instanceof Integer) {
-            return -(Integer)unary;
+            return -(int)unary;
         } else if (unary instanceof Float) {
-            return -(Float)unary;
+            return -(float)unary;
         } else if (unary instanceof Short) {
-            return -(Short)unary;
+            return -(short)unary;
         } else if (unary instanceof Character) {
-            return -(Character)unary;
+            return -(char)unary;
         } else if (unary instanceof Byte) {
-            return -(Byte)unary;
+            return -(byte)unary;
         }
 
         throw new ClassCastException("Cannot apply [-] operation to type " +
                 "[" + unary.getClass().getCanonicalName() + "].");
     }
+    
+    private static int plus(int v) {
+        return +v;
+    }
+    
+    private static long plus(long v) {
+        return +v;
+    }
+    
+    private static float plus(float v) {
+        return +v;
+    }
+    
+    private static double plus(double v) {
+        return +v;
+    }
+    
+    private static boolean plus(boolean v) {
+        throw new ClassCastException("Cannot apply [+] operation to type [boolean]");
+    }
+    
+    private static Object plus(final Object unary) {
+        if (unary instanceof Double) {
+            return +(double)unary;
+        } else if (unary instanceof Long) {
+            return +(long)unary;
+        } else if (unary instanceof Integer) {
+            return +(int)unary;
+        } else if (unary instanceof Float) {
+            return +(float)unary;
+        } else if (unary instanceof Short) {
+            return +(short)unary;
+        } else if (unary instanceof Character) {
+            return +(char)unary;
+        } else if (unary instanceof Byte) {
+            return +(byte)unary;
+        }
+
+        throw new ClassCastException("Cannot apply [+] operation to type " +
+                "[" + unary.getClass().getCanonicalName() + "].");
+    }
+    
+    // multiplication/division/remainder/subtraction: applicable to all integer types
     
     private static int mul(int a, int b) {
         return a * b;
@@ -300,6 +357,9 @@ public class DefMath {
                 "[" + left.getClass().getCanonicalName() + "] and [" + right.getClass().getCanonicalName() + "].");
     }
     
+    // addition: applicable to all numeric types.
+    // additionally, if either type is a string, the other type can be any arbitrary type (including null)
+    
     private static int add(int a, int b) {
         return a + b;
     }
@@ -428,6 +488,8 @@ public class DefMath {
                 "[" + left.getClass().getCanonicalName() + "] and [" + right.getClass().getCanonicalName() + "].");
     }
     
+    // eq: applicable to any arbitrary type, including nulls for both arguments!!!
+
     private static boolean eq(int a, int b) {
         return a == b;
     }
@@ -504,6 +566,8 @@ public class DefMath {
         return left == null && right == null;
     }
     
+    // comparison operators: applicable for any numeric type
+
     private static boolean lt(int a, int b) {
         return a < b;
     }
@@ -756,6 +820,9 @@ public class DefMath {
                 "[" + left.getClass().getCanonicalName() + "] and [" + right.getClass().getCanonicalName() + "].");
     }
     
+    // helper methods to convert an integral according to numeric promotion
+    // this is used by the generic code for bitwise and shift operators
+    
     private static long longIntegralValue(Object o) {
         if (o instanceof Long) {
             return (long)o;
@@ -778,6 +845,8 @@ public class DefMath {
         }
     }
     
+    // bitwise operators: valid only for integral types
+
     private static int and(int a, int b) {
         return a & b;
     }
@@ -868,6 +937,9 @@ public class DefMath {
         }
     }
     
+    // shift operators, valid for any integral types, but does not promote.
+    // we implement all shifts as long shifts, because the extra bits are ignored anyway.
+    
     private static int lsh(int a, long b) {
         return a << b;
     }
@@ -918,8 +990,7 @@ public class DefMath {
 
     public static Object rsh(Object left, long right) {
         if (left instanceof Long) {
-            long v = (long) left;
-            return v >> right;
+            return (long)left >> right;
         } else {
             return intIntegralValue(left) >> right;
         }
@@ -953,6 +1024,10 @@ public class DefMath {
         }
     }
     
+    /** 
+     * unboxes a class to its primitive type, or returns the original 
+     * class if its not a boxed type.
+     */
     private static Class<?> unbox(Class<?> clazz) {
         if (clazz == Boolean.class) {
             return boolean.class;
@@ -975,6 +1050,7 @@ public class DefMath {
         }
     }
     
+    /** Unary promotion. All Objects are promoted to Object. */
     private static Class<?> promote(Class<?> clazz) {
         // if either is a non-primitive type -> Object.
         if (clazz.isPrimitive() == false) {
@@ -987,7 +1063,8 @@ public class DefMath {
             return clazz; 
         } 
     }
-      
+    
+    /** Binary promotion. */
     private static Class<?> promote(Class<?> a, Class<?> b) {
         // if either is a non-primitive type -> Object.
         if (a.isPrimitive() == false || b.isPrimitive() == false) {
@@ -1023,24 +1100,25 @@ public class DefMath {
                     MethodType comparison = MethodType.methodType(boolean.class, type, type);
                     MethodType shift = MethodType.methodType(type, type, long.class);
                     Class<?> clazz = PRIV_LOOKUP.lookupClass();
-                    map.put("not",   PRIV_LOOKUP.findStatic(clazz, "not", unary));
-                    map.put("neg",   PRIV_LOOKUP.findStatic(clazz, "neg", unary));
-                    map.put("mul",   PRIV_LOOKUP.findStatic(clazz, "mul", binary));
-                    map.put("div",   PRIV_LOOKUP.findStatic(clazz, "div", binary));
-                    map.put("rem",   PRIV_LOOKUP.findStatic(clazz, "rem", binary));
-                    map.put("add",   PRIV_LOOKUP.findStatic(clazz, "add", binary));
-                    map.put("sub",   PRIV_LOOKUP.findStatic(clazz, "sub", binary));
-                    map.put("and",   PRIV_LOOKUP.findStatic(clazz, "and", binary));
-                    map.put("or",    PRIV_LOOKUP.findStatic(clazz, "or",  binary));
-                    map.put("xor",   PRIV_LOOKUP.findStatic(clazz, "xor", binary));
-                    map.put("eq",    PRIV_LOOKUP.findStatic(clazz, "eq",  comparison));
-                    map.put("lt",    PRIV_LOOKUP.findStatic(clazz, "lt",  comparison));
-                    map.put("lte",   PRIV_LOOKUP.findStatic(clazz, "lte", comparison));
-                    map.put("gt",    PRIV_LOOKUP.findStatic(clazz, "gt",  comparison));
-                    map.put("gte",   PRIV_LOOKUP.findStatic(clazz, "gte", comparison));
-                    map.put("lsh",   PRIV_LOOKUP.findStatic(clazz, "lsh", shift));
-                    map.put("rsh",   PRIV_LOOKUP.findStatic(clazz, "rsh", shift));
-                    map.put("ush",   PRIV_LOOKUP.findStatic(clazz, "ush", shift));
+                    map.put("not",   PRIV_LOOKUP.findStatic(clazz, "not",  unary));
+                    map.put("neg",   PRIV_LOOKUP.findStatic(clazz, "neg",  unary));
+                    map.put("plus",  PRIV_LOOKUP.findStatic(clazz, "plus", unary));
+                    map.put("mul",   PRIV_LOOKUP.findStatic(clazz, "mul",  binary));
+                    map.put("div",   PRIV_LOOKUP.findStatic(clazz, "div",  binary));
+                    map.put("rem",   PRIV_LOOKUP.findStatic(clazz, "rem",  binary));
+                    map.put("add",   PRIV_LOOKUP.findStatic(clazz, "add",  binary));
+                    map.put("sub",   PRIV_LOOKUP.findStatic(clazz, "sub",  binary));
+                    map.put("and",   PRIV_LOOKUP.findStatic(clazz, "and",  binary));
+                    map.put("or",    PRIV_LOOKUP.findStatic(clazz, "or",   binary));
+                    map.put("xor",   PRIV_LOOKUP.findStatic(clazz, "xor",  binary));
+                    map.put("eq",    PRIV_LOOKUP.findStatic(clazz, "eq",   comparison));
+                    map.put("lt",    PRIV_LOOKUP.findStatic(clazz, "lt",   comparison));
+                    map.put("lte",   PRIV_LOOKUP.findStatic(clazz, "lte",  comparison));
+                    map.put("gt",    PRIV_LOOKUP.findStatic(clazz, "gt",   comparison));
+                    map.put("gte",   PRIV_LOOKUP.findStatic(clazz, "gte",  comparison));
+                    map.put("lsh",   PRIV_LOOKUP.findStatic(clazz, "lsh",  shift));
+                    map.put("rsh",   PRIV_LOOKUP.findStatic(clazz, "rsh",  shift));
+                    map.put("ush",   PRIV_LOOKUP.findStatic(clazz, "ush",  shift));
                     return map;
                 } catch (ReflectiveOperationException e) {
                     throw new AssertionError(e);
@@ -1048,6 +1126,7 @@ public class DefMath {
             }))
     );
     
+    /** Returns an appropriate method handle for a unary or shift operator, based only on the receiver (LHS) */
     public static MethodHandle lookupUnary(Class<?> receiverClass, String name) {
         MethodHandle handle = TYPE_OP_MAPPING.get(promote(unbox(receiverClass))).get(name);
         if (handle == null) {
@@ -1056,6 +1135,7 @@ public class DefMath {
         return handle;
     }
     
+    /** Returns an appropriate method handle for a binary operator, based only promotion of the LHS and RHS arguments */
     public static MethodHandle lookupBinary(Class<?> classA, Class<?> classB, String name) {
         MethodHandle handle = TYPE_OP_MAPPING.get(promote(promote(unbox(classA)), promote(unbox(classB)))).get(name);
         if (handle == null) {
@@ -1064,6 +1144,7 @@ public class DefMath {
         return handle;
     }
     
+    /** Returns a generic method handle for any operator, that can handle all valid signatures, nulls, corner cases */
     public static MethodHandle lookupGeneric(String name) {
         return TYPE_OP_MAPPING.get(Object.class).get(name);
     }
