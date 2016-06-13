@@ -138,6 +138,8 @@ public final class DefBootstrap {
                 case BINARY_OPERATOR:
                     if ("add".equals(name) && (args[0] instanceof String || args[1] instanceof String)) {
                         return getGeneric(flavor, name); // can handle nulls and strings
+                    } else if ("eq".equals(name) && (args[0] instanceof Number == false || args[1] instanceof Number == false)) {
+                        return getGeneric(flavor, name); // can handle any object
                     } else {
                         return DefMath.lookupBinary(args[0].getClass(), args[1].getClass(), name);
                     }
@@ -208,9 +210,9 @@ public final class DefBootstrap {
             }
 
             MethodHandle guard = MethodHandles.guardWithTest(test, target, getTarget());
-            // this is a very special case, where even the receiver can be null (see JLS rules for string concat)
+            // very special cases, where even the receiver can be null (see JLS rules for string concat)
             // we wrap + with an NPE catcher, and use our generic method in that case.
-            if (flavor == BINARY_OPERATOR && "add".equals(name)) {
+            if (flavor == BINARY_OPERATOR && "add".equals(name) || "eq".equals(name)) {
                 MethodHandle handler = MethodHandles.dropArguments(getGeneric(flavor, name).asType(type()), 0, NullPointerException.class);
                 guard = MethodHandles.catchException(guard, NullPointerException.class, handler);
             }
