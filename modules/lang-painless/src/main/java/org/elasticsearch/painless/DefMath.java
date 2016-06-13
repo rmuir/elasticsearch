@@ -33,27 +33,27 @@ import java.util.stream.Stream;
 @SuppressWarnings("unused")
 public class DefMath {
     
-    private static int bwnot(int v) {
+    private static int not(int v) {
         return ~v;
     }
     
-    private static long bwnot(long v) {
+    private static long not(long v) {
         return ~v;
     }
     
-    private static float bwnot(float v) {
+    private static float not(float v) {
         throw new ClassCastException("Cannot apply not [~] to type [float]");
     }
     
-    private static double bwnot(double v) {
+    private static double not(double v) {
         throw new ClassCastException("Cannot apply not [~] to type [double]");
     }
     
-    private static boolean bwnot(boolean v) {
+    private static boolean not(boolean v) {
         throw new ClassCastException("Cannot apply not [~] to type [boolean]");
     }
     
-    private static Object bwnot(Object unary) {
+    private static Object not(Object unary) {
         if (unary instanceof Long) {
             return ~(Long)unary;
         } else if (unary instanceof Integer) {
@@ -891,6 +891,11 @@ public class DefMath {
     }
     
     private static Class<?> promote(Class<?> clazz) {
+        // if either is a non-primitive type -> Object.
+        if (clazz.isPrimitive() == false) {
+            return Object.class;
+        }
+        // always promoted to integer
         if (clazz == byte.class || clazz == short.class || clazz == char.class || clazz == int.class) { 
             return int.class; 
         } else { 
@@ -899,11 +904,14 @@ public class DefMath {
     }
       
     private static Class<?> promote(Class<?> a, Class<?> b) {
+        // if either is a non-primitive type -> Object.
+        if (a.isPrimitive() == false || b.isPrimitive() == false) {
+            return Object.class;
+        }
+        
+        // boolean -> boolean
         if (a == boolean.class && b == boolean.class) {
             return boolean.class;
-        }
-        if (a.isAssignableFrom(Number.class) == false || b.isAssignableFrom(Number.class) == false) {
-            return Object.class;
         }
         
         // ordinary numeric promotion
@@ -929,7 +937,7 @@ public class DefMath {
                     MethodType binary = MethodType.methodType(type, type, type);
                     MethodType comparison = MethodType.methodType(boolean.class, type, type);
                     Class<?> clazz = PRIV_LOOKUP.lookupClass();
-                    map.put("bwnot", PRIV_LOOKUP.findStatic(clazz, "bwnot", unary));
+                    map.put("not", PRIV_LOOKUP.findStatic(clazz,   "not", unary));
                     map.put("neg",   PRIV_LOOKUP.findStatic(clazz, "neg",   unary));
                     map.put("mul",   PRIV_LOOKUP.findStatic(clazz, "mul", binary));
                     map.put("div",   PRIV_LOOKUP.findStatic(clazz, "div", binary));

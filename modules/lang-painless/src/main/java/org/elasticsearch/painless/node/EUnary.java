@@ -194,7 +194,7 @@ public final class EUnary extends AExpression {
             if (operation == Operation.BWNOT) {
                 if (sort == Sort.DEF) {
                     org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(expected.type, child.actual.type);
-                    writer.invokeDynamic("bwnot", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.UNARY_OPERATOR);
+                    writer.invokeDynamic("not", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.UNARY_OPERATOR);
                 } else {
                     if (sort == Sort.INT) {
                         writer.push(-1);
