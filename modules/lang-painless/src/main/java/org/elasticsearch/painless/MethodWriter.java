@@ -285,19 +285,19 @@ public final class MethodWriter extends GeneratorAdapter {
             
             switch (operation) {
                 case MUL:   
-                    invokeDynamic("mul", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.BINARY_OPERATOR); 
+                    invokeDynamic("mul", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
                 case DIV:
-                    invokeDynamic("div", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.BINARY_OPERATOR); 
+                    invokeDynamic("div", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
                 case REM:
-                    invokeDynamic("rem", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.BINARY_OPERATOR); 
+                    invokeDynamic("rem", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
                 case ADD:
-                    invokeDynamic("add", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.BINARY_OPERATOR); 
+                    invokeDynamic("add", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
                 case SUB:
-                    invokeDynamic("sub", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, (Object)DefBootstrap.BINARY_OPERATOR); 
+                    invokeDynamic("sub", descriptor.getDescriptor(), DEF_BOOTSTRAP_HANDLE, DefBootstrap.BINARY_OPERATOR); 
                     break;
                 case LSH:   invokeStatic(DEF_UTIL_TYPE, DEF_LSH_CALL); break;
                 case USH:   invokeStatic(DEF_UTIL_TYPE, DEF_RSH_CALL); break;
