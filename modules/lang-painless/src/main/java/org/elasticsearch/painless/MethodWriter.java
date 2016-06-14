@@ -262,8 +262,8 @@ public final class MethodWriter extends GeneratorAdapter {
         }
     }
 
-    public void writeBinaryInstruction(Location location, Type type, Operation operation) {
-        final Sort sort = type.sort;
+    public void writeBinaryInstruction(Location location, Type returnType, Type lhs, Type rhs, Operation operation) {
+        final Sort sort = returnType.sort;
 
         if ((sort == Sort.FLOAT || sort == Sort.DOUBLE) &&
                 (operation == Operation.LSH || operation == Operation.USH ||
@@ -273,9 +273,7 @@ public final class MethodWriter extends GeneratorAdapter {
         }
 
         if (sort == Sort.DEF) {
-            // XXX: move this out, so we can populate descriptor with what we really have (instead of casts/boxing!)
-            org.objectweb.asm.Type objectType = org.objectweb.asm.Type.getType(Object.class);
-            org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(objectType, objectType, objectType);
+            org.objectweb.asm.Type descriptor = org.objectweb.asm.Type.getMethodType(returnType.type, lhs.type, rhs.type);
             
             switch (operation) {
                 case MUL:
@@ -316,17 +314,17 @@ public final class MethodWriter extends GeneratorAdapter {
             }
         } else {
             switch (operation) {
-                case MUL:   math(GeneratorAdapter.MUL,  type.type); break;
-                case DIV:   math(GeneratorAdapter.DIV,  type.type); break;
-                case REM:   math(GeneratorAdapter.REM,  type.type); break;
-                case ADD:   math(GeneratorAdapter.ADD,  type.type); break;
-                case SUB:   math(GeneratorAdapter.SUB,  type.type); break;
-                case LSH:   math(GeneratorAdapter.SHL,  type.type); break;
-                case USH:   math(GeneratorAdapter.USHR, type.type); break;
-                case RSH:   math(GeneratorAdapter.SHR,  type.type); break;
-                case BWAND: math(GeneratorAdapter.AND,  type.type); break;
-                case XOR:   math(GeneratorAdapter.XOR,  type.type); break;
-                case BWOR:  math(GeneratorAdapter.OR,   type.type); break;
+                case MUL:   math(GeneratorAdapter.MUL,  returnType.type); break;
+                case DIV:   math(GeneratorAdapter.DIV,  returnType.type); break;
+                case REM:   math(GeneratorAdapter.REM,  returnType.type); break;
+                case ADD:   math(GeneratorAdapter.ADD,  returnType.type); break;
+                case SUB:   math(GeneratorAdapter.SUB,  returnType.type); break;
+                case LSH:   math(GeneratorAdapter.SHL,  returnType.type); break;
+                case USH:   math(GeneratorAdapter.USHR, returnType.type); break;
+                case RSH:   math(GeneratorAdapter.SHR,  returnType.type); break;
+                case BWAND: math(GeneratorAdapter.AND,  returnType.type); break;
+                case XOR:   math(GeneratorAdapter.XOR,  returnType.type); break;
+                case BWOR:  math(GeneratorAdapter.OR,   returnType.type); break;
                 default:
                     throw location.createError(new IllegalStateException("Illegal tree structure."));
             }

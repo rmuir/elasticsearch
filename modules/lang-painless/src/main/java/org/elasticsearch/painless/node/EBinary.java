@@ -87,8 +87,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -123,8 +128,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -163,8 +173,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -217,6 +232,9 @@ public final class EBinary extends AExpression {
             if (right instanceof EBinary && ((EBinary)right).operation == Operation.ADD && right.actual.sort == Sort.STRING) {
                 ((EBinary)right).cat = true;
             }
+        } else if (sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -255,8 +273,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -292,12 +315,17 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = lhspromote;
-        if (rhspromote.sort == Sort.LONG) {
-            right.expected = Definition.INT_TYPE;
-            right.explicit = true;
+        if (lhspromote.sort == Sort.DEF || rhspromote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
         } else {
-            right.expected = rhspromote;
+            left.expected = lhspromote;
+            if (rhspromote.sort == Sort.LONG) {
+                right.expected = Definition.INT_TYPE;
+                right.explicit = true;
+            } else {
+                right.expected = rhspromote;
+            }
         }
 
         left = left.cast(variables);
@@ -330,12 +358,17 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = lhspromote;
-        if (rhspromote.sort == Sort.LONG) { 
-            right.expected = Definition.INT_TYPE;
-            right.explicit = true;
+        if (lhspromote.sort == Sort.DEF || rhspromote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
         } else {
-            right.expected = rhspromote;
+            left.expected = lhspromote;
+            if (rhspromote.sort == Sort.LONG) { 
+                right.expected = Definition.INT_TYPE;
+                right.explicit = true;
+            } else {
+                right.expected = rhspromote;
+            }
         }
 
         left = left.cast(variables);
@@ -368,12 +401,17 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = lhspromote;
-        if (rhspromote.sort == Sort.LONG) { 
-            right.expected = Definition.INT_TYPE;
-            right.explicit = true;
+        if (lhspromote.sort == Sort.DEF || rhspromote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
         } else {
-            right.expected = rhspromote;
+            left.expected = lhspromote;
+            if (rhspromote.sort == Sort.LONG) { 
+                right.expected = Definition.INT_TYPE;
+                right.explicit = true;
+            } else {
+                right.expected = rhspromote;
+            }
         }
 
         left = left.cast(variables);
@@ -405,8 +443,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -437,8 +480,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -471,8 +519,13 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
-        left.expected = promote;
-        right.expected = promote;
+        if (promote.sort == Sort.DEF) {
+            left.expected = left.actual;
+            right.expected = right.actual;
+        } else {
+            left.expected = promote;
+            right.expected = promote;
+        }
 
         left = left.cast(variables);
         right = right.cast(variables);
@@ -520,7 +573,7 @@ public final class EBinary extends AExpression {
             left.write(writer);
             right.write(writer);
 
-            writer.writeBinaryInstruction(location, actual, operation);
+            writer.writeBinaryInstruction(location, actual, left.actual, right.actual, operation);
         }
 
         writer.writeBranch(tru, fals);

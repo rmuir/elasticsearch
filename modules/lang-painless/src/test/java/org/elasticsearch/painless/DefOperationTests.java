@@ -125,6 +125,138 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(4F, exec("def x = (float)2; def y = (float)2; return x * y"));
         assertEquals(4D, exec("def x = (double)2; def y = (double)2; return x * y"));
     }
+    
+    public void testMulTypedLHS() {
+        assertEquals(4, exec("byte x = (byte)2; def y = (byte)2; return x * y"));
+        assertEquals(4, exec("short x = (short)2; def y = (byte)2; return x * y"));
+        assertEquals(4, exec("char x = (char)2; def y = (byte)2; return x * y"));
+        assertEquals(4, exec("int x = (int)2; def y = (byte)2; return x * y"));
+        assertEquals(4L, exec("long x = (long)2; def y = (byte)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (byte)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (byte)2; return x * y"));
+
+        assertEquals(4, exec("byte x = (byte)2; def y = (short)2; return x * y"));
+        assertEquals(4, exec("short x = (short)2; def y = (short)2; return x * y"));
+        assertEquals(4, exec("char x = (char)2; def y = (short)2; return x * y"));
+        assertEquals(4, exec("int x = (int)2; def y = (short)2; return x * y"));
+        assertEquals(4L, exec("long x = (long)2; def y = (short)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (short)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (short)2; return x * y"));
+
+        assertEquals(4, exec("byte x = (byte)2; def y = (char)2; return x * y"));
+        assertEquals(4, exec("short x = (short)2; def y = (char)2; return x * y"));
+        assertEquals(4, exec("char x = (char)2; def y = (char)2; return x * y"));
+        assertEquals(4, exec("int x = (int)2; def y = (char)2; return x * y"));
+        assertEquals(4L, exec("long x = (long)2; def y = (char)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (char)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (char)2; return x * y"));
+
+        assertEquals(4, exec("byte x = (byte)2; def y = (int)2; return x * y"));
+        assertEquals(4, exec("short x = (short)2; def y = (int)2; return x * y"));
+        assertEquals(4, exec("char x = (char)2; def y = (int)2; return x * y"));
+        assertEquals(4, exec("int x = (int)2; def y = (int)2; return x * y"));
+        assertEquals(4L, exec("long x = (long)2; def y = (int)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (int)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (int)2; return x * y"));
+
+        assertEquals(4L, exec("byte x = (byte)2; def y = (long)2; return x * y"));
+        assertEquals(4L, exec("short x = (short)2; def y = (long)2; return x * y"));
+        assertEquals(4L, exec("char x = (char)2; def y = (long)2; return x * y"));
+        assertEquals(4L, exec("int x = (int)2; def y = (long)2; return x * y"));
+        assertEquals(4L, exec("long x = (long)2; def y = (long)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (long)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (long)2; return x * y"));
+
+        assertEquals(4F, exec("byte x = (byte)2; def y = (float)2; return x * y"));
+        assertEquals(4F, exec("short x = (short)2; def y = (float)2; return x * y"));
+        assertEquals(4F, exec("char x = (char)2; def y = (float)2; return x * y"));
+        assertEquals(4F, exec("int x = (int)2; def y = (float)2; return x * y"));
+        assertEquals(4F, exec("long x = (long)2; def y = (float)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (float)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (float)2; return x * y"));
+
+        assertEquals(4D, exec("byte x = (byte)2; def y = (double)2; return x * y"));
+        assertEquals(4D, exec("short x = (short)2; def y = (double)2; return x * y"));
+        assertEquals(4D, exec("char x = (char)2; def y = (double)2; return x * y"));
+        assertEquals(4D, exec("int x = (int)2; def y = (double)2; return x * y"));
+        assertEquals(4D, exec("long x = (long)2; def y = (double)2; return x * y"));
+        assertEquals(4D, exec("float x = (float)2; def y = (double)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (double)2; return x * y"));
+
+        assertEquals(4, exec("byte x = (byte)2; def y = (byte)2; return x * y"));
+        assertEquals(4, exec("short x = (short)2; def y = (short)2; return x * y"));
+        assertEquals(4, exec("char x = (char)2; def y = (char)2; return x * y"));
+        assertEquals(4, exec("int x = (int)2; def y = (int)2; return x * y"));
+        assertEquals(4L, exec("long x = (long)2; def y = (long)2; return x * y"));
+        assertEquals(4F, exec("float x = (float)2; def y = (float)2; return x * y"));
+        assertEquals(4D, exec("double x = (double)2; def y = (double)2; return x * y"));
+    }
+    
+    public void testMulTypedRHS() {
+        assertEquals(4, exec("def x = (byte)2; byte y = (byte)2; return x * y"));
+        assertEquals(4, exec("def x = (short)2; byte y = (byte)2; return x * y"));
+        assertEquals(4, exec("def x = (char)2; byte y = (byte)2; return x * y"));
+        assertEquals(4, exec("def x = (int)2; byte y = (byte)2; return x * y"));
+        assertEquals(4L, exec("def x = (long)2; byte y = (byte)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; byte y = (byte)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; byte y = (byte)2; return x * y"));
+
+        assertEquals(4, exec("def x = (byte)2; short y = (short)2; return x * y"));
+        assertEquals(4, exec("def x = (short)2; short y = (short)2; return x * y"));
+        assertEquals(4, exec("def x = (char)2; short y = (short)2; return x * y"));
+        assertEquals(4, exec("def x = (int)2; short y = (short)2; return x * y"));
+        assertEquals(4L, exec("def x = (long)2; short y = (short)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; short y = (short)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; short y = (short)2; return x * y"));
+
+        assertEquals(4, exec("def x = (byte)2; char y = (char)2; return x * y"));
+        assertEquals(4, exec("def x = (short)2; char y = (char)2; return x * y"));
+        assertEquals(4, exec("def x = (char)2; char y = (char)2; return x * y"));
+        assertEquals(4, exec("def x = (int)2; char y = (char)2; return x * y"));
+        assertEquals(4L, exec("def x = (long)2; char y = (char)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; char y = (char)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; char y = (char)2; return x * y"));
+
+        assertEquals(4, exec("def x = (byte)2; int y = (int)2; return x * y"));
+        assertEquals(4, exec("def x = (short)2; int y = (int)2; return x * y"));
+        assertEquals(4, exec("def x = (char)2; int y = (int)2; return x * y"));
+        assertEquals(4, exec("def x = (int)2; int y = (int)2; return x * y"));
+        assertEquals(4L, exec("def x = (long)2; int y = (int)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; int y = (int)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; int y = (int)2; return x * y"));
+
+        assertEquals(4L, exec("def x = (byte)2; long y = (long)2; return x * y"));
+        assertEquals(4L, exec("def x = (short)2; long y = (long)2; return x * y"));
+        assertEquals(4L, exec("def x = (char)2; long y = (long)2; return x * y"));
+        assertEquals(4L, exec("def x = (int)2; long y = (long)2; return x * y"));
+        assertEquals(4L, exec("def x = (long)2; long y = (long)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; long y = (long)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; long y = (long)2; return x * y"));
+
+        assertEquals(4F, exec("def x = (byte)2; float y = (float)2; return x * y"));
+        assertEquals(4F, exec("def x = (short)2; float y = (float)2; return x * y"));
+        assertEquals(4F, exec("def x = (char)2; float y = (float)2; return x * y"));
+        assertEquals(4F, exec("def x = (int)2; float y = (float)2; return x * y"));
+        assertEquals(4F, exec("def x = (long)2; float y = (float)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; float y = (float)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; float y = (float)2; return x * y"));
+
+        assertEquals(4D, exec("def x = (byte)2; double y = (double)2; return x * y"));
+        assertEquals(4D, exec("def x = (short)2; double y = (double)2; return x * y"));
+        assertEquals(4D, exec("def x = (char)2; double y = (double)2; return x * y"));
+        assertEquals(4D, exec("def x = (int)2; double y = (double)2; return x * y"));
+        assertEquals(4D, exec("def x = (long)2; double y = (double)2; return x * y"));
+        assertEquals(4D, exec("def x = (float)2; double y = (double)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; double y = (double)2; return x * y"));
+
+        assertEquals(4, exec("def x = (byte)2; byte y = (byte)2; return x * y"));
+        assertEquals(4, exec("def x = (short)2; short y = (short)2; return x * y"));
+        assertEquals(4, exec("def x = (char)2; char y = (char)2; return x * y"));
+        assertEquals(4, exec("def x = (int)2; int y = (int)2; return x * y"));
+        assertEquals(4L, exec("def x = (long)2; long y = (long)2; return x * y"));
+        assertEquals(4F, exec("def x = (float)2; float y = (float)2; return x * y"));
+        assertEquals(4D, exec("def x = (double)2; double y = (double)2; return x * y"));
+    }
 
     public void testDiv() {
         assertEquals(1, exec("def x = (byte)2; def y = (byte)2; return x / y"));
@@ -190,6 +322,138 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(1L, exec("def x = (long)2; def y = (long)2; return x / y"));
         assertEquals(1F, exec("def x = (float)2; def y = (float)2; return x / y"));
         assertEquals(1D, exec("def x = (double)2; def y = (double)2; return x / y"));
+    }
+    
+    public void testDivTypedLHS() {
+        assertEquals(1, exec("byte x = (byte)2; def y = (byte)2; return x / y"));
+        assertEquals(1, exec("short x = (short)2; def y = (byte)2; return x / y"));
+        assertEquals(1, exec("char x = (char)2; def y = (byte)2; return x / y"));
+        assertEquals(1, exec("int x = (int)2; def y = (byte)2; return x / y"));
+        assertEquals(1L, exec("long x = (long)2; def y = (byte)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (byte)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (byte)2; return x / y"));
+
+        assertEquals(1, exec("byte x = (byte)2; def y = (short)2; return x / y"));
+        assertEquals(1, exec("short x = (short)2; def y = (short)2; return x / y"));
+        assertEquals(1, exec("char x = (char)2; def y = (short)2; return x / y"));
+        assertEquals(1, exec("int x = (int)2; def y = (short)2; return x / y"));
+        assertEquals(1L, exec("long x = (long)2; def y = (short)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (short)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (short)2; return x / y"));
+
+        assertEquals(1, exec("byte x = (byte)2; def y = (char)2; return x / y"));
+        assertEquals(1, exec("short x = (short)2; def y = (char)2; return x / y"));
+        assertEquals(1, exec("char x = (char)2; def y = (char)2; return x / y"));
+        assertEquals(1, exec("int x = (int)2; def y = (char)2; return x / y"));
+        assertEquals(1L, exec("long x = (long)2; def y = (char)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (char)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (char)2; return x / y"));
+
+        assertEquals(1, exec("byte x = (byte)2; def y = (int)2; return x / y"));
+        assertEquals(1, exec("short x = (short)2; def y = (int)2; return x / y"));
+        assertEquals(1, exec("char x = (char)2; def y = (int)2; return x / y"));
+        assertEquals(1, exec("int x = (int)2; def y = (int)2; return x / y"));
+        assertEquals(1L, exec("long x = (long)2; def y = (int)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (int)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (int)2; return x / y"));
+
+        assertEquals(1L, exec("byte x = (byte)2; def y = (long)2; return x / y"));
+        assertEquals(1L, exec("short x = (short)2; def y = (long)2; return x / y"));
+        assertEquals(1L, exec("char x = (char)2; def y = (long)2; return x / y"));
+        assertEquals(1L, exec("int x = (int)2; def y = (long)2; return x / y"));
+        assertEquals(1L, exec("long x = (long)2; def y = (long)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (long)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (long)2; return x / y"));
+
+        assertEquals(1F, exec("byte x = (byte)2; def y = (float)2; return x / y"));
+        assertEquals(1F, exec("short x = (short)2; def y = (float)2; return x / y"));
+        assertEquals(1F, exec("char x = (char)2; def y = (float)2; return x / y"));
+        assertEquals(1F, exec("int x = (int)2; def y = (float)2; return x / y"));
+        assertEquals(1F, exec("long x = (long)2; def y = (float)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (float)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (float)2; return x / y"));
+
+        assertEquals(1D, exec("byte x = (byte)2; def y = (double)2; return x / y"));
+        assertEquals(1D, exec("short x = (short)2; def y = (double)2; return x / y"));
+        assertEquals(1D, exec("char x = (char)2; def y = (double)2; return x / y"));
+        assertEquals(1D, exec("int x = (int)2; def y = (double)2; return x / y"));
+        assertEquals(1D, exec("long x = (long)2; def y = (double)2; return x / y"));
+        assertEquals(1D, exec("float x = (float)2; def y = (double)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (double)2; return x / y"));
+
+        assertEquals(1, exec("byte x = (byte)2; def y = (byte)2; return x / y"));
+        assertEquals(1, exec("short x = (short)2; def y = (short)2; return x / y"));
+        assertEquals(1, exec("char x = (char)2; def y = (char)2; return x / y"));
+        assertEquals(1, exec("int x = (int)2; def y = (int)2; return x / y"));
+        assertEquals(1L, exec("long x = (long)2; def y = (long)2; return x / y"));
+        assertEquals(1F, exec("float x = (float)2; def y = (float)2; return x / y"));
+        assertEquals(1D, exec("double x = (double)2; def y = (double)2; return x / y"));
+    }
+    
+    public void testDivTypedRHS() {
+        assertEquals(1, exec("def x = (byte)2; byte y = (byte)2; return x / y"));
+        assertEquals(1, exec("def x = (short)2; byte y = (byte)2; return x / y"));
+        assertEquals(1, exec("def x = (char)2; byte y = (byte)2; return x / y"));
+        assertEquals(1, exec("def x = (int)2; byte y = (byte)2; return x / y"));
+        assertEquals(1L, exec("def x = (long)2; byte y = (byte)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; byte y = (byte)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; byte y = (byte)2; return x / y"));
+
+        assertEquals(1, exec("def x = (byte)2; short y = (short)2; return x / y"));
+        assertEquals(1, exec("def x = (short)2; short y = (short)2; return x / y"));
+        assertEquals(1, exec("def x = (char)2; short y = (short)2; return x / y"));
+        assertEquals(1, exec("def x = (int)2; short y = (short)2; return x / y"));
+        assertEquals(1L, exec("def x = (long)2; short y = (short)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; short y = (short)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; short y = (short)2; return x / y"));
+
+        assertEquals(1, exec("def x = (byte)2; char y = (char)2; return x / y"));
+        assertEquals(1, exec("def x = (short)2; char y = (char)2; return x / y"));
+        assertEquals(1, exec("def x = (char)2; char y = (char)2; return x / y"));
+        assertEquals(1, exec("def x = (int)2; char y = (char)2; return x / y"));
+        assertEquals(1L, exec("def x = (long)2; char y = (char)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; char y = (char)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; char y = (char)2; return x / y"));
+
+        assertEquals(1, exec("def x = (byte)2; int y = (int)2; return x / y"));
+        assertEquals(1, exec("def x = (short)2; int y = (int)2; return x / y"));
+        assertEquals(1, exec("def x = (char)2; int y = (int)2; return x / y"));
+        assertEquals(1, exec("def x = (int)2; int y = (int)2; return x / y"));
+        assertEquals(1L, exec("def x = (long)2; int y = (int)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; int y = (int)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; int y = (int)2; return x / y"));
+
+        assertEquals(1L, exec("def x = (byte)2; long y = (long)2; return x / y"));
+        assertEquals(1L, exec("def x = (short)2; long y = (long)2; return x / y"));
+        assertEquals(1L, exec("def x = (char)2; long y = (long)2; return x / y"));
+        assertEquals(1L, exec("def x = (int)2; long y = (long)2; return x / y"));
+        assertEquals(1L, exec("def x = (long)2; long y = (long)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; long y = (long)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; long y = (long)2; return x / y"));
+
+        assertEquals(1F, exec("def x = (byte)2; float y = (float)2; return x / y"));
+        assertEquals(1F, exec("def x = (short)2; float y = (float)2; return x / y"));
+        assertEquals(1F, exec("def x = (char)2; float y = (float)2; return x / y"));
+        assertEquals(1F, exec("def x = (int)2; float y = (float)2; return x / y"));
+        assertEquals(1F, exec("def x = (long)2; float y = (float)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; float y = (float)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; float y = (float)2; return x / y"));
+
+        assertEquals(1D, exec("def x = (byte)2; double y = (double)2; return x / y"));
+        assertEquals(1D, exec("def x = (short)2; double y = (double)2; return x / y"));
+        assertEquals(1D, exec("def x = (char)2; double y = (double)2; return x / y"));
+        assertEquals(1D, exec("def x = (int)2; double y = (double)2; return x / y"));
+        assertEquals(1D, exec("def x = (long)2; double y = (double)2; return x / y"));
+        assertEquals(1D, exec("def x = (float)2; double y = (double)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; double y = (double)2; return x / y"));
+
+        assertEquals(1, exec("def x = (byte)2; byte y = (byte)2; return x / y"));
+        assertEquals(1, exec("def x = (short)2; short y = (short)2; return x / y"));
+        assertEquals(1, exec("def x = (char)2; char y = (char)2; return x / y"));
+        assertEquals(1, exec("def x = (int)2; int y = (int)2; return x / y"));
+        assertEquals(1L, exec("def x = (long)2; long y = (long)2; return x / y"));
+        assertEquals(1F, exec("def x = (float)2; float y = (float)2; return x / y"));
+        assertEquals(1D, exec("def x = (double)2; double y = (double)2; return x / y"));
     }
 
     public void testRem() {
@@ -825,6 +1089,42 @@ public class DefOperationTests extends ScriptTestCase {
         assertEquals(false, exec("def x = (long)5; def y = (double)3; return x < y"));
         assertEquals(false, exec("def x = (float)6; def y = (double)2; return x < y"));
         assertEquals(false, exec("def x = (double)7; def y = (double)1; return x < y"));
+    }
+    
+    public void testLtTypedLHS() {
+        assertEquals(true, exec("byte x = (byte)1; def y = (int)7; return x < y"));
+        assertEquals(true, exec("short x = (short)2; def y = (int)6; return x < y"));
+        assertEquals(true, exec("char x = (char)3; def y = (int)5; return x < y"));
+        assertEquals(false, exec("int x = (int)4; def y = (int)4; return x < y"));
+        assertEquals(false, exec("long x = (long)5; def y = (int)3; return x < y"));
+        assertEquals(false, exec("float x = (float)6; def y = (int)2; return x < y"));
+        assertEquals(false, exec("double x = (double)7; def y = (int)1; return x < y"));
+
+        assertEquals(true, exec("byte x = (byte)1; def y = (double)7; return x < y"));
+        assertEquals(true, exec("short x = (short)2; def y = (double)6; return x < y"));
+        assertEquals(true, exec("char x = (char)3; def y = (double)5; return x < y"));
+        assertEquals(false, exec("int x = (int)4; def y = (double)4; return x < y"));
+        assertEquals(false, exec("long x = (long)5; def y = (double)3; return x < y"));
+        assertEquals(false, exec("float x = (float)6; def y = (double)2; return x < y"));
+        assertEquals(false, exec("double x = (double)7; def y = (double)1; return x < y"));
+    }
+    
+    public void testLtTypedRHS() {
+        assertEquals(true, exec("def x = (byte)1; int y = (int)7; return x < y"));
+        assertEquals(true, exec("def x = (short)2; int y = (int)6; return x < y"));
+        assertEquals(true, exec("def x = (char)3; int y = (int)5; return x < y"));
+        assertEquals(false, exec("def x = (int)4; int y = (int)4; return x < y"));
+        assertEquals(false, exec("def x = (long)5; int y = (int)3; return x < y"));
+        assertEquals(false, exec("def x = (float)6; int y = (int)2; return x < y"));
+        assertEquals(false, exec("def x = (double)7; int y = (int)1; return x < y"));
+
+        assertEquals(true, exec("def x = (byte)1; double y = (double)7; return x < y"));
+        assertEquals(true, exec("def x = (short)2; double y = (double)6; return x < y"));
+        assertEquals(true, exec("def x = (char)3; double y = (double)5; return x < y"));
+        assertEquals(false, exec("def x = (int)4; double y = (double)4; return x < y"));
+        assertEquals(false, exec("def x = (long)5; double y = (double)3; return x < y"));
+        assertEquals(false, exec("def x = (float)6; double y = (double)2; return x < y"));
+        assertEquals(false, exec("def x = (double)7; double y = (double)1; return x < y"));
     }
 
     public void testLte() {

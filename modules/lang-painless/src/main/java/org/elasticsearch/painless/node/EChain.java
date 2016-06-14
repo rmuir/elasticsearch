@@ -334,7 +334,10 @@ public final class EChain extends AExpression {
                     writer.writeCast(there);                                     // if necessary cast the current link's value
                                                                                  // to the promotion type between the lhs and rhs types
                     expression.write(writer);                                    // write the bytecode for the rhs expression
-                    writer.writeBinaryInstruction(location, promote, operation); // write the operation instruction for compound assignment
+                    // XXX: fix these types, but first we need def compound assignment tests.
+                    // (and also corner cases such as shifts). its tricky here as there are possibly explicit casts, too.
+                    writer.writeBinaryInstruction(location, promote, 
+                            Definition.DEF_TYPE, Definition.DEF_TYPE, operation); // write the operation instruction for compound assignment
 
                     writer.writeCast(back); // if necessary cast the promotion type value back to the link's type
 
