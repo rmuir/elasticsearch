@@ -336,8 +336,13 @@ public final class EChain extends AExpression {
                     expression.write(writer);                                    // write the bytecode for the rhs expression
                     // XXX: fix these types, but first we need def compound assignment tests.
                     // (and also corner cases such as shifts). its tricky here as there are possibly explicit casts, too.
-                    writer.writeBinaryInstruction(location, promote, 
-                            Definition.DEF_TYPE, Definition.DEF_TYPE, operation); // write the operation instruction for compound assignment
+                    // write the operation instruction for compound assignment
+                    if (promote.sort == Sort.DEF) {
+                        writer.writeDynamicBinaryInstruction(location, promote, 
+                            Definition.DEF_TYPE, Definition.DEF_TYPE, operation);
+                    } else {
+                        writer.writeBinaryInstruction(location, promote, operation);
+                    }
 
                     writer.writeCast(back); // if necessary cast the promotion type value back to the link's type
 

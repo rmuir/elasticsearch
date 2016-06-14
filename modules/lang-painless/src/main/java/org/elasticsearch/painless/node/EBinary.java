@@ -36,6 +36,8 @@ public final class EBinary extends AExpression {
     final Operation operation;
     AExpression left;
     AExpression right;
+    Type promote;       // promoted type
+    Type shiftDistance; // for shifts, the RHS is promoted independently
 
     boolean cat = false;
 
@@ -80,16 +82,21 @@ public final class EBinary extends AExpression {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
+        promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply multiply [*] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
+
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -113,24 +120,26 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = promote;
     }
 
     private void analyzeDiv(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
+        promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply divide [/] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -158,24 +167,27 @@ public final class EBinary extends AExpression {
                 throw createError(e);
             }
         }
-
-        actual = promote;
     }
 
     private void analyzeRem(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
+        promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply remainder [%] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
+
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -203,15 +215,13 @@ public final class EBinary extends AExpression {
                 throw createError(e);
             }
         }
-
-        actual = promote;
     }
 
     private void analyzeAdd(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteAdd(left.actual, right.actual);
+        promote = AnalyzerCaster.promoteAdd(left.actual, right.actual);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply add [+] to types " +
@@ -219,6 +229,8 @@ public final class EBinary extends AExpression {
         }
 
         Sort sort = promote.sort;
+
+        actual = promote;
 
         if (sort == Sort.STRING) {
             left.expected = left.actual;
@@ -235,6 +247,9 @@ public final class EBinary extends AExpression {
         } else if (sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -259,23 +274,27 @@ public final class EBinary extends AExpression {
             }
         }
 
-        actual = promote;
     }
 
     private void analyzeSub(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
+        promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, true);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply subtract [-] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
+
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -299,8 +318,6 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = promote;
     }
 
     private void analyzeLSH(Locals variables) {
@@ -315,9 +332,15 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote = lhspromote;
+        shiftDistance = rhspromote;
+
         if (lhspromote.sort == Sort.DEF || rhspromote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = lhspromote;
             if (rhspromote.sort == Sort.LONG) {
@@ -342,8 +365,6 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = lhspromote;
     }
 
     private void analyzeRSH(Locals variables) {
@@ -358,9 +379,15 @@ public final class EBinary extends AExpression {
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote = lhspromote;
+        shiftDistance = rhspromote;
+
         if (lhspromote.sort == Sort.DEF || rhspromote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = lhspromote;
             if (rhspromote.sort == Sort.LONG) { 
@@ -385,8 +412,6 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = lhspromote;
     }
 
     private void analyzeUSH(Locals variables) {
@@ -396,6 +421,9 @@ public final class EBinary extends AExpression {
         Type lhspromote = AnalyzerCaster.promoteNumeric(left.actual, false);
         Type rhspromote = AnalyzerCaster.promoteNumeric(right.actual, false);
 
+        actual = promote = lhspromote;
+        shiftDistance = rhspromote;
+
         if (lhspromote == null || rhspromote == null) {
             throw createError(new ClassCastException("Cannot apply unsigned shift [>>>] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
@@ -404,6 +432,9 @@ public final class EBinary extends AExpression {
         if (lhspromote.sort == Sort.DEF || rhspromote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = lhspromote;
             if (rhspromote.sort == Sort.LONG) { 
@@ -428,24 +459,27 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = lhspromote;
     }
 
     private void analyzeBWAnd(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, false);
+        promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, false);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply and [&] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
+
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -465,24 +499,27 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = promote;
     }
 
     private void analyzeXor(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteXor(left.actual, right.actual);
+        promote = AnalyzerCaster.promoteXor(left.actual, right.actual);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply xor [^] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
+
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -504,24 +541,27 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = promote;
     }
 
     private void analyzeBWOr(Locals variables) {
         left.analyze(variables);
         right.analyze(variables);
 
-        Type promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, false);
+        promote = AnalyzerCaster.promoteNumeric(left.actual, right.actual, false);
 
         if (promote == null) {
             throw createError(new ClassCastException("Cannot apply or [|] to types " +
                 "[" + left.actual.name + "] and [" + right.actual.name + "]."));
         }
 
+        actual = promote;
+
         if (promote.sort == Sort.DEF) {
             left.expected = left.actual;
             right.expected = right.actual;
+            if (expected != null) {
+                actual = expected;
+            }
         } else {
             left.expected = promote;
             right.expected = promote;
@@ -541,15 +581,13 @@ public final class EBinary extends AExpression {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
-
-        actual = promote;
     }
 
     @Override
     void write(MethodWriter writer) {
         writer.writeDebugInfo(location);
 
-        if (actual.sort == Sort.STRING && operation == Operation.ADD) {
+        if (promote.sort == Sort.STRING && operation == Operation.ADD) {
             if (!cat) {
                 writer.writeNewStrings();
             }
@@ -573,7 +611,11 @@ public final class EBinary extends AExpression {
             left.write(writer);
             right.write(writer);
 
-            writer.writeBinaryInstruction(location, actual, left.actual, right.actual, operation);
+            if (promote.sort == Sort.DEF || (shiftDistance != null && shiftDistance.sort == Sort.DEF)) {
+                writer.writeDynamicBinaryInstruction(location, expected, left.actual, right.actual, operation);
+            } else {
+                writer.writeBinaryInstruction(location, actual, operation);
+            }
         }
 
         writer.writeBranch(tru, fals);
