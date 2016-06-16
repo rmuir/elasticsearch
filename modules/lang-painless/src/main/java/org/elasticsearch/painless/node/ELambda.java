@@ -29,15 +29,17 @@ import java.util.List;
 
 public class ELambda extends AExpression {
     final FunctionReserved reserved;
+    final String name;
     final List<String> paramTypeStrs;
     final List<String> paramNameStrs;
     final List<AStatement> statements;
 
-    public ELambda(FunctionReserved reserved, Location location,
+    public ELambda(FunctionReserved reserved, Location location, String name,
                    List<String> paramTypes, List<String> paramNames, List<AStatement> statements) {
         super(location);
 
         this.reserved = reserved;
+        this.name = name;
         this.paramTypeStrs = Collections.unmodifiableList(paramTypes);
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
         this.statements = Collections.unmodifiableList(statements);
