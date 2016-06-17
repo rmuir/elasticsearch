@@ -25,11 +25,9 @@ import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Executable;
 import org.elasticsearch.painless.FunctionScope;
 import org.elasticsearch.painless.Globals;
-import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.LocalsImpl.ExecuteReserved;
 import org.elasticsearch.painless.Locals.Variable;
-import org.elasticsearch.painless.LocalsImpl;
+import org.elasticsearch.painless.node.SFunction.Reserved;
 import org.elasticsearch.painless.WriterConstants;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MainMethodScope;
@@ -64,7 +62,7 @@ public final class SSource extends AStatement {
     final String name;
     final String source;
     final Printer debugStream;
-    final ExecuteReserved reserved;
+    final MainMethodReserved reserved;
     final List<SFunction> functions;
     final Globals globals;
     final List<AStatement> statements;
@@ -72,7 +70,7 @@ public final class SSource extends AStatement {
     private Locals mainMethod;
     private byte[] bytes;
 
-    public SSource(String name, String source, Printer debugStream, ExecuteReserved reserved, Location location, 
+    public SSource(String name, String source, Printer debugStream, MainMethodReserved reserved, Location location, 
                    List<SFunction> functions, Globals globals, List<AStatement> statements) {
         super(location);
 
@@ -220,8 +218,8 @@ public final class SSource extends AStatement {
         if (reserved.usesScore()) {
             // if the _score value is used, we do this once:
             // final double _score = scorer.score();
-            Variable scorer = mainMethod.getVariable(null, ExecuteReserved.SCORER);
-            Variable score = mainMethod.getVariable(null, ExecuteReserved.SCORE);
+            Variable scorer = mainMethod.getVariable(null, Locals.SCORER);
+            Variable score = mainMethod.getVariable(null, Locals.SCORE);
 
             writer.visitVarInsn(Opcodes.ALOAD, scorer.getSlot());
             writer.invokeVirtual(WriterConstants.SCORER_TYPE, WriterConstants.SCORER_SCORE);
@@ -233,11 +231,11 @@ public final class SSource extends AStatement {
             // if the _ctx value is used, we do this once:
             // final Map<String,Object> ctx = input.get("ctx");
 
-            Variable input = mainMethod.getVariable(null, ExecuteReserved.PARAMS);
-            Variable ctx = mainMethod.getVariable(null, ExecuteReserved.CTX);
+            Variable input = mainMethod.getVariable(null, Locals.PARAMS);
+            Variable ctx = mainMethod.getVariable(null, Locals.CTX);
 
             writer.visitVarInsn(Opcodes.ALOAD, input.getSlot());
-            writer.push(ExecuteReserved.CTX);
+            writer.push(Locals.CTX);
             writer.invokeInterface(MAP_TYPE, MAP_GET);
             writer.visitVarInsn(Opcodes.ASTORE, ctx.getSlot());
         }
@@ -246,7 +244,7 @@ public final class SSource extends AStatement {
             // if there is infinite loop protection, we do this once:
             // int #loop = settings.getMaxLoopCounter()
 
-            Variable loop = mainMethod.getVariable(null, ExecuteReserved.LOOP);
+            Variable loop = mainMethod.getVariable(null, Locals.LOOP);
 
             writer.push(reserved.getMaxLoopCounter());
             writer.visitVarInsn(Opcodes.ISTORE, loop.getSlot());
@@ -268,5 +266,44 @@ public final class SSource extends AStatement {
 
     public byte[] getBytes() {
         return bytes;
+    }
+    
+    
+    public static final class MainMethodReserved implements Reserved {
+        private boolean score = false;
+        private boolean ctx = false;
+        private int maxLoopCounter = 0;
+
+        @Override
+        public void markReserved(String name) {
+            if (Locals.SCORE.equals(name)) {
+                score = true;
+            } else if (Locals.CTX.equals(name)) {
+                ctx = true;
+            }
+        }
+
+        @Override
+        public boolean isReserved(String name) {
+            return Locals.KEYWORDS.contains(name);
+        }
+
+        public boolean usesScore() {
+            return score;
+        }
+
+        public boolean usesCtx() {
+            return ctx;
+        }
+
+        @Override
+        public void setMaxLoopCounter(int max) {
+            maxLoopCounter = max;
+        }
+
+        @Override
+        public int getMaxLoopCounter() {
+            return maxLoopCounter;
+        }
     }
 }

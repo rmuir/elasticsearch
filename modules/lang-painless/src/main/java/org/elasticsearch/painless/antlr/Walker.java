@@ -30,9 +30,9 @@ import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.elasticsearch.painless.CompilerSettings;
 import org.elasticsearch.painless.Globals;
-import org.elasticsearch.painless.LocalsImpl.Reserved;
-import org.elasticsearch.painless.LocalsImpl.ExecuteReserved;
-import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
+import org.elasticsearch.painless.node.SFunction.Reserved;
+import org.elasticsearch.painless.node.SSource.MainMethodReserved;
+import org.elasticsearch.painless.node.SFunction.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Operation;
 import org.elasticsearch.painless.antlr.PainlessParser.AfterthoughtContext;
@@ -226,7 +226,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
 
     @Override
     public Object visitSource(SourceContext ctx) {
-        reserved.push(new ExecuteReserved());
+        reserved.push(new MainMethodReserved());
 
         List<SFunction> functions = new ArrayList<>();
 
@@ -240,7 +240,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
             statements.add((AStatement)visit(statement));
         }
 
-        return new SSource(sourceName, sourceText, debugStream, (ExecuteReserved)reserved.pop(), 
+        return new SSource(sourceName, sourceText, debugStream, (MainMethodReserved)reserved.pop(), 
                            location(ctx), functions, globals, statements);
     }
 

@@ -29,7 +29,6 @@ import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Type;
 import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.Locals.Parameter;
-import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
 import org.elasticsearch.painless.Locals.Variable;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
@@ -188,5 +187,44 @@ public class SFunction extends AStatement {
                 method.method.getDescriptor(),
                 false);
         writer.push(handle);
+    }
+    
+    /**
+     * Tracks reserved variables.  Must be given to any source of input
+     * prior to beginning the analysis phase so that reserved variables
+     * are known ahead of time to assign appropriate slots without
+     * being wasteful.
+     */
+    public interface Reserved {
+        void markReserved(String name);
+        boolean isReserved(String name);
+
+        void setMaxLoopCounter(int max);
+        int getMaxLoopCounter();
+    }
+    
+    public static final class FunctionReserved implements Reserved {
+        public static final String THIS = "#this";
+        public static final String LOOP = "#loop";
+
+        private int maxLoopCounter = 0;
+
+        public void markReserved(String name) {
+            // Do nothing.
+        }
+
+        public boolean isReserved(String name) {
+            return name.equals(THIS) || name.equals(LOOP);
+        }
+
+        @Override
+        public void setMaxLoopCounter(int max) {
+            maxLoopCounter = max;
+        }
+
+        @Override
+        public int getMaxLoopCounter() {
+            return maxLoopCounter;
+        }
     }
 }

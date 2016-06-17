@@ -20,10 +20,9 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.LocalsImpl;
-import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
+import org.elasticsearch.painless.node.SFunction.FunctionReserved;
 import org.elasticsearch.painless.FunctionScope;
 import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.LambdaScope;
