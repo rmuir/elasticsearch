@@ -62,7 +62,7 @@ public class SFunction extends AStatement {
     List<Parameter> parameters = new ArrayList<>();
     Method method = null;
 
-    Locals locals = null;
+    Variable loop = null;
 
     public SFunction(FunctionReserved reserved, Location location,
                      String rtnType, String name, List<String> paramTypes, 
@@ -116,9 +116,6 @@ public class SFunction extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
         }
 
-        this.locals = new LocalsImpl(reserved, locals, rtnType, parameters);
-        locals = this.locals;
-
         locals.incrementScope();
 
         AStatement last = statements.get(statements.size() - 1);
@@ -143,6 +140,9 @@ public class SFunction extends AStatement {
         }
 
         locals.decrementScope();
+        if (reserved.getMaxLoopCounter() > 0) {
+            loop = locals.getVariable(null, FunctionReserved.LOOP);
+        }
     }
     
     /** Writes the function to given ClassVisitor. */
@@ -161,9 +161,6 @@ public class SFunction extends AStatement {
         if (reserved.getMaxLoopCounter() > 0) {
             // if there is infinite loop protection, we do this once:
             // int #loop = settings.getMaxLoopCounter()
-
-            Variable loop = locals.getVariable(null, FunctionReserved.LOOP);
-
             function.push(reserved.getMaxLoopCounter());
             function.visitVarInsn(Opcodes.ISTORE, loop.slot);
         }

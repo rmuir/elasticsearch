@@ -20,9 +20,12 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Locals;
+import org.elasticsearch.painless.LocalsImpl;
 import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
+import org.elasticsearch.painless.Definition.Method;
+import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Globals;
 import org.objectweb.asm.Type;
 
@@ -55,23 +58,27 @@ public class ELambda extends AExpression implements ILambda {
 
     @Override
     void analyze(Locals locals) {
+        // analyze the method body to discover captures
         SFunction throwAway = new SFunction(reserved, location, "def", name, 
                                             paramTypeStrs, paramNameStrs, statements, true);
         throwAway.generate();
-        throwAway.analyze(locals);
-        // this tells me the capture parameters!
+        Locals functionLocals = new LocalsImpl(throwAway.reserved, locals, throwAway.rtnType, throwAway.parameters);
+        throwAway.analyze(functionLocals);
 
         // create a new synthetic method, analyze it
         desugared = new SFunction(reserved, location, "def", name, 
                                   paramTypeStrs, paramNameStrs, statements2, true);
         desugared.generate();
-        locals.addMethod(desugared.method);
-        desugared.analyze(locals.getRoot());
+ 
+        functionLocals = new LocalsImpl(throwAway.reserved, locals, throwAway.rtnType, throwAway.parameters);
+        desugared.analyze(functionLocals);
         
         // setup reference
         EFunctionRef ref = new EFunctionRef(location, "this", name);
         ref.expected = expected;
-        ref.analyze(locals);
+        functionLocals = new LocalsImpl(throwAway.reserved, locals, throwAway.rtnType, throwAway.parameters);
+        functionLocals.addMethod(desugared.method);
+        ref.analyze(functionLocals);
         actual = ref.actual;
         impl = ref;
     }
@@ -92,5 +99,55 @@ public class ELambda extends AExpression implements ILambda {
     @Override
     public Type[] getCaptures() {
         return impl.getCaptures();
+    }
+    
+    static class Spy extends Locals {
+
+        public Spy(Locals parent) {
+            super(parent);
+        }
+
+        @Override
+        public Variable getVariable(Location location, String name) {
+            //System.out.println("fetch:" + name);
+            return getParent().getVariable(location, name);
+        }
+
+        @Override
+        public Variable addVariable(Location location, org.elasticsearch.painless.Definition.Type type, 
+                                    String name, boolean readonly, boolean reserved) {
+            return getParent().addVariable(location, type, name, readonly, reserved);
+        }
+
+        @Override
+        public Method getMethod(MethodKey key) {
+            return getParent().getMethod(key);
+        }
+
+        @Override
+        public void addMethod(Method method) {
+            getParent().addMethod(method);
+        }
+
+        @Override
+        public int getMaxLoopCounter() {
+            return getParent().getMaxLoopCounter();
+        }
+
+        @Override
+        public org.elasticsearch.painless.Definition.Type getReturnType() {
+            return getParent().getReturnType();
+        }
+
+        @Override
+        public void incrementScope() {
+            getParent().incrementScope();
+        }
+
+        @Override
+        public void decrementScope() {
+            getParent().decrementScope();
+        }
+        
     }
 }

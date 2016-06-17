@@ -104,7 +104,8 @@ public final class SSource extends AStatement {
     @Override
     void analyze(Locals locals) {
         for (SFunction function : functions) {
-            function.analyze(locals);
+            Locals functionLocals = new LocalsImpl(function.reserved, locals, function.rtnType, function.parameters);
+            function.analyze(functionLocals);
         }
 
         if (statements == null || statements.isEmpty()) {
