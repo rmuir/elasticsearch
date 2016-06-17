@@ -44,7 +44,8 @@ public class LambdaScope extends LocalScope {
             variable = getParent().getVariable(location, name);
             if (variable != null) {
                 // make it read-only, and record that it was used.
-                Variable readOnly = new Variable(variable.location, variable.name, variable.type, variable.slot, true);
+                Variable readOnly = new Variable(variable.location, variable.name, variable.type, true);
+                readOnly.slot = variable.slot; // xxx
                 captures.add(readOnly);
                 return readOnly;
             }

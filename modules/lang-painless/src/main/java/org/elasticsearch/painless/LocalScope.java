@@ -61,7 +61,8 @@ public class LocalScope extends Locals {
         if (variables == null) {
             variables = new HashMap<>();
         }
-        Variable variable = new Variable(location, name, type, getNextSlot(), readonly);
+        Variable variable = new Variable(location, name, type, readonly);
+        variable.slot = getNextSlot();
         variables.put(name, variable); // TODO: check result
         nextSlotNumber += type.type.getSize();
         return variable;
