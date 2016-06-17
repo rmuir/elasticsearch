@@ -20,10 +20,9 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.Locals.FunctionReserved;
+import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
-import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Globals;
 import org.objectweb.asm.Type;
 
@@ -64,7 +63,7 @@ public class ELambda extends AExpression implements ILambda {
 
         // create a new synthetic method, analyze it
         desugared = new SFunction(reserved, location, "def", name, 
-                paramTypeStrs, paramNameStrs, statements2, true);
+                                  paramTypeStrs, paramNameStrs, statements2, true);
         desugared.generate();
         locals.addMethod(desugared.method);
         desugared.analyze(locals.getRoot());

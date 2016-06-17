@@ -27,9 +27,10 @@ import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Type;
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.Locals.Parameter;
-import org.elasticsearch.painless.Locals.FunctionReserved;
+import org.elasticsearch.painless.LocalsImpl.Parameter;
+import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
 import org.elasticsearch.painless.Locals.Variable;
+import org.elasticsearch.painless.LocalsImpl;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.WriterConstants;
@@ -115,7 +116,7 @@ public class SFunction extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
         }
 
-        this.locals = new Locals(reserved, locals, rtnType, parameters);
+        this.locals = new LocalsImpl(reserved, locals, rtnType, parameters);
         locals = this.locals;
 
         locals.incrementScope();

@@ -25,8 +25,9 @@ import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Executable;
 import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.Locals.ExecuteReserved;
+import org.elasticsearch.painless.LocalsImpl.ExecuteReserved;
 import org.elasticsearch.painless.Locals.Variable;
+import org.elasticsearch.painless.LocalsImpl;
 import org.elasticsearch.painless.WriterConstants;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
@@ -96,7 +97,7 @@ public final class SSource extends AStatement {
             }
         }
 
-        locals = new Locals(reserved, methods);
+        locals = new LocalsImpl(reserved, methods);
         analyze(locals);
     }
 
