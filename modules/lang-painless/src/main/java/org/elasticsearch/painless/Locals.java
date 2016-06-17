@@ -143,20 +143,6 @@ public final class Locals {
         }
     }
 
-    public static final class Constant {
-        public final Location location;
-        public final String name;
-        public final org.objectweb.asm.Type type;
-        public final Consumer<MethodWriter> initializer;
-
-        private Constant(Location location, String name, org.objectweb.asm.Type type, Consumer<MethodWriter> initializer) {
-            this.location = location;
-            this.name = name;
-            this.type = type;
-            this.initializer = initializer;
-        }
-    }
-
     public static final class Parameter {
         public final Location location;
         public final String name;
@@ -171,7 +157,6 @@ public final class Locals {
 
     private final Reserved reserved;
     private final Map<MethodKey, Method> methods;
-    private final Map<String, Constant> constants;
     private final Type rtnType;
 
     // TODO: this datastructure runs in linear time for nearly all operations. use linkedhashset instead?
@@ -184,7 +169,6 @@ public final class Locals {
         this.parent = null;
         this.reserved = reserved;
         this.methods = methods;
-        this.constants = new HashMap<>();
         this.rtnType = Definition.OBJECT_TYPE;
 
         incrementScope();
@@ -228,7 +212,6 @@ public final class Locals {
         this.parent = locals;
         this.reserved = reserved;
         this.methods = locals.methods;
-        this.constants = locals.constants;
         this.rtnType = rtnType;
 
         incrementScope();
@@ -254,8 +237,8 @@ public final class Locals {
     
     /** Adds a new method to this locals. Do not use */
     public void addMethod(Method method) {
-        Method previous = methods.put(new MethodKey(method.name, method.arguments.size()), method);
-        assert previous == null;
+        // we deduplicate nested lambdas here. it comes with the territory of using tree nodes...
+        methods.putIfAbsent(new MethodKey(method.name, method.arguments.size()), method);
     }
 
     public int getMaxLoopCounter() {
@@ -340,44 +323,6 @@ public final class Locals {
         scopes.push(update);
 
         return variable;
-    }
-
-    /**
-     * Create a new constant.
-     *
-     * @param location the location in the script that is creating it
-     * @param type the type of the constant
-     * @param name the name of the constant
-     * @param initializer code to initialize the constant. It will be called when generating the clinit method and is expected to leave the
-     *        value of the constant on the stack. Generating the load instruction is managed by the caller.
-     * @return the constant
-     */
-    public Constant addConstant(Location location, org.objectweb.asm.Type type, String name, Consumer<MethodWriter> initializer) {
-        if (constants.containsKey(name)) {
-            throw location.createError(new IllegalArgumentException("Constant [" + name + "] is already defined."));
-        }
-
-        Constant constant = new Constant(location, name, type, initializer);
-        constants.put(name, constant);
-        return constant;
-    }
-
-    /**
-     * Create a new constant.
-     *
-     * @param location the location in the script that is creating it
-     * @param type the type of the constant
-     * @param name the name of the constant
-     * @param initializer code to initialize the constant. It will be called when generating the clinit method and is expected to leave the
-     *        value of the constant on the stack. Generating the load instruction is managed by the caller.
-     * @return the constant
-     */
-    public Constant addConstant(Location location, Type type, String name, Consumer<MethodWriter> initializer) {
-        return addConstant(location, type.type, name, initializer);
-    }
-
-    public Collection<Constant> getConstants() {
-        return constants.values();
     }
 }
 

@@ -29,6 +29,7 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.elasticsearch.painless.CompilerSettings;
+import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Locals.ExecuteReserved;
 import org.elasticsearch.painless.Locals.FunctionReserved;
 import org.elasticsearch.painless.Location;
@@ -172,7 +173,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
 
     private final Deque<Reserved> reserved = new ArrayDeque<>();
     private final List<SFunction> synthetic = new ArrayList<>();
-    private int syntheticCounter = 0;
+    private final List<Constant> constants = new ArrayList<>();
 
     private Walker(String sourceName, String sourceText, CompilerSettings settings, Printer debugStream) {
         this.debugStream = debugStream;
@@ -239,7 +240,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
         }
 
         return new SSource(sourceName, sourceText, debugStream, (ExecuteReserved)reserved.pop(), 
-                           location(ctx), functions, synthetic, statements);
+                           location(ctx), functions, synthetic, constants, statements);
     }
 
     @Override
@@ -265,7 +266,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
         }
 
         return new SFunction((FunctionReserved)reserved.pop(), location(ctx), rtnType, name, 
-                             paramTypes, paramNames, statements, false, false);
+                             paramTypes, paramNames, statements, false, constants);
     }
 
     @Override
@@ -843,7 +844,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
         String pattern = text.substring(1, lastSlash);
         String flags = text.substring(lastSlash + 1);
         List<ALink> links = new ArrayList<>();
-        links.add(new LRegex(location(ctx), pattern, flags));
+        links.add(new LRegex(location(ctx), pattern, flags, constants));
 
         return links;
     }
@@ -968,7 +969,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
         List<AStatement> statements = visitLambdaStatements(ctx);
         
         String name = nextLambda(location(ctx).getOffset());
-        return new ELambda(name, synthetic, (FunctionReserved)reserved.pop(), location(ctx), 
+        return new ELambda(name, synthetic, constants, (FunctionReserved)reserved.pop(), location(ctx), 
                            paramTypes, paramNames, statements, visitLambdaStatements(ctx));
     }
     
@@ -1025,7 +1026,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
                            new LVariable(location, "size"))))));
             String name = nextLambda(location.getOffset());
             synthetic.add(new SFunction(new FunctionReserved(), location, arrayType, name, 
-                          Arrays.asList("int"), Arrays.asList("size"), Arrays.asList(code), true, false));
+                          Arrays.asList("int"), Arrays.asList("size"), Arrays.asList(code), true, constants));
             return new EFunctionRef(location(ctx), "this", name);
         }
         return new EFunctionRef(location(ctx), ctx.decltype().getText(), ctx.NEW().getText());

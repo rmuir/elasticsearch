@@ -19,10 +19,11 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.Locals.Constant;
 
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -37,8 +38,9 @@ public final class LRegex extends ALink {
     private final String pattern;
     private final int flags;
     private Constant constant;
+    private final List<Constant> constants;
 
-    public LRegex(Location location, String pattern, String flagsString) {
+    public LRegex(Location location, String pattern, String flagsString, List<Constant> constants) {
         super(location, 1);
         this.pattern = pattern;
         int flags = 0;
@@ -52,6 +54,7 @@ public final class LRegex extends ALink {
         } catch (PatternSyntaxException e) {
             throw createError(e);
         }
+        this.constants = constants;
     }
 
     @Override
@@ -64,7 +67,7 @@ public final class LRegex extends ALink {
             throw createError(new IllegalArgumentException("Regex constant may only be read [" + pattern + "]."));
         }
 
-        constant = locals.addConstant(location, Definition.PATTERN_TYPE, "regexAt$" + location.getOffset(), this::initializeConstant);
+        constant = new Constant(location, Definition.PATTERN_TYPE.type, "regexAt$" + location.getOffset(), this::initializeConstant);
         after = Definition.PATTERN_TYPE;
 
         return this;
@@ -79,6 +82,7 @@ public final class LRegex extends ALink {
     void load(MethodWriter writer) {
         writer.writeDebugInfo(location);
         writer.getStatic(WriterConstants.CLASS_TYPE, constant.name, Definition.PATTERN_TYPE.type);
+        constants.add(constant);
     }
 
     @Override

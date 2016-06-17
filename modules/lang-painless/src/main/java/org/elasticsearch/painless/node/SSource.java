@@ -19,11 +19,11 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Executable;
 import org.elasticsearch.painless.Locals;
-import org.elasticsearch.painless.Locals.Constant;
 import org.elasticsearch.painless.Locals.ExecuteReserved;
 import org.elasticsearch.painless.Locals.Variable;
 import org.elasticsearch.painless.WriterConstants;
@@ -35,6 +35,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.Printer;
 import org.objectweb.asm.util.TraceClassVisitor;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,6 +61,8 @@ public final class SSource extends AStatement {
     final List<SFunction> functions;
     // initially empty, will be populated by lambda nodes
     final List<SFunction> syntheticFunctions;
+    // initially empty, will be populated by functions/regex/whatever
+    final List<Constant> constants;
     final List<AStatement> statements;
 
     private Locals locals;
@@ -67,7 +70,8 @@ public final class SSource extends AStatement {
     private byte[] bytes;
 
     public SSource(String name, String source, Printer debugStream, ExecuteReserved reserved, Location location, 
-                   List<SFunction> functions, List<SFunction> syntheticFunctions, List<AStatement> statements) {
+                   List<SFunction> functions, List<SFunction> syntheticFunctions, List<Constant> constants, 
+                   List<AStatement> statements) {
         super(location);
 
         this.name = name;
@@ -78,8 +82,9 @@ public final class SSource extends AStatement {
         functions.addAll(syntheticFunctions);
         syntheticFunctions.clear();
         this.functions = Collections.unmodifiableList(functions);
-        this.syntheticFunctions = syntheticFunctions;
         this.statements = Collections.unmodifiableList(statements);
+        this.syntheticFunctions = syntheticFunctions;
+        this.constants = constants;
     }
 
     public void analyze() {
@@ -172,15 +177,19 @@ public final class SSource extends AStatement {
             function.write(visitor, expressions);
         }
         
-        // Write all synthetic functions:
-        for (SFunction function : syntheticFunctions) {
-            function.write(visitor, expressions);
+        // Write all synthetic functions. Note that this process may add more :)
+        while (!syntheticFunctions.isEmpty()) {
+            List<SFunction> current = new ArrayList<>(syntheticFunctions);
+            syntheticFunctions.clear();
+            for (SFunction function : current) {
+                function.write(visitor, expressions);
+            }
         }
 
         // Write the constants
-        if (false == locals.getConstants().isEmpty()) {
+        if (false == constants.isEmpty()) {
             // Fields
-            for (Constant constant : locals.getConstants()) {
+            for (Constant constant : constants) {
                 visitor.visitField(
                         Opcodes.ACC_FINAL | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
                         constant.name,
@@ -192,7 +201,7 @@ public final class SSource extends AStatement {
             // Initialize the constants in a static initializer
             final MethodWriter clinit = new MethodWriter(Opcodes.ACC_STATIC, 
                     WriterConstants.CLINIT, visitor, expressions);
-            for (Constant constant : locals.getConstants()) {
+            for (Constant constant : constants) {
                 constant.initializer.accept(clinit);
                 clinit.putStatic(CLASS_TYPE, constant.name, constant.type);
             }

@@ -19,6 +19,7 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Def;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Definition.Method;
@@ -49,13 +50,13 @@ import static org.elasticsearch.painless.WriterConstants.CLASS_TYPE;
  */
 public class SFunction extends AStatement {
     final FunctionReserved reserved;
+    final List<Constant> constants;
     final String rtnTypeStr;
     final String name;
     final List<String> paramTypeStrs;
     final List<String> paramNameStrs;
     final List<AStatement> statements;
     final boolean synthetic;
-    final boolean internal;
 
     Type rtnType = null;
     List<Parameter> parameters = new ArrayList<>();
@@ -65,7 +66,7 @@ public class SFunction extends AStatement {
 
     public SFunction(FunctionReserved reserved, Location location,
                      String rtnType, String name, List<String> paramTypes, 
-                     List<String> paramNames, List<AStatement> statements, boolean synthetic, boolean internal) {
+                     List<String> paramNames, List<AStatement> statements, boolean synthetic, List<Constant> constants) {
         super(location);
 
         this.reserved = reserved;
@@ -75,7 +76,7 @@ public class SFunction extends AStatement {
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
         this.statements = Collections.unmodifiableList(statements);
         this.synthetic = synthetic;
-        this.internal = internal;
+        this.constants = constants;
     }
 
     void generate() {
@@ -143,11 +144,6 @@ public class SFunction extends AStatement {
         }
 
         locals.decrementScope();
-
-        if (!internal) {
-            String staticHandleFieldName = Def.getUserFunctionHandleFieldName(name, parameters.size());
-            locals.addConstant(location, WriterConstants.METHOD_HANDLE_TYPE, staticHandleFieldName, this::initializeConstant);
-        }
     }
     
     /** Writes the function to given ClassVisitor. */
@@ -184,6 +180,9 @@ public class SFunction extends AStatement {
                 throw createError(new IllegalStateException("Illegal tree structure."));
             }
         }
+
+        String staticHandleFieldName = Def.getUserFunctionHandleFieldName(name, parameters.size());
+        constants.add(new Constant(location, WriterConstants.METHOD_HANDLE_TYPE, staticHandleFieldName, this::initializeConstant));
     }
 
     private void initializeConstant(MethodWriter writer) {
