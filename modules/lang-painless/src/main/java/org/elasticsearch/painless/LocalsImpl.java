@@ -140,35 +140,35 @@ public class LocalsImpl extends Locals {
         // Method variables.
 
         // This reference.  Internal use only.
-        addVariableInternal(null, Definition.getType("Object"), ExecuteReserved.THIS, true, true);
+        defineVariable(null, Definition.getType("Object"), ExecuteReserved.THIS, true);
 
         // Input map of variables passed to the script.
-        addVariableInternal(null, Definition.getType("Map"), ExecuteReserved.PARAMS, true, true);
+        defineVariable(null, Definition.getType("Map"), ExecuteReserved.PARAMS, true);
 
         // Scorer parameter passed to the script.  Internal use only.
-        addVariableInternal(null, Definition.DEF_TYPE, ExecuteReserved.SCORER, true, true);
+        defineVariable(null, Definition.DEF_TYPE, ExecuteReserved.SCORER, true);
 
         // Doc parameter passed to the script. TODO: Currently working as a Map, we can do better?
-        addVariableInternal(null, Definition.getType("Map"), ExecuteReserved.DOC, true, true);
+        defineVariable(null, Definition.getType("Map"), ExecuteReserved.DOC, true);
 
         // Aggregation _value parameter passed to the script.
-        addVariableInternal(null, Definition.DEF_TYPE, ExecuteReserved.VALUE, true, true);
+        defineVariable(null, Definition.DEF_TYPE, ExecuteReserved.VALUE, true);
 
         // Shortcut variables.
 
         // Document's score as a read-only double.
         if (reserved.usesScore()) {
-            addVariableInternal(null, Definition.DOUBLE_TYPE, ExecuteReserved.SCORE, true, true);
+            defineVariable(null, Definition.DOUBLE_TYPE, ExecuteReserved.SCORE, true);
         }
 
         // The ctx map set by executable scripts as a read-only map.
         if (reserved.usesCtx()) {
-            addVariableInternal(null, Definition.getType("Map"), ExecuteReserved.CTX, true, true);
+            defineVariable(null, Definition.getType("Map"), ExecuteReserved.CTX, true);
         }
 
         // Loop counter to catch infinite loops.  Internal use only.
         if (reserved.getMaxLoopCounter() > 0) {
-            addVariableInternal(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
+            defineVariable(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true);
         }
     }
 
@@ -181,12 +181,12 @@ public class LocalsImpl extends Locals {
         incrementScope();
 
         for (Parameter parameter : parameters) {
-            addVariableInternal(parameter.location, parameter.type, parameter.name, false, false);
+            defineVariable(parameter.location, parameter.type, parameter.name, false);
         }
 
         // Loop counter to catch infinite loops.  Internal use only.
         if (reserved.getMaxLoopCounter() > 0) {
-            addVariableInternal(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
+            defineVariable(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true);
         }
     }
 
@@ -211,12 +211,10 @@ public class LocalsImpl extends Locals {
         return rtnType;
     }
 
-    @Override
     public void incrementScope() {
         scopes.push(0);
     }
 
-    @Override
     public void decrementScope() {
         int remove = scopes.pop();
 
@@ -243,23 +241,17 @@ public class LocalsImpl extends Locals {
         return null;
     }
 
-    private boolean isVariable(String name) {
-        Iterator<Variable> itr = variables.iterator();
-
-        while (itr.hasNext()) {
-            Variable variable = itr.next();
-
-            if (variable.name.equals(name)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     @Override
-    public Variable addVariable(Location location, Type type, String name, boolean readonly) {
-        return addVariableInternal(location, type, name, readonly, false);
+    public Variable defineVariable(Location location, Type type, String name, boolean readonly) {
+        int slot = getNextSlot();
+
+        Variable variable = new Locals.Variable(location, name, type, slot, readonly);
+        variables.push(variable);
+
+        int update = scopes.pop() + 1;
+        scopes.push(update);
+
+        return variable;
     }
     
     @Override
@@ -272,25 +264,10 @@ public class LocalsImpl extends Locals {
         
         return previous.slot + previous.type.type.getSize();
     }
-
-    private Variable addVariableInternal(Location location, Type type, String name, boolean readonly, boolean reserved) {
-        if (!reserved && this.reserved.isReserved(name)) {
-            throw location.createError(new IllegalArgumentException("Variable [" + name + "] is reserved."));
-        }
-
-        if (isVariable(name)) {
-            throw location.createError(new IllegalArgumentException("Variable [" + name + "] is already defined."));
-        }
-
-        int slot = getNextSlot();
-
-        Variable variable = new Locals.Variable(location, name, type, slot, readonly);
-        variables.push(variable);
-
-        int update = scopes.pop() + 1;
-        scopes.push(update);
-
-        return variable;
+    
+    @Override
+    public boolean isReserved(String name) {
+        return reserved.isReserved(name);
     }
 }
 

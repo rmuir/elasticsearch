@@ -23,6 +23,7 @@ import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Def;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Globals;
+import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Type;
@@ -116,7 +117,7 @@ public class SFunction extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
         }
 
-        locals.incrementScope();
+        locals = new LocalScope(locals);
 
         AStatement last = statements.get(statements.size() - 1);
 
@@ -139,7 +140,6 @@ public class SFunction extends AStatement {
             throw createError(new IllegalArgumentException("Not all paths provide a return value for method [" + name + "]."));
         }
 
-        locals.decrementScope();
         if (reserved.getMaxLoopCounter() > 0) {
             loop = locals.getVariable(null, FunctionReserved.LOOP);
         }

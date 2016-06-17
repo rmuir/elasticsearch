@@ -71,14 +71,30 @@ public abstract class Locals {
     }
 
     protected abstract Method lookupMethod(MethodKey key);
+    
+    public boolean isReserved(String name) {
+        if (parent != null) {
+            return parent.isReserved(name);
+        }
+        return false;
+    }
 
-    public abstract Variable addVariable(Location location, Type type, String name, boolean readonly);
+    public final Variable addVariable(Location location, Type type, String name, boolean readonly) {
+        if (isReserved(name)) {
+            throw location.createError(new IllegalArgumentException("Variable [" + name + "] is reserved."));
+        }
+        if (lookupVariable(location, name) != null) {
+            throw location.createError(new IllegalArgumentException("Variable [" + name + "] is already defined."));
+        }
+        return defineVariable(location, type, name, readonly);
+    }
+    
+    public abstract Variable defineVariable(Location location, Type type, String name, boolean readonly);
 
+    
     public abstract void addMethod(Method method);
     public abstract int getMaxLoopCounter();
     public abstract Type getReturnType();
-    public abstract void incrementScope();
-    public abstract void decrementScope();
     public abstract int getNextSlot();
 
     /**

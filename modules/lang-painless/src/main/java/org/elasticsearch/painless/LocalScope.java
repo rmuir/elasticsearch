@@ -53,7 +53,7 @@ public class LocalScope extends Locals {
     }
 
     @Override
-    public Variable addVariable(Location location, Type type, String name, boolean readonly) {
+    public Variable defineVariable(Location location, Type type, String name, boolean readonly) {
         if (variables == null) {
             variables = new HashMap<>();
         }
@@ -86,11 +86,4 @@ public class LocalScope extends Locals {
     public int getNextSlot() {
         return nextSlotNumber;
     }
-
-    @Override
-    public void incrementScope() {}
-
-    @Override
-    public void decrementScope() {}
-
 }

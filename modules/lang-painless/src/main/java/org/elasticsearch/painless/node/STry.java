@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Globals;
+import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
 import org.elasticsearch.painless.Location;
@@ -53,9 +54,7 @@ public final class STry extends AStatement {
         block.inLoop = inLoop;
         block.lastLoop = lastLoop;
 
-        locals.incrementScope();
-        block.analyze(locals);
-        locals.decrementScope();
+        block.analyze(new LocalScope(locals));
 
         methodEscape = block.methodEscape;
         loopEscape = block.loopEscape;
@@ -70,9 +69,7 @@ public final class STry extends AStatement {
             catc.inLoop = inLoop;
             catc.lastLoop = lastLoop;
 
-            locals.incrementScope();
-            catc.analyze(locals);
-            locals.decrementScope();
+            catc.analyze(new LocalScope(locals));
 
             methodEscape &= catc.methodEscape;
             loopEscape &= catc.loopEscape;

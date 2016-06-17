@@ -21,6 +21,7 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Globals;
+import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
@@ -47,7 +48,7 @@ public final class SFor extends AStatement {
 
     @Override
     void analyze(Locals locals) {
-        locals.incrementScope();
+        locals = new LocalScope(locals);
 
         boolean continuous = false;
 
@@ -120,8 +121,6 @@ public final class SFor extends AStatement {
         if (locals.getMaxLoopCounter() > 0) {
             loopCounterSlot = locals.getVariable(location, "#loop").slot;
         }
-
-        locals.decrementScope();
     }
 
     @Override

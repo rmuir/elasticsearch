@@ -24,6 +24,7 @@ import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Executable;
 import org.elasticsearch.painless.Globals;
+import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.LocalsImpl.ExecuteReserved;
 import org.elasticsearch.painless.Locals.Variable;
@@ -112,7 +113,7 @@ public final class SSource extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty script."));
         }
 
-        locals.incrementScope();
+        locals = new LocalScope(locals);
 
         AStatement last = statements.get(statements.size() - 1);
 
@@ -130,8 +131,6 @@ public final class SSource extends AStatement {
             methodEscape = statement.methodEscape;
             allEscape = statement.allEscape;
         }
-
-        locals.decrementScope();
     }
 
     public void write() {

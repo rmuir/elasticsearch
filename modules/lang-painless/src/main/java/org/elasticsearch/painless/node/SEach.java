@@ -23,6 +23,7 @@ import org.elasticsearch.painless.AnalyzerCaster;
 import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Globals;
+import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Definition.Cast;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
@@ -86,7 +87,7 @@ public class SEach extends AStatement {
             throw createError(new IllegalArgumentException("Not a type [" + this.type + "]."));
         }
 
-        locals.incrementScope();
+        locals = new LocalScope(locals);
 
         variable = locals.addVariable(location, type, name, true);
 
@@ -116,8 +117,6 @@ public class SEach extends AStatement {
         if (locals.getMaxLoopCounter() > 0) {
             loopCounterSlot = locals.getVariable(location, "#loop").slot;
         }
-
-        locals.decrementScope();
     }
 
     void analyzeArray(Locals variables, Type type) {
