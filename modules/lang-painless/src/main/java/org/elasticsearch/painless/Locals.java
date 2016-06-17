@@ -72,7 +72,7 @@ public abstract class Locals {
 
     protected abstract Method lookupMethod(MethodKey key);
 
-    public abstract Variable addVariable(Location location, Type type, String name, boolean readonly, boolean reserved);
+    public abstract Variable addVariable(Location location, Type type, String name, boolean readonly);
 
     public abstract void addMethod(Method method);
     public abstract int getMaxLoopCounter();
@@ -101,6 +101,7 @@ public abstract class Locals {
         public final int slot;
         public final boolean readonly;
 
+        // not working
         public boolean read = false;
 
         protected Variable(Location location, String name, Type type, int slot, boolean readonly) {

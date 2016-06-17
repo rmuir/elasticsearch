@@ -22,6 +22,7 @@ package org.elasticsearch.painless;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Definition.Type;
+import org.elasticsearch.painless.Locals.Variable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -139,35 +140,35 @@ public class LocalsImpl extends Locals {
         // Method variables.
 
         // This reference.  Internal use only.
-        addVariable(null, Definition.getType("Object"), ExecuteReserved.THIS, true, true);
+        addVariableInternal(null, Definition.getType("Object"), ExecuteReserved.THIS, true, true);
 
         // Input map of variables passed to the script.
-        addVariable(null, Definition.getType("Map"), ExecuteReserved.PARAMS, true, true);
+        addVariableInternal(null, Definition.getType("Map"), ExecuteReserved.PARAMS, true, true);
 
         // Scorer parameter passed to the script.  Internal use only.
-        addVariable(null, Definition.DEF_TYPE, ExecuteReserved.SCORER, true, true);
+        addVariableInternal(null, Definition.DEF_TYPE, ExecuteReserved.SCORER, true, true);
 
         // Doc parameter passed to the script. TODO: Currently working as a Map, we can do better?
-        addVariable(null, Definition.getType("Map"), ExecuteReserved.DOC, true, true);
+        addVariableInternal(null, Definition.getType("Map"), ExecuteReserved.DOC, true, true);
 
         // Aggregation _value parameter passed to the script.
-        addVariable(null, Definition.DEF_TYPE, ExecuteReserved.VALUE, true, true);
+        addVariableInternal(null, Definition.DEF_TYPE, ExecuteReserved.VALUE, true, true);
 
         // Shortcut variables.
 
         // Document's score as a read-only double.
         if (reserved.usesScore()) {
-            addVariable(null, Definition.DOUBLE_TYPE, ExecuteReserved.SCORE, true, true);
+            addVariableInternal(null, Definition.DOUBLE_TYPE, ExecuteReserved.SCORE, true, true);
         }
 
         // The ctx map set by executable scripts as a read-only map.
         if (reserved.usesCtx()) {
-            addVariable(null, Definition.getType("Map"), ExecuteReserved.CTX, true, true);
+            addVariableInternal(null, Definition.getType("Map"), ExecuteReserved.CTX, true, true);
         }
 
         // Loop counter to catch infinite loops.  Internal use only.
         if (reserved.getMaxLoopCounter() > 0) {
-            addVariable(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
+            addVariableInternal(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
         }
     }
 
@@ -180,12 +181,12 @@ public class LocalsImpl extends Locals {
         incrementScope();
 
         for (Parameter parameter : parameters) {
-            addVariable(parameter.location, parameter.type, parameter.name, false, false);
+            addVariableInternal(parameter.location, parameter.type, parameter.name, false, false);
         }
 
         // Loop counter to catch infinite loops.  Internal use only.
         if (reserved.getMaxLoopCounter() > 0) {
-            addVariable(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
+            addVariableInternal(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
         }
     }
 
@@ -223,9 +224,9 @@ public class LocalsImpl extends Locals {
             Variable variable = variables.pop();
 
             // This checks whether or not a variable is used when exiting a local scope.
-            if (variable.read) {
-                throw variable.location.createError(new IllegalArgumentException("Variable [" + variable.name + "] is never used."));
-            }
+            //if (variable.read) {
+            //    throw variable.location.createError(new IllegalArgumentException("Variable [" + variable.name + "] is never used."));
+            //}
 
             --remove;
         }
@@ -257,7 +258,11 @@ public class LocalsImpl extends Locals {
     }
 
     @Override
-    public Variable addVariable(Location location, Type type, String name, boolean readonly, boolean reserved) {
+    public Variable addVariable(Location location, Type type, String name, boolean readonly) {
+        return addVariableInternal(location, type, name, readonly, false);
+    }
+
+    private Variable addVariableInternal(Location location, Type type, String name, boolean readonly, boolean reserved) {
         if (!reserved && this.reserved.isReserved(name)) {
             throw location.createError(new IllegalArgumentException("Variable [" + name + "] is reserved."));
         }

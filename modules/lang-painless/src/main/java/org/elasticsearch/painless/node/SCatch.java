@@ -66,7 +66,7 @@ public final class SCatch extends AStatement {
             throw createError(new ClassCastException("Not an exception type [" + this.type + "]."));
         }
 
-        variable = locals.addVariable(location, type, name, true, false);
+        variable = locals.addVariable(location, type, name, true);
 
         if (block != null) {
             block.lastSource = lastSource;

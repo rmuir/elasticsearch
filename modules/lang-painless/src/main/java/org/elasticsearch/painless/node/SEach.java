@@ -88,7 +88,7 @@ public class SEach extends AStatement {
 
         locals.incrementScope();
 
-        variable = locals.addVariable(location, type, name, true, false);
+        variable = locals.addVariable(location, type, name, true);
 
         if (expression.actual.sort == Sort.ARRAY) {
             analyzeArray(locals, type);
@@ -123,8 +123,8 @@ public class SEach extends AStatement {
     void analyzeArray(Locals variables, Type type) {
         // We must store the array and index as variables for securing slots on the stack, and
         // also add the location offset to make the names unique in case of nested for each loops.
-        array = variables.addVariable(location, expression.actual, "#array" + location.getOffset(), true, false);
-        index = variables.addVariable(location, Definition.INT_TYPE, "#index" + location.getOffset(), true, false);
+        array = variables.addVariable(location, expression.actual, "#array" + location.getOffset(), true);
+        index = variables.addVariable(location, Definition.INT_TYPE, "#index" + location.getOffset(), true);
         indexed = Definition.getType(expression.actual.struct, expression.actual.dimensions - 1);
         cast = AnalyzerCaster.getLegalCast(location, indexed, type, true, true);
     }
@@ -132,7 +132,7 @@ public class SEach extends AStatement {
     void analyzeIterable(Locals variables, Type type) {
         // We must store the iterator as a variable for securing a slot on the stack, and
         // also add the location offset to make the name unique in case of nested for each loops.
-        iterator = variables.addVariable(location, Definition.getType("Iterator"), "#itr" + location.getOffset(), true, false);
+        iterator = variables.addVariable(location, Definition.getType("Iterator"), "#itr" + location.getOffset(), true);
 
         if (expression.actual.sort == Sort.DEF) {
             method = null;

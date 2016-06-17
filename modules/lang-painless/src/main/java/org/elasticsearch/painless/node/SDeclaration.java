@@ -63,7 +63,7 @@ public final class SDeclaration extends AStatement {
             expression = expression.cast(locals);
         }
 
-        variable = locals.addVariable(location, type, name, false, false);
+        variable = locals.addVariable(location, type, name, false);
     }
 
     @Override
