@@ -22,6 +22,7 @@ package org.elasticsearch.painless.node;
 import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.FunctionRef;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Locals;
@@ -79,7 +80,7 @@ public class ECapturingFunctionRef extends AExpression implements ILambda {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         writer.writeDebugInfo(location);
         if (defPointer != null) {
             // dynamic interface: push captured parameter on stack

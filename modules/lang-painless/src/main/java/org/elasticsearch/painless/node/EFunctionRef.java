@@ -21,6 +21,7 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.FunctionRef;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Definition.Method;
@@ -83,7 +84,7 @@ public class EFunctionRef extends AExpression implements ILambda {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         if (ref != null) {
             writer.writeDebugInfo(location);
             // convert MethodTypes to asm Type for the constant pool.

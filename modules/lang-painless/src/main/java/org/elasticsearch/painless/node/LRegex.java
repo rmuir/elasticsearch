@@ -21,9 +21,9 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
 
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -38,9 +38,8 @@ public final class LRegex extends ALink {
     private final String pattern;
     private final int flags;
     private Constant constant;
-    private final List<Constant> constants;
 
-    public LRegex(Location location, String pattern, String flagsString, List<Constant> constants) {
+    public LRegex(Location location, String pattern, String flagsString) {
         super(location, 1);
         this.pattern = pattern;
         int flags = 0;
@@ -54,7 +53,6 @@ public final class LRegex extends ALink {
         } catch (PatternSyntaxException e) {
             throw createError(e);
         }
-        this.constants = constants;
     }
 
     @Override
@@ -74,19 +72,19 @@ public final class LRegex extends ALink {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         // Do nothing.
     }
 
     @Override
-    void load(MethodWriter writer) {
+    void load(MethodWriter writer, Globals globals) {
         writer.writeDebugInfo(location);
         writer.getStatic(WriterConstants.CLASS_TYPE, constant.name, Definition.PATTERN_TYPE.type);
-        constants.add(constant);
+        globals.addConstantInitializer(constant);
     }
 
     @Override
-    void store(MethodWriter writer) {
+    void store(MethodWriter writer, Globals globals) {
         throw createError(new IllegalStateException("Illegal tree structure."));
     }
 

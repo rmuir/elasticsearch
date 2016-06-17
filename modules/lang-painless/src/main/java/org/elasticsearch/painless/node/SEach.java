@@ -22,6 +22,7 @@ package org.elasticsearch.painless.node;
 import org.elasticsearch.painless.AnalyzerCaster;
 import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Definition.Cast;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
@@ -148,20 +149,20 @@ public class SEach extends AStatement {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         writer.writeStatementOffset(location);
 
         if (array != null) {
-            writeArray(writer);
+            writeArray(writer, globals);
         } else if (iterator != null) {
-            writeIterable(writer);
+            writeIterable(writer, globals);
         } else {
             throw createError(new IllegalStateException("Illegal tree structure."));
         }
     }
 
-    void writeArray(MethodWriter writer) {
-        expression.write(writer);
+    void writeArray(MethodWriter writer, Globals globals) {
+        expression.write(writer, globals);
         writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ISTORE), array.slot);
         writer.push(-1);
         writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ISTORE), index.slot);
@@ -183,14 +184,14 @@ public class SEach extends AStatement {
         writer.writeCast(cast);
         writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.slot);
 
-        block.write(writer);
+        block.write(writer, globals);
 
         writer.goTo(begin);
         writer.mark(end);
     }
 
-    void writeIterable(MethodWriter writer) {
-        expression.write(writer);
+    void writeIterable(MethodWriter writer, Globals globals) {
+        expression.write(writer, globals);
 
         if (method == null) {
             Type itr = Definition.getType("Iterator");
@@ -218,7 +219,7 @@ public class SEach extends AStatement {
         writer.writeCast(cast);
         writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.slot);
 
-        block.write(writer);
+        block.write(writer, globals);
 
         writer.goTo(begin);
         writer.mark(end);

@@ -19,6 +19,7 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
 import org.elasticsearch.painless.Location;
@@ -120,5 +121,5 @@ public abstract class AStatement extends ANode {
     /**
      * Writes ASM based on the data collected during the analysis phase.
      */
-    abstract void write(MethodWriter writer);
+    abstract void write(MethodWriter writer, Globals globals);
 }

@@ -19,6 +19,7 @@
 
 package org.elasticsearch.painless.node;
 
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
 import org.elasticsearch.painless.Location;
@@ -86,7 +87,7 @@ public final class STry extends AStatement {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         writer.writeStatementOffset(location);
 
         Label begin = new Label();
@@ -97,7 +98,7 @@ public final class STry extends AStatement {
 
         block.continu = continu;
         block.brake = brake;
-        block.write(writer);
+        block.write(writer, globals);
 
         if (!block.allEscape) {
             writer.goTo(exception);
@@ -109,7 +110,7 @@ public final class STry extends AStatement {
             catc.begin = begin;
             catc.end = end;
             catc.exception = catches.size() > 1 ? exception : null;
-            catc.write(writer);
+            catc.write(writer, globals);
         }
 
         if (!block.allEscape || catches.size() > 1) {

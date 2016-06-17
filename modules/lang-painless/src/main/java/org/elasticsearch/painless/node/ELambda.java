@@ -24,6 +24,7 @@ import org.elasticsearch.painless.Locals.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Constant;
+import org.elasticsearch.painless.Globals;
 import org.objectweb.asm.Type;
 
 import java.util.Collections;
@@ -36,18 +37,14 @@ public class ELambda extends AExpression implements ILambda {
     final List<String> paramNameStrs;
     final List<AStatement> statements;
     final List<AStatement> statements2;
-    final List<SFunction> syntheticFunctions;
-    final List<Constant> constants;
     ILambda impl;
     SFunction desugared;
 
-    public ELambda(String name, List<SFunction> syntheticFunctions, List<Constant> constants, FunctionReserved reserved, 
+    public ELambda(String name, FunctionReserved reserved, 
                    Location location, List<String> paramTypes, List<String> paramNames, 
                    List<AStatement> statements, List<AStatement> statementsCopy) {
         super(location);
         this.name = name;
-        this.syntheticFunctions = syntheticFunctions;
-        this.constants = constants;
         this.reserved = reserved;
         this.paramTypeStrs = Collections.unmodifiableList(paramTypes);
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
@@ -60,14 +57,14 @@ public class ELambda extends AExpression implements ILambda {
     @Override
     void analyze(Locals locals) {
         SFunction throwAway = new SFunction(reserved, location, "def", name, 
-                                            paramTypeStrs, paramNameStrs, statements, true, constants);
+                                            paramTypeStrs, paramNameStrs, statements, true);
         throwAway.generate();
         throwAway.analyze(locals);
         // this tells me the capture parameters!
 
         // create a new synthetic method, analyze it
         desugared = new SFunction(reserved, location, "def", name, 
-                paramTypeStrs, paramNameStrs, statements2, true, constants);
+                paramTypeStrs, paramNameStrs, statements2, true);
         desugared.generate();
         locals.addMethod(desugared.method);
         desugared.analyze(locals.getRoot());
@@ -81,11 +78,11 @@ public class ELambda extends AExpression implements ILambda {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         AExpression expr = (AExpression) impl;
-        expr.write(writer);
+        expr.write(writer, globals);
         // add synthetic method to the queue to be written
-        syntheticFunctions.add(desugared);
+        globals.addSyntheticMethod(desugared);
     }
 
     @Override

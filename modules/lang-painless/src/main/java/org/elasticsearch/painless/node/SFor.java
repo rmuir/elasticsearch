@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
@@ -124,7 +125,7 @@ public final class SFor extends AStatement {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         writer.writeStatementOffset(location);
 
         Label start = new Label();
@@ -132,11 +133,11 @@ public final class SFor extends AStatement {
         Label end = new Label();
 
         if (initializer instanceof SDeclBlock) {
-            ((SDeclBlock)initializer).write(writer);
+            ((SDeclBlock)initializer).write(writer, globals);
         } else if (initializer instanceof AExpression) {
             AExpression initializer = (AExpression)this.initializer;
 
-            initializer.write(writer);
+            initializer.write(writer, globals);
             writer.writePop(initializer.expected.sort.size);
         }
 
@@ -144,7 +145,7 @@ public final class SFor extends AStatement {
 
         if (condition != null) {
             condition.fals = end;
-            condition.write(writer);
+            condition.write(writer, globals);
         }
 
         boolean allEscape = false;
@@ -159,14 +160,14 @@ public final class SFor extends AStatement {
             }
 
             writer.writeLoopCounter(loopCounterSlot, statementCount, location);
-            block.write(writer);
+            block.write(writer, globals);
         } else {
             writer.writeLoopCounter(loopCounterSlot, 1, location);
         }
 
         if (afterthought != null) {
             writer.mark(begin);
-            afterthought.write(writer);
+            afterthought.write(writer, globals);
         }
 
         if (afterthought != null || !allEscape) {

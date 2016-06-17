@@ -21,6 +21,7 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.Locals.Variable;
 import org.objectweb.asm.Opcodes;
@@ -59,17 +60,17 @@ public final class LVariable extends ALink {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         // Do nothing.
     }
 
     @Override
-    void load(MethodWriter writer) {
+    void load(MethodWriter writer, Globals globals) {
         writer.visitVarInsn(after.type.getOpcode(Opcodes.ILOAD), slot);
     }
 
     @Override
-    void store(MethodWriter writer) {
+    void store(MethodWriter writer, Globals globals) {
         writer.visitVarInsn(after.type.getOpcode(Opcodes.ISTORE), slot);
     }
 }

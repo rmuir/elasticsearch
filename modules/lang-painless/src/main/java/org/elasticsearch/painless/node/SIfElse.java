@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.Locals;
 import org.objectweb.asm.Label;
@@ -89,18 +90,18 @@ public final class SIfElse extends AStatement {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         writer.writeStatementOffset(location);
 
         Label end = new Label();
         Label fals = elseblock != null ? new Label() : end;
 
         condition.fals = fals;
-        condition.write(writer);
+        condition.write(writer, globals);
 
         ifblock.continu = continu;
         ifblock.brake = brake;
-        ifblock.write(writer);
+        ifblock.write(writer, globals);
 
         if (!ifblock.allEscape) {
             writer.goTo(end);
@@ -110,7 +111,7 @@ public final class SIfElse extends AStatement {
 
         elseblock.continu = continu;
         elseblock.brake = brake;
-        elseblock.write(writer);
+        elseblock.write(writer, globals);
 
         writer.mark(end);
     }

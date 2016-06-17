@@ -20,6 +20,7 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Locals;
@@ -83,12 +84,12 @@ final class LDefCall extends ALink implements IDefLink {
     }
 
     @Override
-    void write(MethodWriter writer) {
+    void write(MethodWriter writer, Globals globals) {
         // Do nothing.
     }
 
     @Override
-    void load(MethodWriter writer) {
+    void load(MethodWriter writer, Globals globals) {
         writer.writeDebugInfo(location);
 
         StringBuilder signature = new StringBuilder();
@@ -105,7 +106,7 @@ final class LDefCall extends ALink implements IDefLink {
                     signature.append(capture.getDescriptor());
                 }
             }
-            argument.write(writer);
+            argument.write(writer, globals);
         }
 
         signature.append(')');
@@ -120,7 +121,7 @@ final class LDefCall extends ALink implements IDefLink {
     }
 
     @Override
-    void store(MethodWriter writer) {
+    void store(MethodWriter writer, Globals globals) {
         throw createError(new IllegalStateException("Illegal tree structure."));
     }
 }

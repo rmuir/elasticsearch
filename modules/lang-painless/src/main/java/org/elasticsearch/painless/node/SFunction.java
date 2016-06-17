@@ -22,6 +22,7 @@ package org.elasticsearch.painless.node;
 import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Def;
 import org.elasticsearch.painless.Definition;
+import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.Sort;
 import org.elasticsearch.painless.Definition.Type;
@@ -39,7 +40,6 @@ import org.objectweb.asm.Opcodes;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,13 +50,12 @@ import static org.elasticsearch.painless.WriterConstants.CLASS_TYPE;
  */
 public class SFunction extends AStatement {
     final FunctionReserved reserved;
-    final List<Constant> constants;
     final String rtnTypeStr;
-    final String name;
+    public final String name;
     final List<String> paramTypeStrs;
     final List<String> paramNameStrs;
     final List<AStatement> statements;
-    final boolean synthetic;
+    public final boolean synthetic;
 
     Type rtnType = null;
     List<Parameter> parameters = new ArrayList<>();
@@ -66,7 +65,7 @@ public class SFunction extends AStatement {
 
     public SFunction(FunctionReserved reserved, Location location,
                      String rtnType, String name, List<String> paramTypes, 
-                     List<String> paramNames, List<AStatement> statements, boolean synthetic, List<Constant> constants) {
+                     List<String> paramNames, List<AStatement> statements, boolean synthetic) {
         super(location);
 
         this.reserved = reserved;
@@ -76,7 +75,6 @@ public class SFunction extends AStatement {
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
         this.statements = Collections.unmodifiableList(statements);
         this.synthetic = synthetic;
-        this.constants = constants;
     }
 
     void generate() {
@@ -147,18 +145,18 @@ public class SFunction extends AStatement {
     }
     
     /** Writes the function to given ClassVisitor. */
-    void write (ClassVisitor writer, BitSet statements) {
+    void write (ClassVisitor writer, Globals globals) {
         int access = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC;
         if (synthetic) {
             access |= Opcodes.ACC_SYNTHETIC;
         }
-        final MethodWriter function = new MethodWriter(access, method.method, writer, statements);
-        write(function);
+        final MethodWriter function = new MethodWriter(access, method.method, writer, globals.getStatements());
+        write(function, globals);
         function.endMethod();
     }
 
     @Override
-    void write(MethodWriter function) {
+    void write(MethodWriter function, Globals globals) {
         if (reserved.getMaxLoopCounter() > 0) {
             // if there is infinite loop protection, we do this once:
             // int #loop = settings.getMaxLoopCounter()
@@ -170,7 +168,7 @@ public class SFunction extends AStatement {
         }
 
         for (AStatement statement : statements) {
-            statement.write(function);
+            statement.write(function, globals);
         }
 
         if (!methodEscape) {
@@ -182,7 +180,8 @@ public class SFunction extends AStatement {
         }
 
         String staticHandleFieldName = Def.getUserFunctionHandleFieldName(name, parameters.size());
-        constants.add(new Constant(location, WriterConstants.METHOD_HANDLE_TYPE, staticHandleFieldName, this::initializeConstant));
+        globals.addConstantInitializer(new Constant(location, WriterConstants.METHOD_HANDLE_TYPE, 
+                                                    staticHandleFieldName, this::initializeConstant));
     }
 
     private void initializeConstant(MethodWriter writer) {
