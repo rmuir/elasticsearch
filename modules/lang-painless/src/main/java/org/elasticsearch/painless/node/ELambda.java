@@ -69,14 +69,14 @@ public class ELambda extends AExpression implements ILambda {
                                   paramTypeStrs, paramNameStrs, statements2, true);
         desugared.generate();
  
-        Locals functionLocals = Locals.newFunctionScope(locals.getRoot(), throwAway.rtnType, throwAway.parameters, 
+        Locals functionLocals = Locals.newFunctionScope(locals.getProgramScope(), throwAway.rtnType, throwAway.parameters, 
                                                         throwAway.reserved.getMaxLoopCounter());
         desugared.analyze(functionLocals);
         
         // setup reference
         EFunctionRef ref = new EFunctionRef(location, "this", name);
         ref.expected = expected;
-        functionLocals = Locals.newFunctionScope(locals.getRoot(), throwAway.rtnType, throwAway.parameters, 
+        functionLocals = Locals.newFunctionScope(locals.getProgramScope(), throwAway.rtnType, throwAway.parameters, 
                                                  throwAway.reserved.getMaxLoopCounter());
         functionLocals.addMethod(desugared.method);
         ref.analyze(functionLocals);

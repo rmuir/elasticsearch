@@ -23,7 +23,6 @@ import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Executable;
-import org.elasticsearch.painless.FunctionScope;
 import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.Locals.Variable;
