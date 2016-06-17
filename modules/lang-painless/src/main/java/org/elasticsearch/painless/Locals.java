@@ -24,19 +24,15 @@ import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Definition.Type;
 
 import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Tracks user defined methods and variables across compilation phases.
  */
-public final class Locals {
+public class Locals {
 
     /**
      * Tracks reserved variables.  Must be given to any source of input
@@ -286,7 +282,7 @@ public final class Locals {
         throw location.createError(new IllegalArgumentException("Variable [" + name + "] is not defined."));
     }
 
-    public boolean isVariable(String name) {
+    private boolean isVariable(String name) {
         Iterator<Variable> itr = variables.iterator();
 
         while (itr.hasNext()) {

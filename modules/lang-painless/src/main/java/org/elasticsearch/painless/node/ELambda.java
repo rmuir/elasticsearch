@@ -24,7 +24,6 @@ import org.elasticsearch.painless.Locals.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Constant;
-import org.elasticsearch.painless.Definition.MethodKey;
 import org.objectweb.asm.Type;
 
 import java.util.Collections;
@@ -44,7 +43,7 @@ public class ELambda extends AExpression implements ILambda {
 
     public ELambda(String name, List<SFunction> syntheticFunctions, List<Constant> constants, FunctionReserved reserved, 
                    Location location, List<String> paramTypes, List<String> paramNames, 
-                   List<AStatement> statements, List<AStatement> statements2) {
+                   List<AStatement> statements, List<AStatement> statementsCopy) {
         super(location);
         this.name = name;
         this.syntheticFunctions = syntheticFunctions;
@@ -55,7 +54,7 @@ public class ELambda extends AExpression implements ILambda {
         // this gets used just for an analysis pass to determine the capture variables (if any)
         this.statements = Collections.unmodifiableList(statements);
         // this is a clean copy of 'statements', its the one that gets used for the desugared method
-        this.statements2 = Collections.unmodifiableList(statements2);
+        this.statements2 = Collections.unmodifiableList(statementsCopy);
     }
 
     @Override
