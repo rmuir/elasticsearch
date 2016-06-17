@@ -24,7 +24,6 @@ import org.elasticsearch.painless.Locals.Variable;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.node.SFunction.FunctionReserved;
-import org.elasticsearch.painless.FunctionScope;
 import org.elasticsearch.painless.Globals;
 import org.objectweb.asm.Type;
 
@@ -70,15 +69,15 @@ public class ELambda extends AExpression implements ILambda {
                                   paramTypeStrs, paramNameStrs, statements2, true);
         desugared.generate();
  
-        Locals functionLocals = new FunctionScope(locals.getRoot(), throwAway.rtnType, throwAway.parameters, 
-                                                  throwAway.reserved.getMaxLoopCounter());
+        Locals functionLocals = Locals.newFunctionScope(locals.getRoot(), throwAway.rtnType, throwAway.parameters, 
+                                                        throwAway.reserved.getMaxLoopCounter());
         desugared.analyze(functionLocals);
         
         // setup reference
         EFunctionRef ref = new EFunctionRef(location, "this", name);
         ref.expected = expected;
-        functionLocals = new FunctionScope(locals.getRoot(), throwAway.rtnType, throwAway.parameters, 
-                                           throwAway.reserved.getMaxLoopCounter());
+        functionLocals = Locals.newFunctionScope(locals.getRoot(), throwAway.rtnType, throwAway.parameters, 
+                                                 throwAway.reserved.getMaxLoopCounter());
         functionLocals.addMethod(desugared.method);
         ref.analyze(functionLocals);
         actual = ref.actual;

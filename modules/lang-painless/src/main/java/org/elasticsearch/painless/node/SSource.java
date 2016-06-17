@@ -103,8 +103,8 @@ public final class SSource extends AStatement {
     @Override
     void analyze(Locals program) {
         for (SFunction function : functions) {
-            Locals functionLocals = new FunctionScope(program, function.rtnType, function.parameters, 
-                                                      function.reserved.getMaxLoopCounter());
+            Locals functionLocals = Locals.newFunctionScope(program, function.rtnType, function.parameters, 
+                                                            function.reserved.getMaxLoopCounter());
             function.analyze(functionLocals);
         }
 
