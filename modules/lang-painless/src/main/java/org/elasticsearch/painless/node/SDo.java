@@ -79,7 +79,7 @@ public final class SDo extends AStatement {
         statementCount = 1;
 
         if (locals.hasVariable(Locals.LOOP)) {
-            loopCounterSlot = locals.getVariable(location, Locals.LOOP).slot;
+            loopCounter = locals.getVariable(location, Locals.LOOP);
         }
     }
 
@@ -102,7 +102,7 @@ public final class SDo extends AStatement {
         condition.fals = end;
         condition.write(writer, globals);
 
-        writer.writeLoopCounter(loopCounterSlot, Math.max(1, block.statementCount), location);
+        writer.writeLoopCounter(loopCounter.getSlot(), Math.max(1, block.statementCount), location);
 
         writer.goTo(start);
         writer.mark(end);

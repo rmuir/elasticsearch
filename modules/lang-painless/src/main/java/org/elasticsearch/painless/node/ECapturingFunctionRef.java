@@ -86,15 +86,15 @@ public class ECapturingFunctionRef extends AExpression implements ILambda {
             // dynamic interface: push captured parameter on stack
             // TODO: don't do this: its just to cutover :)
             writer.push((String)null);
-            writer.visitVarInsn(captured.type.type.getOpcode(Opcodes.ILOAD), captured.slot);
+            writer.visitVarInsn(captured.type.type.getOpcode(Opcodes.ILOAD), captured.getSlot());
         } else if (ref == null) {
             // typed interface, dynamic implementation
-            writer.visitVarInsn(captured.type.type.getOpcode(Opcodes.ILOAD), captured.slot);
+            writer.visitVarInsn(captured.type.type.getOpcode(Opcodes.ILOAD), captured.getSlot());
             String descriptor = Type.getMethodType(expected.type, captured.type.type).getDescriptor();
             writer.invokeDynamic(call, descriptor, DEF_BOOTSTRAP_HANDLE, DefBootstrap.REFERENCE, expected.name);
         } else {
             // typed interface, typed implementation
-            writer.visitVarInsn(captured.type.type.getOpcode(Opcodes.ILOAD), captured.slot);
+            writer.visitVarInsn(captured.type.type.getOpcode(Opcodes.ILOAD), captured.getSlot());
             // convert MethodTypes to asm Type for the constant pool.
             String invokedType = ref.invokedType.toMethodDescriptorString();
             Type samMethodType = Type.getMethodType(ref.samMethodType.toMethodDescriptorString());

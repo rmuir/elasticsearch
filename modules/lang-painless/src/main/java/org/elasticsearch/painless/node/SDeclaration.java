@@ -87,6 +87,6 @@ public final class SDeclaration extends AStatement {
             expression.write(writer, globals);
         }
 
-        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.slot);
+        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.getSlot());
     }
 }

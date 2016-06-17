@@ -223,10 +223,10 @@ public final class SSource extends AStatement {
             Variable scorer = mainMethod.getVariable(null, ExecuteReserved.SCORER);
             Variable score = mainMethod.getVariable(null, ExecuteReserved.SCORE);
 
-            writer.visitVarInsn(Opcodes.ALOAD, scorer.slot);
+            writer.visitVarInsn(Opcodes.ALOAD, scorer.getSlot());
             writer.invokeVirtual(WriterConstants.SCORER_TYPE, WriterConstants.SCORER_SCORE);
             writer.visitInsn(Opcodes.F2D);
-            writer.visitVarInsn(Opcodes.DSTORE, score.slot);
+            writer.visitVarInsn(Opcodes.DSTORE, score.getSlot());
         }
 
         if (reserved.usesCtx()) {
@@ -236,10 +236,10 @@ public final class SSource extends AStatement {
             Variable input = mainMethod.getVariable(null, ExecuteReserved.PARAMS);
             Variable ctx = mainMethod.getVariable(null, ExecuteReserved.CTX);
 
-            writer.visitVarInsn(Opcodes.ALOAD, input.slot);
+            writer.visitVarInsn(Opcodes.ALOAD, input.getSlot());
             writer.push(ExecuteReserved.CTX);
             writer.invokeInterface(MAP_TYPE, MAP_GET);
-            writer.visitVarInsn(Opcodes.ASTORE, ctx.slot);
+            writer.visitVarInsn(Opcodes.ASTORE, ctx.getSlot());
         }
 
         if (reserved.getMaxLoopCounter() > 0) {
@@ -249,7 +249,7 @@ public final class SSource extends AStatement {
             Variable loop = mainMethod.getVariable(null, ExecuteReserved.LOOP);
 
             writer.push(reserved.getMaxLoopCounter());
-            writer.visitVarInsn(Opcodes.ISTORE, loop.slot);
+            writer.visitVarInsn(Opcodes.ISTORE, loop.getSlot());
         }
 
         for (AStatement statement : statements) {

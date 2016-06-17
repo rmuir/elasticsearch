@@ -21,6 +21,7 @@ package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.Locals;
+import org.elasticsearch.painless.Locals.Variable;
 import org.objectweb.asm.Label;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
@@ -89,7 +90,7 @@ public abstract class AStatement extends ANode {
      * Set to the loop counter variable slot as a shortcut if loop statements
      * are being counted.
      */
-    int loopCounterSlot = -1;
+    Variable loopCounter = null;
 
     /**
      * Set to the approximate number of statements in a loop block to prevent

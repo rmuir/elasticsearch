@@ -115,7 +115,7 @@ public class SEach extends AStatement {
         statementCount = 1;
 
         if (locals.hasVariable(Locals.LOOP)) {
-            loopCounterSlot = locals.getVariable(location, Locals.LOOP).slot;
+            loopCounter = locals.getVariable(location, Locals.LOOP);
         }
     }
 
@@ -162,26 +162,26 @@ public class SEach extends AStatement {
 
     void writeArray(MethodWriter writer, Globals globals) {
         expression.write(writer, globals);
-        writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ISTORE), array.slot);
+        writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ISTORE), array.getSlot());
         writer.push(-1);
-        writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ISTORE), index.slot);
+        writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ISTORE), index.getSlot());
 
         Label begin = new Label();
         Label end = new Label();
 
         writer.mark(begin);
 
-        writer.visitIincInsn(index.slot, 1);
-        writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ILOAD), index.slot);
-        writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ILOAD), array.slot);
+        writer.visitIincInsn(index.getSlot(), 1);
+        writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ILOAD), index.getSlot());
+        writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ILOAD), array.getSlot());
         writer.arrayLength();
         writer.ifICmp(MethodWriter.GE, end);
 
-        writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ILOAD), array.slot);
-        writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ILOAD), index.slot);
+        writer.visitVarInsn(array.type.type.getOpcode(Opcodes.ILOAD), array.getSlot());
+        writer.visitVarInsn(index.type.type.getOpcode(Opcodes.ILOAD), index.getSlot());
         writer.arrayLoad(indexed.type);
         writer.writeCast(cast);
-        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.slot);
+        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.getSlot());
 
         block.write(writer, globals);
 
@@ -202,21 +202,21 @@ public class SEach extends AStatement {
             writer.invokeVirtual(method.owner.type, method.method);
         }
 
-        writer.visitVarInsn(iterator.type.type.getOpcode(Opcodes.ISTORE), iterator.slot);
+        writer.visitVarInsn(iterator.type.type.getOpcode(Opcodes.ISTORE), iterator.getSlot());
 
         Label begin = new Label();
         Label end = new Label();
 
         writer.mark(begin);
 
-        writer.visitVarInsn(iterator.type.type.getOpcode(Opcodes.ILOAD), iterator.slot);
+        writer.visitVarInsn(iterator.type.type.getOpcode(Opcodes.ILOAD), iterator.getSlot());
         writer.invokeInterface(ITERATOR_TYPE, ITERATOR_HASNEXT);
         writer.ifZCmp(MethodWriter.EQ, end);
 
-        writer.visitVarInsn(iterator.type.type.getOpcode(Opcodes.ILOAD), iterator.slot);
+        writer.visitVarInsn(iterator.type.type.getOpcode(Opcodes.ILOAD), iterator.getSlot());
         writer.invokeInterface(ITERATOR_TYPE, ITERATOR_NEXT);
         writer.writeCast(cast);
-        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.slot);
+        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.getSlot());
 
         block.write(writer, globals);
 

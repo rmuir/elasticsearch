@@ -91,7 +91,7 @@ public final class SCatch extends AStatement {
         Label jump = new Label();
 
         writer.mark(jump);
-        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.slot);
+        writer.visitVarInsn(variable.type.type.getOpcode(Opcodes.ISTORE), variable.getSlot());
 
         if (block != null) {
             block.continu = continu;

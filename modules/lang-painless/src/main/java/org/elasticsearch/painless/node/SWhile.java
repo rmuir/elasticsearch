@@ -85,7 +85,7 @@ public final class SWhile extends AStatement {
         statementCount = 1;
 
         if (locals.hasVariable(Locals.LOOP)) {
-            loopCounterSlot = locals.getVariable(location, Locals.LOOP).slot;
+            loopCounter = locals.getVariable(location, Locals.LOOP);
         }
     }
 
@@ -102,13 +102,13 @@ public final class SWhile extends AStatement {
         condition.write(writer, globals);
 
         if (block != null) {
-            writer.writeLoopCounter(loopCounterSlot, Math.max(1, block.statementCount), location);
+            writer.writeLoopCounter(loopCounter.getSlot(), Math.max(1, block.statementCount), location);
 
             block.continu = begin;
             block.brake = end;
             block.write(writer, globals);
         } else {
-            writer.writeLoopCounter(loopCounterSlot, 1, location);
+            writer.writeLoopCounter(loopCounter.getSlot(), 1, location);
         }
 
         if (block == null || !block.allEscape) {

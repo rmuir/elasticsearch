@@ -122,11 +122,8 @@ public abstract class Locals {
         public final Location location;
         public final String name;
         public final Type type;
-        public final int slot;
+        final int slot;
         public final boolean readonly;
-
-        // not working
-        public boolean read = false;
 
         protected Variable(Location location, String name, Type type, int slot, boolean readonly) {
             this.location = location;
@@ -134,6 +131,10 @@ public abstract class Locals {
             this.type = type;
             this.slot = slot;
             this.readonly = readonly;
+        }
+        
+        public int getSlot() {
+            return slot;
         }
     }
     

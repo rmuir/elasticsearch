@@ -119,7 +119,7 @@ public final class SFor extends AStatement {
         statementCount = 1;
 
         if (locals.hasVariable(Locals.LOOP)) {
-            loopCounterSlot = locals.getVariable(location, Locals.LOOP).slot;
+            loopCounter = locals.getVariable(location, Locals.LOOP);
         }
     }
 
@@ -158,10 +158,10 @@ public final class SFor extends AStatement {
                 ++statementCount;
             }
 
-            writer.writeLoopCounter(loopCounterSlot, statementCount, location);
+            writer.writeLoopCounter(loopCounter.getSlot(), statementCount, location);
             block.write(writer, globals);
         } else {
-            writer.writeLoopCounter(loopCounterSlot, 1, location);
+            writer.writeLoopCounter(loopCounter.getSlot(), 1, location);
         }
 
         if (afterthought != null) {

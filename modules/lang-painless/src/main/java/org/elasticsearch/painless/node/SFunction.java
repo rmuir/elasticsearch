@@ -161,7 +161,7 @@ public class SFunction extends AStatement {
             // if there is infinite loop protection, we do this once:
             // int #loop = settings.getMaxLoopCounter()
             function.push(reserved.getMaxLoopCounter());
-            function.visitVarInsn(Opcodes.ISTORE, loop.slot);
+            function.visitVarInsn(Opcodes.ISTORE, loop.getSlot());
         }
 
         for (AStatement statement : statements) {
