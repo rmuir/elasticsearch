@@ -187,7 +187,7 @@ public class Locals {
         }
     }
     
-    public static final class Parameter {
+    public static class Parameter {
         public final Location location;
         public final String name;
         public final Type type;
@@ -201,6 +201,10 @@ public class Locals {
     
     public static Locals newLocalScope(Locals currentScope) {
         return new Locals(currentScope);
+    }
+    
+    public static Locals newLambdaScope(Locals currentScope, List<Parameter> parameters, List<Variable> captures) {
+        return new LambdaLocals(currentScope, parameters, captures);
     }
     
     public static Locals newFunctionScope(Locals programScope, Type returnType, List<Parameter> parameters, int maxLoopCounter) {

@@ -21,17 +21,18 @@ package org.elasticsearch.painless;
 
 import org.elasticsearch.painless.Definition.Type;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class LambdaScope extends Locals {
-    private List<Variable> captures = new ArrayList<>();
+class LambdaLocals extends Locals {
+    private List<Variable> captures;
 
-    public LambdaScope(Locals parent, List<Parameter> parameters) {
+    LambdaLocals(Locals parent, List<Parameter> parameters, List<Variable> captures) {
         super(parent);
         for (Parameter parameter : parameters) {
             defineVariable(parameter.location, parameter.type, parameter.name, false);
         }
+        this.captures = Objects.requireNonNull(captures);
     }
     
     @Override
@@ -43,11 +44,9 @@ public class LambdaScope extends Locals {
         if (getParent() != null) {
             variable = getParent().getVariable(location, name);
             if (variable != null) {
+                assert captures != null; // unused right now
                 // make it read-only, and record that it was used.
-                Variable readOnly = new Variable(variable.location, variable.name, variable.type, true);
-                readOnly.slot = variable.slot; // xxx
-                captures.add(readOnly);
-                return readOnly;
+                throw new UnsupportedOperationException("lambda capture is not supported");
             }
         }
         throw location.createError(new IllegalArgumentException("Variable [" + name + "] is not defined."));
@@ -56,9 +55,5 @@ public class LambdaScope extends Locals {
     @Override
     public Type getReturnType() {
         return Definition.DEF_TYPE;
-    }
-    
-    public List<Variable> getCaptures() {
-        return captures;
     }
 }

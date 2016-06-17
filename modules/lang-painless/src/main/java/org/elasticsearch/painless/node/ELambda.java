@@ -20,14 +20,15 @@
 package org.elasticsearch.painless.node;
 
 import org.elasticsearch.painless.Locals;
+import org.elasticsearch.painless.Locals.Variable;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.node.SFunction.FunctionReserved;
 import org.elasticsearch.painless.FunctionScope;
 import org.elasticsearch.painless.Globals;
-import org.elasticsearch.painless.LambdaScope;
 import org.objectweb.asm.Type;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -61,8 +62,8 @@ public class ELambda extends AExpression implements ILambda {
         SFunction throwAway = new SFunction(reserved, location, "def", name, 
                                             paramTypeStrs, paramNameStrs, statements, true);
         throwAway.generate();
-        LambdaScope lambdaScope = new LambdaScope(locals, throwAway.parameters);
-        throwAway.analyze(lambdaScope);
+        List<Variable> captures = new ArrayList<>();
+        throwAway.analyze(Locals.newLambdaScope(locals, throwAway.parameters, captures));
 
         // create a new synthetic method, analyze it
         desugared = new SFunction(reserved, location, "def", name, 
