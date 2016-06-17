@@ -23,6 +23,7 @@ import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.Locals.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
+import org.elasticsearch.painless.Definition.MethodKey;
 import org.objectweb.asm.Type;
 
 import java.util.Collections;
@@ -57,33 +58,21 @@ public class ELambda extends AExpression implements ILambda {
         if (statements == null || statements.isEmpty()) {
             throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
         }
-
-        locals.incrementScope();
-
-        AStatement last = statements.get(statements.size() - 1);
-
-        boolean allEscape = false;
-        for (AStatement statement : statements) {
-            // Note that we do not need to check after the last statement because
-            // there is no statement that can be unreachable after the last.
-            if (allEscape) {
-                throw createError(new IllegalArgumentException("Unreachable statement."));
-            }
-
-            statement.lastSource = statement == last;
-
-            statement.analyze(locals);
-
-            allEscape = statement.allEscape;
-        }
-
-        locals.decrementScope();
         
+        SFunction throwAway = new SFunction(reserved, location, "def", name, 
+                                            paramTypeStrs, paramNameStrs, statements, true, true);
+        throwAway.generate();
+        throwAway.analyze(locals);
+        // this tells me the capture parameters and everything!
+
         // create a new synthetic method, analyze it, and add it to the queue to be written
         SFunction desugared = new SFunction(reserved, location, "def", name, 
-                                            paramTypeStrs, paramNameStrs, statements2, true);
-        desugared.analyze(locals);
+                                            paramTypeStrs, paramNameStrs, statements2, true, false);
+        desugared.generate();
+        locals.addMethod(desugared.method);
+        desugared.analyze(locals.getRoot());
         syntheticFunctions.add(desugared);
+        
         
         // setup reference
         EFunctionRef ref = new EFunctionRef(location, "this", name);

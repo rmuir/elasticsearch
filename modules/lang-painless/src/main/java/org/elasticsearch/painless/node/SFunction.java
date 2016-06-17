@@ -55,6 +55,7 @@ public class SFunction extends AStatement {
     final List<String> paramNameStrs;
     final List<AStatement> statements;
     final boolean synthetic;
+    final boolean internal;
 
     Type rtnType = null;
     List<Parameter> parameters = new ArrayList<>();
@@ -64,7 +65,7 @@ public class SFunction extends AStatement {
 
     public SFunction(FunctionReserved reserved, Location location,
                      String rtnType, String name, List<String> paramTypes, 
-                     List<String> paramNames, List<AStatement> statements, boolean synthetic) {
+                     List<String> paramNames, List<AStatement> statements, boolean synthetic, boolean internal) {
         super(location);
 
         this.reserved = reserved;
@@ -74,6 +75,7 @@ public class SFunction extends AStatement {
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
         this.statements = Collections.unmodifiableList(statements);
         this.synthetic = synthetic;
+        this.internal = internal;
     }
 
     void generate() {
@@ -142,8 +144,10 @@ public class SFunction extends AStatement {
 
         locals.decrementScope();
 
-        String staticHandleFieldName = Def.getUserFunctionHandleFieldName(name, parameters.size());
-        locals.addConstant(location, WriterConstants.METHOD_HANDLE_TYPE, staticHandleFieldName, this::initializeConstant);
+        if (!internal) {
+            String staticHandleFieldName = Def.getUserFunctionHandleFieldName(name, parameters.size());
+            locals.addConstant(location, WriterConstants.METHOD_HANDLE_TYPE, staticHandleFieldName, this::initializeConstant);
+        }
     }
     
     /** Writes the function to given ClassVisitor. */

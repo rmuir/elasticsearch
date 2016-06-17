@@ -177,10 +177,13 @@ public final class Locals {
     // TODO: this datastructure runs in linear time for nearly all operations. use linkedhashset instead?
     private final Deque<Integer> scopes = new ArrayDeque<>();
     private final Deque<Variable> variables = new ArrayDeque<>();
+    
+    private final Locals parent;
 
     public Locals(ExecuteReserved reserved, Map<MethodKey, Method> methods) {
+        this.parent = null;
         this.reserved = reserved;
-        this.methods = Collections.unmodifiableMap(methods);
+        this.methods = methods;
         this.constants = new HashMap<>();
         this.rtnType = Definition.OBJECT_TYPE;
 
@@ -222,6 +225,7 @@ public final class Locals {
     }
 
     public Locals(FunctionReserved reserved, Locals locals, Type rtnType, List<Parameter> parameters) {
+        this.parent = locals;
         this.reserved = reserved;
         this.methods = locals.methods;
         this.constants = locals.constants;
@@ -237,6 +241,21 @@ public final class Locals {
         if (reserved.getMaxLoopCounter() > 0) {
             addVariable(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true, true);
         }
+    }
+    
+    /** Returns top-level locals. Do not use */
+    public Locals getRoot() {
+        Locals locals = this;
+        while (locals.parent != null) {
+            locals = locals.parent;
+        }
+        return locals;
+    }
+    
+    /** Adds a new method to this locals. Do not use */
+    public void addMethod(Method method) {
+        Method previous = methods.put(new MethodKey(method.name, method.arguments.size()), method);
+        assert previous == null;
     }
 
     public int getMaxLoopCounter() {
