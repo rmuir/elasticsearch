@@ -22,16 +22,21 @@ package org.elasticsearch.painless;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Definition.Type;
+import org.elasticsearch.painless.Locals.Parameter;
+import org.elasticsearch.painless.Locals.Variable;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Tracks user defined methods and variables across compilation phases.
  */
-public abstract class Locals {
+public class Locals {
     public static final String THIS   = "#this";
     public static final String PARAMS = "params";
     public static final String SCORER = "#scorer";
@@ -46,9 +51,23 @@ public abstract class Locals {
     )));
     
     private final Locals parent;
+    private final Type returnType;
+    int nextSlotNumber;
+    Map<String,Variable> variables;
+    Map<MethodKey,Method> methods;
 
-    public Locals(Locals parent) {
+    Locals(Locals parent) {
+        this(parent, parent.getReturnType());
+    }
+    
+    Locals(Locals parent, Type returnType) {
         this.parent = parent;
+        this.returnType = returnType;
+        if (parent == null) {
+            this.nextSlotNumber = 0;
+        } else {
+            this.nextSlotNumber = parent.getNextSlot();
+        }
     }
 
     public Locals getParent() {
@@ -86,7 +105,12 @@ public abstract class Locals {
         return false;
     }
     
-    protected abstract Variable lookupVariable(Location location, String name);
+    protected Variable lookupVariable(Location location, String name) {
+        if (variables == null) {
+            return null;
+        }
+        return variables.get(name);
+    }
     
     public final Method getMethod(MethodKey key) {
         Method method = lookupMethod(key);
@@ -99,7 +123,12 @@ public abstract class Locals {
         return null;
     }
 
-    protected abstract Method lookupMethod(MethodKey key);
+    protected Method lookupMethod(MethodKey key) {
+        if (methods == null) {
+            return null;
+        }
+        return methods.get(key);
+    }
     
     public final Variable addVariable(Location location, Type type, String name, boolean readonly) {
         if (hasVariable(name)) {
@@ -111,12 +140,32 @@ public abstract class Locals {
         return defineVariable(location, type, name, readonly);
     }
     
-    public abstract Variable defineVariable(Location location, Type type, String name, boolean readonly);
-
+    public Variable defineVariable(Location location, Type type, String name, boolean readonly) {
+        if (variables == null) {
+            variables = new HashMap<>();
+        }
+        Variable variable = new Variable(location, name, type, readonly);
+        variable.slot = getNextSlot();
+        variables.put(name, variable); // TODO: check result
+        nextSlotNumber += type.type.getSize();
+        return variable;
+    }
     
-    public abstract void addMethod(Method method);
-    public abstract Type getReturnType();
-    public abstract int getNextSlot();
+    public void addMethod(Method method) {
+        if (methods == null) {
+            methods = new HashMap<>();
+        }
+        methods.put(new MethodKey(method.name, method.arguments.size()), method);
+        // TODO: check result
+    }
+    
+    public Type getReturnType() {
+        return returnType;
+    }
+
+    public int getNextSlot() {
+        return nextSlotNumber;
+    }
 
     public static final class Variable {
         public final Location location;
@@ -147,5 +196,21 @@ public abstract class Locals {
             this.name = name;
             this.type = type;
         }
+    }
+    
+    public static Locals newScope(Locals currentScope) {
+        return new Locals(currentScope);
+    }
+    
+    public static Locals newFunctionScope(Locals programScope, Type returnType, List<Parameter> parameters, int maxLoopCounter) {
+        Locals locals = new Locals(programScope, returnType);
+        for (Parameter parameter : parameters) {
+            locals.defineVariable(parameter.location, parameter.type, parameter.name, false);
+        }
+        // Loop counter to catch infinite loops.  Internal use only.
+        if (maxLoopCounter > 0) {
+            locals.defineVariable(null, Definition.INT_TYPE, LOOP, true);
+        }
+        return locals;
     }
 }

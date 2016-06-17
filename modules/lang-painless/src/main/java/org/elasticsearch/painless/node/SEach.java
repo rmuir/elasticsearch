@@ -23,7 +23,6 @@ import org.elasticsearch.painless.AnalyzerCaster;
 import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Definition;
 import org.elasticsearch.painless.Globals;
-import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Definition.Cast;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
@@ -87,7 +86,7 @@ public class SEach extends AStatement {
             throw createError(new IllegalArgumentException("Not a type [" + this.type + "]."));
         }
 
-        locals = new LocalScope(locals);
+        locals = Locals.newScope(locals);
 
         variable = locals.addVariable(location, type, name, true);
 

@@ -21,7 +21,7 @@ package org.elasticsearch.painless;
 
 import org.elasticsearch.painless.Definition.Type;
 
-public class MainMethodScope extends LocalScope {   
+public class MainMethodScope extends Locals {   
     
     public MainMethodScope(Locals parent, boolean usesScore, boolean usesCtx, int maxLoopCounter) {
         super(parent);

@@ -23,10 +23,10 @@ import org.elasticsearch.painless.Definition.Method;
 
 import java.util.Collection;
 
-public class ProgramScope extends LocalScope {
+public class ProgramScope extends Locals {
 
     public ProgramScope(Collection<Method> methods) {
-        super(null);
+        super(null, null);
         for (Method method : methods) {
             addMethod(method);
         }

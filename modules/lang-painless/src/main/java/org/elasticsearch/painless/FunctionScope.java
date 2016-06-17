@@ -23,7 +23,7 @@ import org.elasticsearch.painless.Definition.Type;
 
 import java.util.List;
 
-public class FunctionScope extends LocalScope {   
+public class FunctionScope extends Locals {   
     private final Type returnType;
 
     public FunctionScope(Locals program, Type returnType, List<Parameter> parameters, int maxLoopCounter) {

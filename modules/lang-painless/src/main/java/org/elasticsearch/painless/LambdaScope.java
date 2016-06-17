@@ -24,7 +24,7 @@ import org.elasticsearch.painless.Definition.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LambdaScope extends LocalScope {
+public class LambdaScope extends Locals {
     private List<Variable> captures = new ArrayList<>();
 
     public LambdaScope(Locals parent, List<Parameter> parameters) {
