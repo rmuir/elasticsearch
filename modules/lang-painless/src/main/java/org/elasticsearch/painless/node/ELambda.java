@@ -65,14 +65,16 @@ public class ELambda extends AExpression implements ILambda {
         throwAway.analyze(locals);
         // this tells me the capture parameters and everything!
 
-        // create a new synthetic method, analyze it, and add it to the queue to be written
-        SFunction desugared = new SFunction(reserved, location, "def", name, 
-                                            paramTypeStrs, paramNameStrs, statements2, true, false);
-        desugared.generate();
-        locals.addMethod(desugared.method);
-        desugared.analyze(locals.getRoot());
-        syntheticFunctions.add(desugared);
-        
+        // for nested lambdas, this may already exist!
+        if (locals.getMethod(new MethodKey(name, paramTypeStrs.size())) == null) {
+            // create a new synthetic method, analyze it, and add it to the queue to be written
+            SFunction desugared = new SFunction(reserved, location, "def", name, 
+                                                paramTypeStrs, paramNameStrs, statements2, true, false);
+            desugared.generate();
+            locals.addMethod(desugared.method);
+            desugared.analyze(locals.getRoot());
+            syntheticFunctions.add(desugared);
+        }
         
         // setup reference
         EFunctionRef ref = new EFunctionRef(location, "this", name);
