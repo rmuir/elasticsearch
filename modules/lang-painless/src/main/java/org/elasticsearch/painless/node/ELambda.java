@@ -34,18 +34,22 @@ public class ELambda extends AExpression implements ILambda {
     final List<String> paramTypeStrs;
     final List<String> paramNameStrs;
     final List<AStatement> statements;
+    final List<AStatement> statements2;
     final List<SFunction> syntheticFunctions;
     ILambda impl;
 
     public ELambda(String name, List<SFunction> syntheticFunctions, FunctionReserved reserved, Location location,
-                   List<String> paramTypes, List<String> paramNames, List<AStatement> statements) {
+                   List<String> paramTypes, List<String> paramNames, List<AStatement> statements, List<AStatement> statements2) {
         super(location);
         this.name = name;
         this.syntheticFunctions = syntheticFunctions;
         this.reserved = reserved;
         this.paramTypeStrs = Collections.unmodifiableList(paramTypes);
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
+        // this gets used just for an analysis pass to determine the capture variables (if any)
         this.statements = Collections.unmodifiableList(statements);
+        // this is a clean copy of 'statements', its the one that gets used for the desugared method
+        this.statements2 = Collections.unmodifiableList(statements2);
     }
 
     @Override
@@ -75,8 +79,9 @@ public class ELambda extends AExpression implements ILambda {
 
         locals.decrementScope();
         
+        // create a new synthetic method, analyze it, and add it to the queue to be written
         SFunction desugared = new SFunction(reserved, location, "def", name, 
-                                            paramTypeStrs, paramNameStrs, statements, true);
+                                            paramTypeStrs, paramNameStrs, statements2, true);
         desugared.analyze(locals);
         syntheticFunctions.add(desugared);
         

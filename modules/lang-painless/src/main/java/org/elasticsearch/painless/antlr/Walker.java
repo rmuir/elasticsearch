@@ -114,6 +114,7 @@ import org.elasticsearch.painless.node.EConditional;
 import org.elasticsearch.painless.node.EDecimal;
 import org.elasticsearch.painless.node.EExplicit;
 import org.elasticsearch.painless.node.EFunctionRef;
+import org.elasticsearch.painless.node.ELambda;
 import org.elasticsearch.painless.node.ENull;
 import org.elasticsearch.painless.node.ENumeric;
 import org.elasticsearch.painless.node.EUnary;
@@ -952,7 +953,6 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
 
         List<String> paramTypes = new ArrayList<>();
         List<String> paramNames = new ArrayList<>();
-        List<AStatement> statements = new ArrayList<>();
 
         for (LamtypeContext lamtype : ctx.lamtype()) {
             if (lamtype.decltype() == null) {
@@ -964,6 +964,17 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
             paramNames.add(lamtype.ID().getText());
         }
 
+        List<AStatement> statements = visitLambdaStatements(ctx);
+        
+        String name = nextLambda();
+        //synthetic.add(new SFunction((FunctionReserved)reserved.pop(), location(ctx), "def", name, 
+        //              paramTypes, paramNames, statements, true));
+        //return new EFunctionRef(location(ctx), "this", name);
+        return new ELambda(name, synthetic, (FunctionReserved)reserved.pop(), location(ctx), paramTypes, paramNames, statements, visitLambdaStatements(ctx));
+    }
+    
+    private List<AStatement> visitLambdaStatements(LambdaContext ctx) {
+        List<AStatement> statements = new ArrayList<>();
         if (ctx.expression() != null) {
             // single expression
             AExpression expression = (AExpression) visitExpression(ctx.expression());
@@ -973,12 +984,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
                 statements.add((AStatement)visit(statement));
             }
         }
-        
-        String name = nextLambda();
-        synthetic.add(new SFunction((FunctionReserved)reserved.pop(), location(ctx), "def", name, 
-                      paramTypes, paramNames, statements, true));
-        return new EFunctionRef(location(ctx), "this", name);
-        // TODO: use a real node for captures and shit
+        return statements;
     }
 
     @Override
