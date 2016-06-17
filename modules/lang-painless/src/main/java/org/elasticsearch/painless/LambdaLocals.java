@@ -24,6 +24,9 @@ import org.elasticsearch.painless.Definition.Type;
 import java.util.List;
 import java.util.Objects;
 
+/** Extension of locals for lambdas */
+// Note: this isn't functional yet, it throws UOE
+// TODO: implement slot renumbering for captures.
 class LambdaLocals extends Locals {
     private List<Variable> captures;
 
