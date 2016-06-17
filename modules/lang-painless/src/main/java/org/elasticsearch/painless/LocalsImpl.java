@@ -261,6 +261,17 @@ public class LocalsImpl extends Locals {
     public Variable addVariable(Location location, Type type, String name, boolean readonly) {
         return addVariableInternal(location, type, name, readonly, false);
     }
+    
+    @Override
+    public int getNextSlot() {
+        Variable previous = variables.peekFirst();
+
+        if (previous == null) {
+            return 0;
+        }
+        
+        return previous.slot + previous.type.type.getSize();
+    }
 
     private Variable addVariableInternal(Location location, Type type, String name, boolean readonly, boolean reserved) {
         if (!reserved && this.reserved.isReserved(name)) {
@@ -271,12 +282,7 @@ public class LocalsImpl extends Locals {
             throw location.createError(new IllegalArgumentException("Variable [" + name + "] is already defined."));
         }
 
-        Variable previous = variables.peekFirst();
-        int slot = 0;
-
-        if (previous != null) {
-            slot = previous.slot + previous.type.type.getSize();
-        }
+        int slot = getNextSlot();
 
         Variable variable = new Locals.Variable(location, name, type, slot, readonly);
         variables.push(variable);

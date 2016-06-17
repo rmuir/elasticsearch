@@ -79,6 +79,7 @@ public abstract class Locals {
     public abstract Type getReturnType();
     public abstract void incrementScope();
     public abstract void decrementScope();
+    public abstract int getNextSlot();
 
     /**
      * Tracks reserved variables.  Must be given to any source of input

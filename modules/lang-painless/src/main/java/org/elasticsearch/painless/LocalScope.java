@@ -23,30 +23,53 @@ import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Definition.Type;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LocalScope extends Locals {
+    int nextSlotNumber;
+    Map<String,Variable> variables;
+    Map<MethodKey,Method> methods;
 
     public LocalScope(Locals parent) {
         super(parent);
+        this.nextSlotNumber = parent.getNextSlot();
     }
 
     @Override
     protected Variable lookupVariable(Location location, String name) {
-        return null;
+        if (variables == null) {
+            return null;
+        }
+        return variables.get(name);
     }
 
     @Override
     protected Method lookupMethod(MethodKey key) {
-        return null;
+        if (methods == null) {
+            return null;
+        }
+        return methods.get(key);
     }
 
     @Override
     public Variable addVariable(Location location, Type type, String name, boolean readonly) {
-        return null;
+        if (variables == null) {
+            variables = new HashMap<>();
+        }
+        Variable variable = new Variable(location, name, type, getNextSlot(), readonly);
+        variables.put(name, variable); // TODO: check result
+        nextSlotNumber += type.type.getSize();
+        return variable;
     }
 
     @Override
     public void addMethod(Method method) {
-        
+        if (methods == null) {
+            methods = new HashMap<>();
+        }
+        methods.put(new MethodKey(method.name, method.arguments.size()), method);
+        // TODO: check result
     }
 
     @Override
@@ -57,6 +80,11 @@ public class LocalScope extends Locals {
     @Override
     public Type getReturnType() {
         return getParent().getReturnType();
+    }
+    
+    @Override
+    public int getNextSlot() {
+        return nextSlotNumber;
     }
 
     @Override
