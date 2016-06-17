@@ -102,7 +102,7 @@ public abstract class Locals {
     protected abstract Method lookupMethod(MethodKey key);
     
     public final Variable addVariable(Location location, Type type, String name, boolean readonly) {
-        if (lookupVariable(location, name) != null) {
+        if (hasVariable(name)) {
             throw location.createError(new IllegalArgumentException("Variable [" + name + "] is already defined."));
         }
         if (KEYWORDS.contains(name)) {
@@ -115,7 +115,6 @@ public abstract class Locals {
 
     
     public abstract void addMethod(Method method);
-    //public abstract int getMaxLoopCounter();
     public abstract Type getReturnType();
     public abstract int getNextSlot();
 
