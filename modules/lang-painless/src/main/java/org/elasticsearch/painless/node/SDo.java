@@ -43,7 +43,7 @@ public final class SDo extends AStatement {
 
     @Override
     void analyze(Locals locals) {
-        locals = Locals.newScope(locals);
+        locals = Locals.newLocalScope(locals);
 
         if (block == null) {
             throw createError(new IllegalArgumentException("Extraneous do while loop."));

@@ -43,7 +43,7 @@ public final class SWhile extends AStatement {
 
     @Override
     void analyze(Locals locals) {
-        locals = Locals.newScope(locals);
+        locals = Locals.newLocalScope(locals);
 
         condition.expected = Definition.BOOLEAN_TYPE;
         condition.analyze(locals);

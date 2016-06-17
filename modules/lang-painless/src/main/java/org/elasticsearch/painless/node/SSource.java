@@ -30,9 +30,7 @@ import org.elasticsearch.painless.Locals.Variable;
 import org.elasticsearch.painless.node.SFunction.Reserved;
 import org.elasticsearch.painless.WriterConstants;
 import org.elasticsearch.painless.Location;
-import org.elasticsearch.painless.MainMethodScope;
 import org.elasticsearch.painless.MethodWriter;
-import org.elasticsearch.painless.ProgramScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -99,7 +97,7 @@ public final class SSource extends AStatement {
             }
         }
 
-        analyze(new ProgramScope(methods.values()));
+        analyze(Locals.newProgramScope(methods.values()));
     }
 
     @Override
@@ -114,7 +112,7 @@ public final class SSource extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty script."));
         }
 
-        mainMethod = new MainMethodScope(program, reserved.usesScore(), reserved.usesCtx(), reserved.getMaxLoopCounter());
+        mainMethod = Locals.newMainMethodScope(program, reserved.usesScore(), reserved.usesCtx(), reserved.getMaxLoopCounter());
 
         AStatement last = statements.get(statements.size() - 1);
 

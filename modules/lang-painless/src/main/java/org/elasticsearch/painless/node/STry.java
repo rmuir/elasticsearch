@@ -53,7 +53,7 @@ public final class STry extends AStatement {
         block.inLoop = inLoop;
         block.lastLoop = lastLoop;
 
-        block.analyze(Locals.newScope(locals));
+        block.analyze(Locals.newLocalScope(locals));
 
         methodEscape = block.methodEscape;
         loopEscape = block.loopEscape;
@@ -68,7 +68,7 @@ public final class STry extends AStatement {
             catc.inLoop = inLoop;
             catc.lastLoop = lastLoop;
 
-            catc.analyze(Locals.newScope(locals));
+            catc.analyze(Locals.newLocalScope(locals));
 
             methodEscape &= catc.methodEscape;
             loopEscape &= catc.loopEscape;

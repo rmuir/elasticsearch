@@ -47,7 +47,7 @@ public final class SFor extends AStatement {
 
     @Override
     void analyze(Locals locals) {
-        locals = Locals.newScope(locals);
+        locals = Locals.newLocalScope(locals);
 
         boolean continuous = false;
 

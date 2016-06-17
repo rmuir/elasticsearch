@@ -26,6 +26,7 @@ import org.elasticsearch.painless.Locals.Parameter;
 import org.elasticsearch.painless.Locals.Variable;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -198,7 +199,7 @@ public class Locals {
         }
     }
     
-    public static Locals newScope(Locals currentScope) {
+    public static Locals newLocalScope(Locals currentScope) {
         return new Locals(currentScope);
     }
     
@@ -210,6 +211,50 @@ public class Locals {
         // Loop counter to catch infinite loops.  Internal use only.
         if (maxLoopCounter > 0) {
             locals.defineVariable(null, Definition.INT_TYPE, LOOP, true);
+        }
+        return locals;
+    }
+    
+    public static Locals newMainMethodScope(Locals programScope, boolean usesScore, boolean usesCtx, int maxLoopCounter) {
+        Locals locals = new Locals(programScope, Definition.OBJECT_TYPE);
+        // This reference.  Internal use only.
+        locals.defineVariable(null, Definition.getType("Object"), THIS, true);
+
+        // Input map of variables passed to the script.
+        locals.defineVariable(null, Definition.getType("Map"), PARAMS, true);
+
+        // Scorer parameter passed to the script.  Internal use only.
+        locals.defineVariable(null, Definition.DEF_TYPE, SCORER, true);
+
+        // Doc parameter passed to the script. TODO: Currently working as a Map, we can do better?
+        locals.defineVariable(null, Definition.getType("Map"), DOC, true);
+
+        // Aggregation _value parameter passed to the script.
+        locals.defineVariable(null, Definition.DEF_TYPE, VALUE, true);
+
+        // Shortcut variables.
+
+        // Document's score as a read-only double.
+        if (usesScore) {
+            locals.defineVariable(null, Definition.DOUBLE_TYPE, SCORE, true);
+        }
+
+        // The ctx map set by executable scripts as a read-only map.
+        if (usesCtx) {
+            locals.defineVariable(null, Definition.getType("Map"), CTX, true);
+        }
+
+        // Loop counter to catch infinite loops.  Internal use only.
+        if (maxLoopCounter > 0) {
+            locals.defineVariable(null, Definition.INT_TYPE, LOOP, true);
+        }
+        return locals;
+    }
+    
+    public static Locals newProgramScope(Collection<Method> methods) {
+        Locals locals = new Locals(null, null);
+        for (Method method : methods) {
+            locals.addMethod(method);
         }
         return locals;
     }

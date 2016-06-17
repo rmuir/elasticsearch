@@ -86,7 +86,7 @@ public class SEach extends AStatement {
             throw createError(new IllegalArgumentException("Not a type [" + this.type + "]."));
         }
 
-        locals = Locals.newScope(locals);
+        locals = Locals.newLocalScope(locals);
 
         variable = locals.addVariable(location, type, name, true);
 

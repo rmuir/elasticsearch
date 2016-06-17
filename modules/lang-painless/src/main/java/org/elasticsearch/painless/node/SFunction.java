@@ -114,7 +114,7 @@ public class SFunction extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
         }
 
-        locals = Locals.newScope(locals);
+        locals = Locals.newLocalScope(locals);
 
         AStatement last = statements.get(statements.size() - 1);
 
