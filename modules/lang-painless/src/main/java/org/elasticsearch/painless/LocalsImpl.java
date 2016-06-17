@@ -25,14 +25,25 @@ import org.elasticsearch.painless.Definition.Type;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Tracks user defined methods and variables across compilation phases.
  */
 public class LocalsImpl extends Locals {
+    
+    /**
+     * Tracks reserved variables.  Must be given to any source of input
+     * prior to beginning the analysis phase so that reserved variables
+     * are known ahead of time to assign appropriate slots without
+     * being wasteful.
+     */
+    public interface Reserved {
+        void markReserved(String name);
+        boolean isReserved(String name);
+
+        void setMaxLoopCounter(int max);
+        int getMaxLoopCounter();
+    }
 
     public static final class ExecuteReserved implements Reserved {
         public static final String THIS   = "#this";
@@ -107,30 +118,16 @@ public class LocalsImpl extends Locals {
         }
     }
 
-    public static final class Parameter {
-        public final Location location;
-        public final String name;
-        public final Type type;
-
-        public Parameter(Location location, String name, Type type) {
-            this.location = location;
-            this.name = name;
-            this.type = type;
-        }
-    }
-
     private final Reserved reserved;
-    private final Map<MethodKey, Method> methods;
     private final Type rtnType;
 
     // TODO: this datastructure runs in linear time for nearly all operations. use linkedhashset instead?
     private final Deque<Integer> scopes = new ArrayDeque<>();
     private final Deque<Variable> variables = new ArrayDeque<>();
     
-    public LocalsImpl(ExecuteReserved reserved, Map<MethodKey, Method> methods) {
-        super(null);
+    public LocalsImpl(Locals locals, ExecuteReserved reserved) {
+        super(locals);
         this.reserved = reserved;
-        this.methods = methods;
         this.rtnType = Definition.OBJECT_TYPE;
 
         scopes.push(0);
@@ -170,40 +167,6 @@ public class LocalsImpl extends Locals {
         }
     }
 
-    public LocalsImpl(FunctionReserved reserved, Locals locals, Type rtnType, List<Parameter> parameters) {
-        super(locals);
-        this.reserved = reserved;
-        this.methods = new HashMap<>();
-        this.rtnType = rtnType;
-
-        scopes.push(0);
-
-        for (Parameter parameter : parameters) {
-            defineVariable(parameter.location, parameter.type, parameter.name, false);
-        }
-
-        // Loop counter to catch infinite loops.  Internal use only.
-        if (reserved.getMaxLoopCounter() > 0) {
-            defineVariable(null, Definition.INT_TYPE, ExecuteReserved.LOOP, true);
-        }
-    }
-
-    /** Adds a new method to this locals. Do not use */
-    public void addMethod(Method method) {
-        // we deduplicate nested lambdas here. it comes with the territory of using tree nodes...
-        methods.putIfAbsent(new MethodKey(method.name, method.arguments.size()), method);
-    }
-
-    @Override
-    public int getMaxLoopCounter() {
-        return reserved.getMaxLoopCounter();
-    }
-
-    @Override
-    public Method lookupMethod(MethodKey key) {
-        return methods.get(key);
-    }
-
     @Override
     public Type getReturnType() {
         return rtnType;
@@ -235,18 +198,25 @@ public class LocalsImpl extends Locals {
     
     @Override
     public int getNextSlot() {
+        int slot = 0;
+        if (getParent() != null) {
+            slot = getParent().getNextSlot();
+        }
         Variable previous = variables.peekFirst();
 
         if (previous == null) {
-            return 0;
+            return slot;
         }
         
-        return previous.slot + previous.type.type.getSize();
+        return slot + previous.slot + previous.type.type.getSize();
     }
-    
+
     @Override
-    public boolean isReserved(String name) {
-        return reserved.isReserved(name);
+    protected Method lookupMethod(MethodKey key) {
+        return null;
     }
+
+    @Override
+    public void addMethod(Method method) {}
 }
 

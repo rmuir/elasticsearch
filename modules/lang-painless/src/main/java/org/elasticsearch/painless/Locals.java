@@ -23,10 +23,28 @@ import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Definition.Type;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Tracks user defined methods and variables across compilation phases.
  */
 public abstract class Locals {
+    public static final String THIS   = "#this";
+    public static final String PARAMS = "params";
+    public static final String SCORER = "#scorer";
+    public static final String DOC    = "doc";
+    public static final String VALUE  = "_value";
+    public static final String SCORE  = "_score";
+    public static final String CTX    = "ctx";
+    public static final String LOOP   = "#loop";
+    
+    public static final Set<String> KEYWORDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            THIS,PARAMS,SCORER,DOC,VALUE,SCORE,CTX,LOOP
+    )));
+    
     private final Locals parent;
 
     public Locals(Locals parent) {
@@ -57,6 +75,17 @@ public abstract class Locals {
         throw location.createError(new IllegalArgumentException("Variable [" + name + "] is not defined."));
     }
     
+    public final boolean hasVariable(String name) {
+        Variable variable = lookupVariable(null, name);
+        if (variable != null) {
+            return true;
+        }
+        if (parent != null) {
+            return parent.hasVariable(name);
+        }
+        return false;
+    }
+    
     protected abstract Variable lookupVariable(Location location, String name);
     
     public final Method getMethod(MethodKey key) {
@@ -72,19 +101,12 @@ public abstract class Locals {
 
     protected abstract Method lookupMethod(MethodKey key);
     
-    public boolean isReserved(String name) {
-        if (parent != null) {
-            return parent.isReserved(name);
-        }
-        return false;
-    }
-
     public final Variable addVariable(Location location, Type type, String name, boolean readonly) {
-        if (isReserved(name)) {
-            throw location.createError(new IllegalArgumentException("Variable [" + name + "] is reserved."));
-        }
         if (lookupVariable(location, name) != null) {
             throw location.createError(new IllegalArgumentException("Variable [" + name + "] is already defined."));
+        }
+        if (KEYWORDS.contains(name)) {
+            throw location.createError(new IllegalArgumentException("Variable [" + name + "] is reserved."));
         }
         return defineVariable(location, type, name, readonly);
     }
@@ -93,23 +115,9 @@ public abstract class Locals {
 
     
     public abstract void addMethod(Method method);
-    public abstract int getMaxLoopCounter();
+    //public abstract int getMaxLoopCounter();
     public abstract Type getReturnType();
     public abstract int getNextSlot();
-
-    /**
-     * Tracks reserved variables.  Must be given to any source of input
-     * prior to beginning the analysis phase so that reserved variables
-     * are known ahead of time to assign appropriate slots without
-     * being wasteful.
-     */
-    public interface Reserved {
-        void markReserved(String name);
-        boolean isReserved(String name);
-
-        void setMaxLoopCounter(int max);
-        int getMaxLoopCounter();
-    }
 
     public static final class Variable {
         public final Location location;
@@ -127,6 +135,18 @@ public abstract class Locals {
             this.type = type;
             this.slot = slot;
             this.readonly = readonly;
+        }
+    }
+    
+    public static final class Parameter {
+        public final Location location;
+        public final String name;
+        public final Type type;
+
+        public Parameter(Location location, String name, Type type) {
+            this.location = location;
+            this.name = name;
+            this.type = type;
         }
     }
 }

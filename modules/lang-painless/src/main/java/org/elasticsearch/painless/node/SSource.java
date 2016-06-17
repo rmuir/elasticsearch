@@ -23,6 +23,7 @@ import org.elasticsearch.painless.Constant;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Executable;
+import org.elasticsearch.painless.FunctionScope;
 import org.elasticsearch.painless.Globals;
 import org.elasticsearch.painless.LocalScope;
 import org.elasticsearch.painless.Locals;
@@ -31,7 +32,9 @@ import org.elasticsearch.painless.Locals.Variable;
 import org.elasticsearch.painless.LocalsImpl;
 import org.elasticsearch.painless.WriterConstants;
 import org.elasticsearch.painless.Location;
+import org.elasticsearch.painless.MainMethodScope;
 import org.elasticsearch.painless.MethodWriter;
+import org.elasticsearch.painless.ProgramScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -66,7 +69,7 @@ public final class SSource extends AStatement {
     final Globals globals;
     final List<AStatement> statements;
 
-    private Locals locals;
+    private Locals mainMethod;
     private byte[] bytes;
 
     public SSource(String name, String source, Printer debugStream, ExecuteReserved reserved, Location location, 
@@ -98,14 +101,14 @@ public final class SSource extends AStatement {
             }
         }
 
-        locals = new LocalsImpl(reserved, methods);
-        analyze(locals);
+        analyze(new ProgramScope(methods.values()));
     }
 
     @Override
-    void analyze(Locals locals) {
+    void analyze(Locals program) {
         for (SFunction function : functions) {
-            Locals functionLocals = new LocalsImpl(function.reserved, locals, function.rtnType, function.parameters);
+            Locals functionLocals = new FunctionScope(program, function.rtnType, function.parameters, 
+                                                      function.reserved.getMaxLoopCounter());
             function.analyze(functionLocals);
         }
 
@@ -113,7 +116,7 @@ public final class SSource extends AStatement {
             throw createError(new IllegalArgumentException("Cannot generate an empty script."));
         }
 
-        locals = new LocalScope(locals);
+        mainMethod = new MainMethodScope(program, reserved.usesScore(), reserved.usesCtx(), reserved.getMaxLoopCounter());
 
         AStatement last = statements.get(statements.size() - 1);
 
@@ -126,7 +129,7 @@ public final class SSource extends AStatement {
 
             statement.lastSource = statement == last;
 
-            statement.analyze(locals);
+            statement.analyze(mainMethod);
 
             methodEscape = statement.methodEscape;
             allEscape = statement.allEscape;
@@ -217,8 +220,8 @@ public final class SSource extends AStatement {
         if (reserved.usesScore()) {
             // if the _score value is used, we do this once:
             // final double _score = scorer.score();
-            Variable scorer = locals.getVariable(null, ExecuteReserved.SCORER);
-            Variable score = locals.getVariable(null, ExecuteReserved.SCORE);
+            Variable scorer = mainMethod.getVariable(null, ExecuteReserved.SCORER);
+            Variable score = mainMethod.getVariable(null, ExecuteReserved.SCORE);
 
             writer.visitVarInsn(Opcodes.ALOAD, scorer.slot);
             writer.invokeVirtual(WriterConstants.SCORER_TYPE, WriterConstants.SCORER_SCORE);
@@ -230,8 +233,8 @@ public final class SSource extends AStatement {
             // if the _ctx value is used, we do this once:
             // final Map<String,Object> ctx = input.get("ctx");
 
-            Variable input = locals.getVariable(null, ExecuteReserved.PARAMS);
-            Variable ctx = locals.getVariable(null, ExecuteReserved.CTX);
+            Variable input = mainMethod.getVariable(null, ExecuteReserved.PARAMS);
+            Variable ctx = mainMethod.getVariable(null, ExecuteReserved.CTX);
 
             writer.visitVarInsn(Opcodes.ALOAD, input.slot);
             writer.push(ExecuteReserved.CTX);
@@ -243,7 +246,7 @@ public final class SSource extends AStatement {
             // if there is infinite loop protection, we do this once:
             // int #loop = settings.getMaxLoopCounter()
 
-            Variable loop = locals.getVariable(null, ExecuteReserved.LOOP);
+            Variable loop = mainMethod.getVariable(null, ExecuteReserved.LOOP);
 
             writer.push(reserved.getMaxLoopCounter());
             writer.visitVarInsn(Opcodes.ISTORE, loop.slot);

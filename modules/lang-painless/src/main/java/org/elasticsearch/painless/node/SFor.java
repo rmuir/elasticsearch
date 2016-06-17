@@ -118,8 +118,8 @@ public final class SFor extends AStatement {
 
         statementCount = 1;
 
-        if (locals.getMaxLoopCounter() > 0) {
-            loopCounterSlot = locals.getVariable(location, "#loop").slot;
+        if (locals.hasVariable(Locals.LOOP)) {
+            loopCounterSlot = locals.getVariable(location, Locals.LOOP).slot;
         }
     }
 

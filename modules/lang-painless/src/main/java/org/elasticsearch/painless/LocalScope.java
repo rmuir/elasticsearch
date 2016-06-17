@@ -33,7 +33,11 @@ public class LocalScope extends Locals {
 
     public LocalScope(Locals parent) {
         super(parent);
-        this.nextSlotNumber = parent.getNextSlot();
+        if (parent == null) {
+            this.nextSlotNumber = 0;
+        } else {
+            this.nextSlotNumber = parent.getNextSlot();
+        }
     }
 
     @Override
@@ -70,11 +74,6 @@ public class LocalScope extends Locals {
         }
         methods.put(new MethodKey(method.name, method.arguments.size()), method);
         // TODO: check result
-    }
-
-    @Override
-    public int getMaxLoopCounter() {
-        return getParent().getMaxLoopCounter();
     }
 
     @Override

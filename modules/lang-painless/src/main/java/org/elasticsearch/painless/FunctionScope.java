@@ -21,43 +21,25 @@ package org.elasticsearch.painless;
 
 import org.elasticsearch.painless.Definition.Type;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class LambdaScope extends LocalScope {
-    private List<Variable> captures = new ArrayList<>();
+public class FunctionScope extends LocalScope {   
+    private final Type returnType;
 
-    public LambdaScope(Locals parent, List<Parameter> parameters) {
-        super(parent);
+    public FunctionScope(Locals program, Type returnType, List<Parameter> parameters, int maxLoopCounter) {
+        super(program);
+        this.returnType = returnType;
         for (Parameter parameter : parameters) {
             defineVariable(parameter.location, parameter.type, parameter.name, false);
         }
-    }
-    
-    @Override
-    public Variable getVariable(Location location, String name) {
-        Variable variable = lookupVariable(location, name);
-        if (variable != null) {
-            return variable;
+        // Loop counter to catch infinite loops.  Internal use only.
+        if (maxLoopCounter > 0) {
+            defineVariable(null, Definition.INT_TYPE, LOOP, true);
         }
-        if (getParent() != null) {
-            variable = getParent().getVariable(location, name);
-            if (variable != null) {
-                // make it read-only, and record that it was used.
-                Variable readOnly = new Variable(variable.location, variable.name, variable.type, variable.slot, true);
-                captures.add(readOnly);
-                return readOnly;
-            }
-        }
-        throw location.createError(new IllegalArgumentException("Variable [" + name + "] is not defined."));
     }
 
     @Override
     public Type getReturnType() {
-        return Definition.DEF_TYPE;
-    }
-    
-    public List<Variable> getCaptures() {
-        return captures;
+        return returnType;
     }
 }
