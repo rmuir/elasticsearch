@@ -46,7 +46,7 @@ public abstract class Locals {
         return locals;
     }
     
-    public final Variable getVariable(Location location, String name) {
+    public Variable getVariable(Location location, String name) {
         Variable variable = lookupVariable(location, name);
         if (variable != null) {
             return variable;

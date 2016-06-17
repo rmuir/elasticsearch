@@ -22,12 +22,10 @@ package org.elasticsearch.painless;
 import org.elasticsearch.painless.Definition.Method;
 import org.elasticsearch.painless.Definition.MethodKey;
 import org.elasticsearch.painless.Definition.Type;
-import org.elasticsearch.painless.Locals.Variable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -135,7 +133,7 @@ public class LocalsImpl extends Locals {
         this.methods = methods;
         this.rtnType = Definition.OBJECT_TYPE;
 
-        incrementScope();
+        scopes.push(0);
 
         // Method variables.
 
@@ -178,7 +176,7 @@ public class LocalsImpl extends Locals {
         this.methods = new HashMap<>();
         this.rtnType = rtnType;
 
-        incrementScope();
+        scopes.push(0);
 
         for (Parameter parameter : parameters) {
             defineVariable(parameter.location, parameter.type, parameter.name, false);
@@ -209,25 +207,6 @@ public class LocalsImpl extends Locals {
     @Override
     public Type getReturnType() {
         return rtnType;
-    }
-
-    public void incrementScope() {
-        scopes.push(0);
-    }
-
-    public void decrementScope() {
-        int remove = scopes.pop();
-
-        while (remove > 0) {
-            Variable variable = variables.pop();
-
-            // This checks whether or not a variable is used when exiting a local scope.
-            //if (variable.read) {
-            //    throw variable.location.createError(new IllegalArgumentException("Variable [" + variable.name + "] is never used."));
-            //}
-
-            --remove;
-        }
     }
 
     @Override

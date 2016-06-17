@@ -25,6 +25,7 @@ import org.elasticsearch.painless.LocalsImpl.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
 import org.elasticsearch.painless.Globals;
+import org.elasticsearch.painless.LambdaScope;
 import org.objectweb.asm.Type;
 
 import java.util.Collections;
@@ -60,15 +61,15 @@ public class ELambda extends AExpression implements ILambda {
         SFunction throwAway = new SFunction(reserved, location, "def", name, 
                                             paramTypeStrs, paramNameStrs, statements, true);
         throwAway.generate();
-        Locals functionLocals = new LocalsImpl(throwAway.reserved, locals, throwAway.rtnType, throwAway.parameters);
-        throwAway.analyze(functionLocals);
+        LambdaScope lambdaScope = new LambdaScope(locals, throwAway.parameters);
+        throwAway.analyze(lambdaScope);
 
         // create a new synthetic method, analyze it
         desugared = new SFunction(reserved, location, "def", name, 
                                   paramTypeStrs, paramNameStrs, statements2, true);
         desugared.generate();
  
-        functionLocals = new LocalsImpl(throwAway.reserved, locals, throwAway.rtnType, throwAway.parameters);
+        LocalsImpl functionLocals = new LocalsImpl(throwAway.reserved, locals, throwAway.rtnType, throwAway.parameters);
         desugared.analyze(functionLocals);
         
         // setup reference
@@ -98,4 +99,5 @@ public class ELambda extends AExpression implements ILambda {
     public Type[] getCaptures() {
         return impl.getCaptures();
     }
+    
 }
