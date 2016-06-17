@@ -37,7 +37,7 @@ import java.lang.invoke.LambdaMetafactory;
 /**
  * Represents a capturing function reference.
  */
-public class ECapturingFunctionRef extends AExpression {
+public class ECapturingFunctionRef extends AExpression implements ILambda {
     public final String type;
     public final String call;
     
@@ -118,5 +118,15 @@ public class ECapturingFunctionRef extends AExpression {
                                      0);
             }
         }
+    }
+    
+    @Override
+    public String getPointer() {
+        return defPointer;
+    }
+
+    @Override
+    public Type[] getCaptures() {
+        return new Type[] { captured.type.type };
     }
 }

@@ -35,7 +35,7 @@ import java.lang.invoke.LambdaMetafactory;
 /**
  * Represents a function reference.
  */
-public class EFunctionRef extends AExpression {
+public class EFunctionRef extends AExpression implements ILambda {
     public final String type;
     public final String call;
 
@@ -113,5 +113,15 @@ public class EFunctionRef extends AExpression {
             // TODO: don't do this: its just to cutover :)
             writer.push((String)null);
         }
+    }
+
+    @Override
+    public String getPointer() {
+        return defPointer;
+    }
+
+    @Override
+    public Type[] getCaptures() {
+        return new Type[0]; // no captures
     }
 }

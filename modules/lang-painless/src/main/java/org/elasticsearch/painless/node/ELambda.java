@@ -23,20 +23,25 @@ import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.Locals.FunctionReserved;
 import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.MethodWriter;
+import org.objectweb.asm.Type;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ELambda extends AExpression {
+public class ELambda extends AExpression implements ILambda {
+    final String name;
     final FunctionReserved reserved;
     final List<String> paramTypeStrs;
     final List<String> paramNameStrs;
     final List<AStatement> statements;
+    final List<SFunction> syntheticFunctions;
+    ILambda impl;
 
-    public ELambda(FunctionReserved reserved, Location location,
+    public ELambda(String name, List<SFunction> syntheticFunctions, FunctionReserved reserved, Location location,
                    List<String> paramTypes, List<String> paramNames, List<AStatement> statements) {
         super(location);
-
+        this.name = name;
+        this.syntheticFunctions = syntheticFunctions;
         this.reserved = reserved;
         this.paramTypeStrs = Collections.unmodifiableList(paramTypes);
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
@@ -45,11 +50,57 @@ public class ELambda extends AExpression {
 
     @Override
     void analyze(Locals locals) {
-        throw createError(new UnsupportedOperationException("Lambda functions are not supported."));
+        if (statements == null || statements.isEmpty()) {
+            throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
+        }
+
+        locals.incrementScope();
+
+        AStatement last = statements.get(statements.size() - 1);
+
+        boolean allEscape = false;
+        for (AStatement statement : statements) {
+            // Note that we do not need to check after the last statement because
+            // there is no statement that can be unreachable after the last.
+            if (allEscape) {
+                throw createError(new IllegalArgumentException("Unreachable statement."));
+            }
+
+            statement.lastSource = statement == last;
+
+            statement.analyze(locals);
+
+            allEscape = statement.allEscape;
+        }
+
+        locals.decrementScope();
+        
+        SFunction desugared = new SFunction(reserved, location, "def", name, 
+                                            paramTypeStrs, paramNameStrs, statements, true);
+        desugared.analyze(locals);
+        syntheticFunctions.add(desugared);
+        
+        // setup reference
+        EFunctionRef ref = new EFunctionRef(location, "this", name);
+        ref.expected = expected;
+        ref.analyze(locals);
+        actual = ref.actual;
+        impl = ref;
     }
 
     @Override
     void write(MethodWriter writer) {
-        throw createError(new IllegalStateException("Illegal tree structure."));
+        AExpression expr = (AExpression) impl;
+        expr.write(writer);
+    }
+
+    @Override
+    public String getPointer() {
+        return impl.getPointer();
+    }
+
+    @Override
+    public Type[] getCaptures() {
+        return impl.getCaptures();
     }
 }

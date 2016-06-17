@@ -24,6 +24,7 @@ import org.elasticsearch.painless.Location;
 import org.elasticsearch.painless.DefBootstrap;
 import org.elasticsearch.painless.Locals;
 import org.elasticsearch.painless.MethodWriter;
+import org.objectweb.asm.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,13 +65,11 @@ final class LDefCall extends ALink implements IDefLink {
             expression.internal = true;
             expression.analyze(locals);
 
-            if (expression instanceof EFunctionRef) {
-                pointers.add(((EFunctionRef)expression).defPointer);
+            if (expression instanceof ILambda) {
+                ILambda lambda = (ILambda) expression;
+                pointers.add(lambda.getPointer());
                 recipe |= (1L << (argument + totalCaptures)); // mark argument as deferred reference
-            } else if (expression instanceof ECapturingFunctionRef) {
-                pointers.add(((ECapturingFunctionRef)expression).defPointer);
-                recipe |= (1L << (argument + totalCaptures)); // mark argument as deferred reference
-                totalCaptures++;
+                totalCaptures += lambda.getCaptureCount();
             }
 
             expression.expected = expression.actual;
@@ -100,9 +99,11 @@ final class LDefCall extends ALink implements IDefLink {
 
         for (AExpression argument : arguments) {
             signature.append(argument.actual.type.getDescriptor());
-            if (argument instanceof ECapturingFunctionRef) {
-                ECapturingFunctionRef capturingRef = (ECapturingFunctionRef) argument;
-                signature.append(capturingRef.captured.type.type.getDescriptor());
+            if (argument instanceof ILambda) {
+                ILambda lambda = (ILambda) argument;
+                for (Type capture : lambda.getCaptures()) {
+                    signature.append(capture.getDescriptor());
+                }
             }
             argument.write(writer);
         }

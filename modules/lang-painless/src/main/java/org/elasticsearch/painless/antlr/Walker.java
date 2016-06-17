@@ -236,11 +236,9 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
         for (StatementContext statement : ctx.statement()) {
             statements.add((AStatement)visit(statement));
         }
-        
-        functions.addAll(synthetic);
 
-        return new SSource(sourceName, sourceText, debugStream, 
-                          (ExecuteReserved)reserved.pop(), location(ctx), functions, statements);
+        return new SSource(sourceName, sourceText, debugStream, (ExecuteReserved)reserved.pop(), 
+                           location(ctx), functions, synthetic, statements);
     }
 
     @Override
