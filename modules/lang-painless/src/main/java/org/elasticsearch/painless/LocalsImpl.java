@@ -201,17 +201,8 @@ public class LocalsImpl extends Locals {
     }
 
     @Override
-    public Method getMethod(MethodKey key) {
-        Method method = methods.get(key);
-        if (method != null) {
-            return method;
-        }
-        
-        if (getParent() != null) {
-            return getParent().getMethod(key);
-        }
-
-        return null;
+    public Method lookupMethod(MethodKey key) {
+        return methods.get(key);
     }
 
     @Override
@@ -241,18 +232,14 @@ public class LocalsImpl extends Locals {
     }
 
     @Override
-    public Variable getVariable(Location location, String name) {
-         Iterator<Variable> itr = variables.iterator();
-
-        while (itr.hasNext()) {
-             Variable variable = itr.next();
-
+    public Variable lookupVariable(Location location, String name) {
+        for (Variable variable : variables) {
             if (variable.name.equals(name)) {
                 return variable;
             }
         }
 
-        throw location.createError(new IllegalArgumentException("Variable [" + name + "] is not defined."));
+        return null;
     }
 
     private boolean isVariable(String name) {

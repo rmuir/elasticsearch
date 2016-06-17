@@ -46,9 +46,34 @@ public abstract class Locals {
         return locals;
     }
     
-    public abstract Variable getVariable(Location location, String name);
+    public final Variable getVariable(Location location, String name) {
+        Variable variable = lookupVariable(location, name);
+        if (variable != null) {
+            return variable;
+        }
+        if (parent != null) {
+            return parent.getVariable(location, name);
+        }
+        throw location.createError(new IllegalArgumentException("Variable [" + name + "] is not defined."));
+    }
+    
+    protected abstract Variable lookupVariable(Location location, String name);
+    
+    public final Method getMethod(MethodKey key) {
+        Method method = lookupMethod(key);
+        if (method != null) {
+            return method;
+        }
+        if (parent != null) {
+            return parent.getMethod(key);
+        }
+        return null;
+    }
+
+    protected abstract Method lookupMethod(MethodKey key);
+
     public abstract Variable addVariable(Location location, Type type, String name, boolean readonly, boolean reserved);
-    public abstract Method getMethod(MethodKey key);
+
     public abstract void addMethod(Method method);
     public abstract int getMaxLoopCounter();
     public abstract Type getReturnType();
