@@ -174,6 +174,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
 
     private final Deque<Reserved> reserved = new ArrayDeque<>();
     private final Globals globals;
+    private int syntheticCounter = 0;
 
     private Walker(String sourceName, String sourceText, CompilerSettings settings, Printer debugStream) {
         this.debugStream = debugStream;
@@ -956,6 +957,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
 
         List<String> paramTypes = new ArrayList<>();
         List<String> paramNames = new ArrayList<>();
+        List<AStatement> statements = new ArrayList<>();
 
         for (LamtypeContext lamtype : ctx.lamtype()) {
             if (lamtype.decltype() == null) {
@@ -967,15 +969,6 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
             paramNames.add(lamtype.ID().getText());
         }
 
-        List<AStatement> statements = visitLambdaStatements(ctx);
-        
-        String name = nextLambda(location(ctx).getOffset());
-        return new ELambda(name, (FunctionReserved)reserved.pop(), location(ctx), 
-                           paramTypes, paramNames, statements, visitLambdaStatements(ctx));
-    }
-    
-    private List<AStatement> visitLambdaStatements(LambdaContext ctx) {
-        List<AStatement> statements = new ArrayList<>();
         if (ctx.expression() != null) {
             // single expression
             AExpression expression = (AExpression) visitExpression(ctx.expression());
@@ -985,7 +978,10 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
                 statements.add((AStatement)visit(statement));
             }
         }
-        return statements;
+        
+        String name = nextLambda();
+        return new ELambda(name, (FunctionReserved)reserved.pop(), location(ctx), 
+                           paramTypes, paramNames, statements);
     }
 
     @Override
@@ -1025,7 +1021,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
                            new LNewArray(location, arrayType, Arrays.asList(
                            new EChain(location, 
                            new LVariable(location, "size"))))));
-            String name = nextLambda(location.getOffset());
+            String name = nextLambda();
             globals.addSyntheticMethod(new SFunction(new FunctionReserved(), location, arrayType, name, 
                                        Arrays.asList("int"), Arrays.asList("size"), Arrays.asList(code), true));
             return new EFunctionRef(location(ctx), "this", name);
@@ -1044,7 +1040,7 @@ public final class Walker extends PainlessParserBaseVisitor<Object> {
     }
     
     /** Returns name of next lambda */
-    private String nextLambda(int offset) {
-        return "lambda$" + offset;
+    private String nextLambda() {
+        return "lambda$" + syntheticCounter++;
     }
 }

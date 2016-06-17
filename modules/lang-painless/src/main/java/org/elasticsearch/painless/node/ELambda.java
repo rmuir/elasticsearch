@@ -37,49 +37,38 @@ public class ELambda extends AExpression implements ILambda {
     final List<String> paramTypeStrs;
     final List<String> paramNameStrs;
     final List<AStatement> statements;
-    final List<AStatement> statements2;
-    ILambda impl;
+    // desugared synthetic method (lambda body)
     SFunction desugared;
+    // method ref (impl detail)
+    ILambda impl;
 
     public ELambda(String name, FunctionReserved reserved, 
                    Location location, List<String> paramTypes, List<String> paramNames, 
-                   List<AStatement> statements, List<AStatement> statementsCopy) {
+                   List<AStatement> statements) {
         super(location);
         this.name = name;
         this.reserved = reserved;
         this.paramTypeStrs = Collections.unmodifiableList(paramTypes);
         this.paramNameStrs = Collections.unmodifiableList(paramNames);
-        // this gets used just for an analysis pass to determine the capture variables (if any)
         this.statements = Collections.unmodifiableList(statements);
-        // this is a clean copy of 'statements', its the one that gets used for the desugared method
-        this.statements2 = Collections.unmodifiableList(statementsCopy);
     }
 
     @Override
     void analyze(Locals locals) {
-        // analyze the method body to discover captures
-        SFunction throwAway = new SFunction(reserved, location, "def", name, 
-                                            paramTypeStrs, paramNameStrs, statements, true);
-        throwAway.generate();
-        List<Variable> captures = new ArrayList<>();
-        throwAway.analyze(Locals.newLambdaScope(locals, throwAway.parameters, captures));
-
-        // create a new synthetic method, analyze it
+        // desugar lambda body into a synthetic method
         desugared = new SFunction(reserved, location, "def", name, 
-                                  paramTypeStrs, paramNameStrs, statements2, true);
+                                            paramTypeStrs, paramNameStrs, statements, true);
         desugared.generate();
- 
-        Locals functionLocals = Locals.newFunctionScope(locals.getProgramScope(), throwAway.rtnType, throwAway.parameters, 
-                                                        throwAway.reserved.getMaxLoopCounter());
-        desugared.analyze(functionLocals);
+        List<Variable> captures = new ArrayList<>();
+        desugared.analyze(Locals.newLambdaScope(locals.getProgramScope(), desugared.parameters, captures));
         
         // setup reference
         EFunctionRef ref = new EFunctionRef(location, "this", name);
         ref.expected = expected;
-        functionLocals = Locals.newFunctionScope(locals.getProgramScope(), throwAway.rtnType, throwAway.parameters, 
-                                                 throwAway.reserved.getMaxLoopCounter());
-        functionLocals.addMethod(desugared.method);
-        ref.analyze(functionLocals);
+        // hack, create a new scope, with our method, so the ref can see it (impl detail)
+        locals = Locals.newLocalScope(locals);
+        locals.addMethod(desugared.method);
+        ref.analyze(locals);
         actual = ref.actual;
         impl = ref;
     }
