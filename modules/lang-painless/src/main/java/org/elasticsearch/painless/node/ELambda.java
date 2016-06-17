@@ -55,10 +55,6 @@ public class ELambda extends AExpression implements ILambda {
 
     @Override
     void analyze(Locals locals) {
-        if (statements == null || statements.isEmpty()) {
-            throw createError(new IllegalArgumentException("Cannot generate an empty function [" + name + "]."));
-        }
-        
         SFunction throwAway = new SFunction(reserved, location, "def", name, 
                                             paramTypeStrs, paramNameStrs, statements, true, true);
         throwAway.generate();
