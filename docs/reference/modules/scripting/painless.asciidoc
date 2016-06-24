@@ -259,12 +259,6 @@ Note: all of the `_update_by_query` examples above could really do with a
 because script queries aren't able to use the inverted index to limit the
 documents that they have to check.
 
-We intentionally don't allow scripts to call `Pattern.compile` to get a new
-pattern on the fly because building a `Pattern` is (comparatively) slow.
-Pattern literals (`/apattern/`) have fancy constant extraction so no matter
-where they show up in the painless script they are built only when the script
-is first used. It is fairly similar to how `String` literals work in Java.
-
 [float]
 [[painless-api]]
 == Painless API
