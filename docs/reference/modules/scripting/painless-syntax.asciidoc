@@ -1,0 +1,47 @@
+[[modules-scripting-painless-syntax]]
+=== Painless Syntax
+
+experimental[The Painless scripting language is new and is still marked as experimental. The syntax or API may be changed in the future in non-backwards compatible ways if required.]
+
+[float]
+[[syntax-overview]]
+=== Syntax Overview
+
+* Control flow: `for` loops, `while` loops, `do/while` loops, `if/else`
+
+* Fully Typed: all available types/methods described in <<painless-api, Painless API>>
+
+* Arithmetic operators: multiplication `*`, division `/`, addition `+`, subtraction `-`, precedence `( )`
+
+* Comparison operators: less than `<`, less than or equal to `<=`, greater than `>`, greater than or equal to `>=`, equal to `==`, and not equal to `!=`, reference equals `===`, reference not equals `!==`
+
+* Boolean operators: not `!`, and `&&`, or `||`
+
+* Bitwise operators: shift left `<<`, shift right `>>`, unsigned shift `>>>`, and `&`, or `|`, xor `^`, not `~`
+
+* Shortcuts for list, map access using the dot `.` operator
+
+* Native support for regular expressions with `/pattern/`, `=~`, and `==~`
+
+[float]
+[[modules-scripting-painless-regex-flags]]
+==== Regular expression flags
+
+You can define flags on patterns in Painless by adding characters after the
+trailing `/` like `/foo/i` or `/foo \w #comment/iUx`. Painless exposes all the
+flags from
+https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html[Java's Pattern class]
+using these characters:
+
+[cols="<,<,<",options="header",]
+|=======================================================================
+| Character | Java Constant | Example
+|`c` | CANON_EQ                  | `'å' ==~ /å/c` (open in hex editor to see)
+|`i` | CASE_INSENSITIVE          | `'A' ==~ /a/i`
+|`l` | LITERAL                   | `'[a]' ==~ /[a]/l`
+|`m` | MULTILINE                 | `'a\nb\nc' =~ /^b$/m`
+|`s` | DOTALL (aka single line)  | `'a\nb\nc' =~ /.b./s`
+|`U` | UNICODE_CHARACTER_CLASS   | `'Ɛ' ==~ /\\w/U`
+|`u` | UNICODE_CASE              | `'Ɛ' ==~ /ɛ/iu`
+|`x` | COMMENTS (aka extended)   | `'a' ==~ /a #comment/x`
+|=======================================================================
