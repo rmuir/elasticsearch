@@ -19,48 +19,24 @@
 
 package org.elasticsearch.painless;
 
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.index.IndexService;
-import org.elasticsearch.script.CompiledScript;
-import org.elasticsearch.script.ScriptService.ScriptType;
-import org.elasticsearch.script.SearchScript;
-import org.elasticsearch.search.lookup.SearchLookup;
-import org.elasticsearch.test.ESSingleNodeTestCase;
-
 import java.util.Collections;
 
 /**
  * Test that needsScores() is reported correctly depending on whether _score is used
  */
-// TODO: can we test this better? this is a port of the ExpressionsTests method.
-public class NeedsScoreTests extends ESSingleNodeTestCase {
+public class NeedsScoreTests extends ScriptTestCase {
 
     public void testNeedsScores() {
-        IndexService index = createIndex("test", Settings.EMPTY, "type", "d", "type=double");
+        Object compiled = scriptEngine.compile(null, "1.2", Collections.emptyMap());
+        assertFalse(compiled instanceof NeedsScore);
 
-        PainlessScriptEngineService service = new PainlessScriptEngineService(Settings.EMPTY);
-        SearchLookup lookup = new SearchLookup(index.mapperService(), index.fieldData(), null);
+        compiled = scriptEngine.compile(null, "doc['d'].value", Collections.emptyMap());
+        assertFalse(compiled instanceof NeedsScore);
 
-        Object compiled = service.compile(null, "1.2", Collections.emptyMap());
-        SearchScript ss = service.search(new CompiledScript(ScriptType.INLINE, "randomName", "painless", compiled),
-                                         lookup, Collections.<String, Object>emptyMap());
-        assertFalse(ss.needsScores());
+        compiled = scriptEngine.compile(null, "1/_score", Collections.emptyMap());
+        assertTrue(compiled instanceof NeedsScore);
 
-        compiled = service.compile(null, "doc['d'].value", Collections.emptyMap());
-        ss = service.search(new CompiledScript(ScriptType.INLINE, "randomName", "painless", compiled),
-                            lookup, Collections.<String, Object>emptyMap());
-        assertFalse(ss.needsScores());
-
-        compiled = service.compile(null, "1/_score", Collections.emptyMap());
-        ss = service.search(new CompiledScript(ScriptType.INLINE, "randomName", "painless", compiled),
-                            lookup, Collections.<String, Object>emptyMap());
-        assertTrue(ss.needsScores());
-
-        compiled = service.compile(null, "doc['d'].value * _score", Collections.emptyMap());
-        ss = service.search(new CompiledScript(ScriptType.INLINE, "randomName", "painless", compiled),
-                            lookup, Collections.<String, Object>emptyMap());
-        assertTrue(ss.needsScores());
-        service.close();
+        compiled = scriptEngine.compile(null, "doc['d'].value * _score", Collections.emptyMap());
+        assertTrue(compiled instanceof NeedsScore);
     }
-
 }
