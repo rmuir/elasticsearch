@@ -19,12 +19,14 @@
 
 package org.elasticsearch.test;
 
-/** basic tests */
-public class SimpleTests extends BaseTestCase {
+import java.io.ByteArrayOutputStream;
+
+/** basic tests, using try-with resources */
+public class SimpleWithResourcesTests extends BaseTestCase {
 
     /** drops the exception on the floor */
     public int escapes() {
-        try {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
         } catch (Exception e) {
             return 0;
@@ -36,10 +38,10 @@ public class SimpleTests extends BaseTestCase {
     }
     
     /** drops the exception on the floor (sometimes) */
-    public int escapesSometimes() {
-        try {
+    public int escapesSometimes() throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             if (e.getMessage().equals("ok")) {
                 return 0;
             } else {
@@ -53,10 +55,10 @@ public class SimpleTests extends BaseTestCase {
     }
     
     /** drops the exception on the floor (sometimes, with loop) */
-    public int escapesSometimesLoop() {
-        try {
+    public int escapesSometimesLoop() throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             while (e != null) {
               throw e;
             }
@@ -70,7 +72,7 @@ public class SimpleTests extends BaseTestCase {
     
     /** throws something else (does not pass the exception) */
     public int throwsSomethingElse() {
-        try {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
         } catch (Exception e) {
             throw new NullPointerException();
@@ -82,8 +84,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     /** throws exception back directly */
-    public int throwsExceptionBack() {
-        try {
+    public int throwsExceptionBack() throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             throw e;
@@ -95,8 +97,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     /** throws exception boxed in another */
-    public int throwsBoxedException() {
-        try {
+    public int throwsBoxedException() throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
@@ -108,8 +110,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     /** throws exception boxed in another (via initCause) */
-    public int throwsBoxedExceptionInitCause() {
-        try {
+    public int throwsBoxedExceptionInitCause() throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             RuntimeException f = new RuntimeException();
@@ -123,8 +125,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     /** throws exception boxed in another (via addSuppressed) */
-    public int throwsBoxedExceptionAddSuppressed() {
-        try {
+    public int throwsBoxedExceptionAddSuppressed() throws Exception {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             RuntimeException f = new RuntimeException();
