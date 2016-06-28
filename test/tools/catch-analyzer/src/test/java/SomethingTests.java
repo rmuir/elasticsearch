@@ -16,20 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import org.elasticsearch.gradle.precommit.PrecommitTasks
-
-dependencies {
-  compile 'org.ow2.asm:asm-debug-all:5.0.4' // use asm-debug-all as asm-all is broken
-}
-
-// some things are disabled as they only work if you have es/lucene
-loggerUsageCheck.enabled = false
-namingConventions.enabled = false
-
-forbiddenApisMain {
-  signaturesURLs = [PrecommitTasks.getResource('/forbidden/jdk-signatures.txt')] // does not depend on core, only jdk signatures
-}
-forbiddenApisTest {
-  signaturesURLs = [PrecommitTasks.getResource('/forbidden/jdk-signatures.txt')] // does not depend on core, only jdk signatures
+public class SomethingTests {
+  public void test() { }
 }
