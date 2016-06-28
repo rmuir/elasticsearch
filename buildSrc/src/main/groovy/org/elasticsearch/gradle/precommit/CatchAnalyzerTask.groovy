@@ -39,6 +39,7 @@ public class CatchAnalyzerTask extends LoggedExec {
     List<File> classDirectories
 
     public CatchAnalyzerTask() {
+        failureMessage = 'Found swallowed exceptions.'
         project.afterEvaluate {
             dependsOn(classpath)
             executable = new File(project.javaHome, 'bin/java')
@@ -55,7 +56,7 @@ public class CatchAnalyzerTask extends LoggedExec {
             }
             doFirst({
                 args('-cp', "${classpath.asPath}:${classDirectories.join(':')}", 'org.elasticsearch.test.CatchAnalyzer')
-                getClassDirectories().each {
+                classDirectories.each {
                     args it.getAbsolutePath()
                 }
             })
