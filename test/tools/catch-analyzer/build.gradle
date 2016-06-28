@@ -20,7 +20,8 @@
 import org.elasticsearch.gradle.precommit.PrecommitTasks
 
 dependencies {
-  compile 'org.ow2.asm:asm-debug-all:5.0.4' // use asm-debug-all as asm-all is broken
+  compile 'org.ow2.asm:asm-debug-all:5.0.4' // use asm-debug-all because WE LIKE LINE NUMBERS!
+  testCompile "junit:junit:${versions.junit}"
 }
 
 // some things are disabled as they only work if you have es/lucene
