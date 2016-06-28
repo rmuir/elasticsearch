@@ -19,8 +19,10 @@
 package org.elasticsearch.gradle.precommit
 
 import de.thetaphi.forbiddenapis.gradle.ForbiddenApisPlugin
+import org.elasticsearch.gradle.VersionProperties
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaBasePlugin
 
 /**
@@ -60,6 +62,7 @@ class PrecommitTasks {
              * here.
              */
             precommitTasks.add(configureLoggerUsage(project))
+            precommitTasks.add(createCatchAnalyzerTask(project))
         }
 
 
@@ -171,5 +174,19 @@ class PrecommitTasks {
         }
 
         return loggerUsageTask
+    }
+
+    private static Task createCatchAnalyzerTask(Project project) {
+        Task catchAnalyzerTask = project.tasks.create('catchAnalyzer', CatchAnalyzerTask.class)
+
+        Configuration catchAnalyzerConfig = project.configurations.create('catchAnalyzerPlugin')
+        if (project.configurations.findByName('compile') != null) {
+            catchAnalyzerConfig.extendsFrom(project.configurations.runtime)
+        }
+        project.dependencies.add('catchAnalyzerPlugin',
+                "org.elasticsearch.test.tools:catch-analyzer:${VersionProperties.elasticsearch}")
+        catchAnalyzerTask.classpath = catchAnalyzerConfig
+
+        return catchAnalyzerTask
     }
 }
