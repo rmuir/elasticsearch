@@ -19,6 +19,7 @@
 package org.elasticsearch.test;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,12 +65,15 @@ public class CatchAnalyzer extends MethodVisitor {
   private final String owner;
   private final String methodName;
   private final AtomicLong violationCount;
+  private final PrintStream out;
  
-  CatchAnalyzer(String owner, int access, String name, String desc, String signature, String[] exceptions, AtomicLong violationCount) {
+  CatchAnalyzer(String owner, int access, String name, String desc, String signature, 
+                String[] exceptions, AtomicLong violationCount, PrintStream output) {
     super(Opcodes.ASM5, new MethodNode(access, name, desc, signature, exceptions));
     this.owner = owner;
     this.methodName = name;
     this.violationCount = violationCount;
+    this.out = output;
   }
  
   /** Node in the flow graph. contains set of outgoing edges for the next instructions possible */
@@ -171,8 +175,8 @@ public class CatchAnalyzer extends MethodVisitor {
         String violation = analyze(insns, nodes, handler, new BitSet());
         if (violation != null) {
           String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
-          System.out.println(brokenCatchBlock);
-          System.out.println("  " + violation);
+          out.println(brokenCatchBlock);
+          out.println("  " + violation);
           violationCount.incrementAndGet();
         }
       }
@@ -384,7 +388,7 @@ public class CatchAnalyzer extends MethodVisitor {
                 if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
                   return super.visitMethod(access, name, desc, signature, exceptions);
                 }
-                return new CatchAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions, violationCount);
+                return new CatchAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions, violationCount, System.out);
               }
             }, 0);
             scannedCount.incrementAndGet();

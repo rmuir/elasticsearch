@@ -21,7 +21,9 @@ import org.elasticsearch.gradle.precommit.PrecommitTasks
 
 dependencies {
   compile 'org.ow2.asm:asm-debug-all:5.0.4' // use asm-debug-all because WE LIKE LINE NUMBERS!
+  testCompile "com.carrotsearch.randomizedtesting:randomizedtesting-runner:${versions.randomizedrunner}"
   testCompile "junit:junit:${versions.junit}"
+  testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}" // hamcrest is evil, but randomized runner no worky without
 }
 
 // some things are disabled as they only work if you have es/lucene
