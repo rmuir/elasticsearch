@@ -27,6 +27,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** drops the exception on the floor */
     public int escapes() {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (Exception e) {
             return 0;
@@ -40,6 +41,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** drops the exception on the floor (sometimes) */
     public int escapesSometimes() throws Exception {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (Exception e) {
             if (e.getMessage().equals("ok")) {
@@ -57,6 +59,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** drops the exception on the floor (sometimes, with loop) */
     public int escapesSometimesLoop() throws Exception {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (Exception e) {
             while (e != null) {
@@ -73,6 +76,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** throws something else (does not pass the exception) */
     public int throwsSomethingElse() {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (Exception e) {
             throw new NullPointerException();
@@ -86,6 +90,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** throws exception back directly */
     public int throwsExceptionBack() throws Exception {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             throw e;
@@ -99,6 +104,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** throws exception boxed in another */
     public int throwsBoxedException() throws Exception {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
@@ -112,6 +118,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** throws exception boxed in another (via initCause) */
     public int throwsBoxedExceptionInitCause() throws Exception {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             RuntimeException f = new RuntimeException();
@@ -127,6 +134,7 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     /** throws exception boxed in another (via addSuppressed) */
     public int throwsBoxedExceptionAddSuppressed() throws Exception {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            assert os != null;
             return Integer.parseInt("bogus");
         } catch (RuntimeException e) {
             RuntimeException f = new RuntimeException();
