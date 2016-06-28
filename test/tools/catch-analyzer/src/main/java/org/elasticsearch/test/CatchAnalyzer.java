@@ -373,15 +373,15 @@ public class CatchAnalyzer extends MethodVisitor {
                 }
                 // TODO: fix bugs in ASM, that cause problems when doing dataflow analysis of the following methods:
                 // indexwriter.shutdown
-                if ("shutdown".equals(name)) {
+                if ("shutdown".equals(name) && "org/apache/lucene/index/IndexWriter".equals(reader.getClassName())) {
                   return super.visitMethod(access, name, desc, signature, exceptions);
                 }
                 // fst.arc readtargetarc
-                if ("readLastTargetArc".equals(name)) {
+                if ("readLastTargetArc".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
                   return super.visitMethod(access, name, desc, signature, exceptions);
                 }
-                // fst.bytesreader
-                if ("seekToNextNode".equals(name)) {
+                // fst.bytesreader 
+                if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
                   return super.visitMethod(access, name, desc, signature, exceptions);
                 }
                 return new CatchAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions, violationCount);
