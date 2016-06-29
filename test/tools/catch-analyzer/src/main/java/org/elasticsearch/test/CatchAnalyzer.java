@@ -191,6 +191,7 @@ public class CatchAnalyzer extends MethodVisitor {
                 return true;
             }
         };
+        handlers.removeAll(annotated);
         try {
             Frame<BasicValue> frames[] = a.analyze(owner, node);
             List<Node<BasicValue>> nodes = new ArrayList<>();

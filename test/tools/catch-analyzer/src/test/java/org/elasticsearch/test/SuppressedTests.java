@@ -19,6 +19,8 @@
 
 package org.elasticsearch.test;
 
+import java.io.ByteArrayOutputStream;
+
 public class SuppressedTests extends BaseTestCase {
     /** drops the exception on the floor */
     public int escapes() {
@@ -33,6 +35,20 @@ public class SuppressedTests extends BaseTestCase {
         check(getClass().getMethod("escapes"), 0, null);
     }
     
+    /** drops the exception on the floor */
+    public int escapesWithResources() throws Exception {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            assert stream != null;
+            return Integer.parseInt("bogus");
+        } catch (@Swallows Exception e) {
+            return 0;
+        }
+    }
+    
+    public void testEscapesWithResources() throws Exception {
+        check(getClass().getMethod("escapesWithResources"), 0, null);
+    }
+    
     /** does the right thing, but annotated wrong */
     public int actuallyThrows() throws Exception {
         try {
@@ -44,5 +60,19 @@ public class SuppressedTests extends BaseTestCase {
     
     public void testActuallyThrows() throws Exception {
         check(getClass().getMethod("actuallyThrows"), 1, "Does not swallow any exception");
+    }
+    
+    /** does the right thing, but annotated wrong */
+    public int actuallyThrowsWithResources() throws Exception {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            assert stream != null;
+            return Integer.parseInt("bogus");
+        } catch (@Swallows Exception e) {
+            throw e;
+        }
+    }
+    
+    public void testActuallyThrowsWithResources() throws Exception {
+        check(getClass().getMethod("actuallyThrowsWithResources"), 1, "Does not swallow any exception");
     }
 }
