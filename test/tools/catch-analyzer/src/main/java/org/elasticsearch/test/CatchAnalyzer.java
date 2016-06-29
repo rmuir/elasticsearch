@@ -138,10 +138,39 @@ public class CatchAnalyzer extends MethodVisitor {
     public void visitEnd() {
         MethodNode node = (MethodNode)mv;
         AbstractInsnNode insns[] = node.instructions.toArray(); // all instructions for the method
+
+        Set<Integer> annotatedLines = new TreeSet<>(); // line numbers of exception handlers annotated with Swallows
+        // inspect try catch block annotations! 
+        for (TryCatchBlockNode tcb : node.tryCatchBlocks) {
+            int insn = node.instructions.indexOf(tcb.handler);
+            boolean foundAnnotation = false;
+            if (tcb.invisibleTypeAnnotations != null) {
+                for (TypeAnnotationNode annotation : tcb.invisibleTypeAnnotations) {
+                    if (annotation.desc.contains("Swallows")) {
+                        foundAnnotation = true;
+                        break;
+                    }
+                }
+            }
+            if (foundAnnotation == false && tcb.visibleTypeAnnotations != null) {
+                for (TypeAnnotationNode annotation : tcb.visibleTypeAnnotations) {
+                    if (annotation.desc.contains("Swallows")) {
+                        foundAnnotation = true;
+                        break;
+                    }
+                }
+            }
+            if (foundAnnotation) {
+                int lineNumber = getLineNumber(insns, insn);
+                annotatedLines.add(lineNumber);
+            }
+        }
         
         Map<Integer,Set<Integer>> handlers = new TreeMap<>(); // entry points of exception handlers found, 
                                                               // keyed by line number
-        Set<Integer> annotatedLines = new TreeSet<>(); // line numbers of exception handlers annotated with Swallows
+        Map<Integer,Set<Integer>> annotated = new TreeMap<>(); // entry points of annotated exception handlers found
+                                                               // keyed by line number
+
         Analyzer<BasicValue> a = new Analyzer<BasicValue>(new ThrowableInterpreter()) {
             @Override
             protected Frame<BasicValue> newFrame(Frame<? extends BasicValue> src) {
@@ -165,32 +194,17 @@ public class CatchAnalyzer extends MethodVisitor {
                 newControlFlowEdge(insn, nextInsn);
                 // null type: e.g. finally block
                 if (next.type != null) {
-                    boolean foundAnnotation = false;
-                    if (next.invisibleTypeAnnotations != null) {
-                        for (TypeAnnotationNode annotation : next.invisibleTypeAnnotations) {
-                            if (annotation.desc.contains("Swallows")) {
-                                foundAnnotation = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (foundAnnotation == false && next.visibleTypeAnnotations != null) {
-                        for (TypeAnnotationNode annotation : next.visibleTypeAnnotations) {
-                            if (annotation.desc.contains("Swallows")) {
-                                foundAnnotation = true;
-                                break;
-                            }
-                        }
-                    }
                     int lineNumber = getLineNumber(insns, nextInsn);
-                    if (foundAnnotation) {
-                        annotatedLines.add(lineNumber);
+                    final Map<Integer,Set<Integer>> map;
+                    if (annotatedLines.contains(lineNumber)) {
+                        map = annotated;
+                    } else {
+                        map = handlers;
                     }
-                    
-                    Set<Integer> entryPoints = handlers.get(lineNumber);
+                    Set<Integer> entryPoints = map.get(lineNumber);
                     if (entryPoints == null) {
                         entryPoints = new TreeSet<>();
-                        handlers.put(lineNumber, entryPoints);
+                        map.put(lineNumber, entryPoints);
                     }
                     entryPoints.add(nextInsn);
                 }
@@ -202,11 +216,6 @@ public class CatchAnalyzer extends MethodVisitor {
             List<Node<BasicValue>> nodes = new ArrayList<>();
             for (Frame<BasicValue> frame : frames) {
                 nodes.add((Node<BasicValue>)frame);
-            }
-            // deal with annotated lines:
-            Map<Integer,Set<Integer>> annotated = new TreeMap<>();
-            for (int line : annotatedLines) {
-                annotated.put(line, handlers.remove(line));
             }
             // check the destination of every exception edge
             for (int line : handlers.keySet()) {
