@@ -61,10 +61,10 @@ public class BaseTestCase extends Assert {
                 return null;
             }
         }, 0);
-        assertEquals("unexpected number of matching methods", 1L, analyzedMethods.get());
-        assertEquals((long)failures, violationCount.get());
         stream.flush();
         String messages = output.toString("UTF-8");
+        assertEquals("unexpected number of matching methods", 1L, analyzedMethods.get());
+        assertEquals("unexpected failure count, output: " + messages, (long)failures, violationCount.get());
         if (expectedOutput == null) {
             assertTrue("output was not empty:\n" + messages, messages.isEmpty());
         } else {

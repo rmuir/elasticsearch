@@ -45,6 +45,7 @@ public class SuppressedTests extends BaseTestCase {
         }
     }
     
+    /** currently will fail if bytecode is compiled by eclipse! need to look, perhaps it loses the annotation? */
     public void testEscapesWithResources() throws Exception {
         check(getClass().getMethod("escapesWithResources"), 0, null);
     }
@@ -72,6 +73,7 @@ public class SuppressedTests extends BaseTestCase {
         }
     }
     
+    /** currently will fail if bytecode is compiled by eclipse! need to look, perhaps it loses the annotation? */
     public void testActuallyThrowsWithResources() throws Exception {
         check(getClass().getMethod("actuallyThrowsWithResources"), 1, "Does not swallow any exception");
     }

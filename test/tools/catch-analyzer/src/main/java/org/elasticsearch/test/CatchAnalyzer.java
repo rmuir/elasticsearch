@@ -28,9 +28,12 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -67,10 +70,6 @@ public class CatchAnalyzer extends MethodVisitor {
     private final String methodName;
     private final AtomicLong violationCount;
     private final PrintStream out;
-    // javac will do lots of code duplication when finally is involved.
-    // we will find all the broken catch blocks it generates, yet to the user they are the same.
-    // this also makes results consistent with e.g. eclipse compiler which does not do such things.
-    private final Set<Integer> seen = new HashSet<>();
     
     CatchAnalyzer(String owner, int access, String name, String desc, String signature, 
             String[] exceptions, AtomicLong violationCount, PrintStream output) {
@@ -140,8 +139,9 @@ public class CatchAnalyzer extends MethodVisitor {
         MethodNode node = (MethodNode)mv;
         AbstractInsnNode insns[] = node.instructions.toArray(); // all instructions for the method
         
-        Set<Integer> handlers = new TreeSet<>(); // entry points of exception handlers found
-        Set<Integer> annotated = new TreeSet<>(); // exception handlers annotated with Swallows
+        Map<Integer,Set<Integer>> handlers = new TreeMap<>(); // entry points of exception handlers found, 
+                                                              // keyed by line number
+        Set<Integer> annotatedLines = new TreeSet<>(); // line numbers of exception handlers annotated with Swallows
         Analyzer<BasicValue> a = new Analyzer<BasicValue>(new ThrowableInterpreter()) {
             @Override
             protected Frame<BasicValue> newFrame(Frame<? extends BasicValue> src) {
@@ -182,46 +182,60 @@ public class CatchAnalyzer extends MethodVisitor {
                             }
                         }
                     }
+                    int lineNumber = getLineNumber(insns, nextInsn);
                     if (foundAnnotation) {
-                        annotated.add(nextInsn);
-                    } else {
-                        handlers.add(nextInsn);
+                        annotatedLines.add(lineNumber);
                     }
+                    
+                    Set<Integer> entryPoints = handlers.get(lineNumber);
+                    if (entryPoints == null) {
+                        entryPoints = new TreeSet<>();
+                        handlers.put(lineNumber, entryPoints);
+                    }
+                    entryPoints.add(nextInsn);
                 }
                 return true;
             }
         };
-        handlers.removeAll(annotated);
         try {
             Frame<BasicValue> frames[] = a.analyze(owner, node);
             List<Node<BasicValue>> nodes = new ArrayList<>();
             for (Frame<BasicValue> frame : frames) {
                 nodes.add((Node<BasicValue>)frame);
             }
+            // deal with annotated lines:
+            Map<Integer,Set<Integer>> annotated = new TreeMap<>();
+            for (int line : annotatedLines) {
+                annotated.put(line, handlers.remove(line));
+            }
             // check the destination of every exception edge
-            for (int handler : handlers) {
-                String violation = analyze(insns, nodes, handler, new BitSet());
-                if (violation != null) {
-                    int lineNumber = getLineNumber(insns, handler);
-                    if (seen.add(lineNumber) || lineNumber == -1) {
-                        String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
+            for (int line : handlers.keySet()) {
+                for (int handler : handlers.get(line)) {
+                    String violation = analyze(insns, nodes, handler, new BitSet());
+                    if (violation != null) {
+                        String brokenCatchBlock = newViolation("Broken catch block", line);
                         out.println(brokenCatchBlock);
                         out.println("  " + violation);
                         violationCount.incrementAndGet();
+                        break;
                     }
                 }
             }
             // check every annotated element too. if it does not in fact fail, its bogus
-            for (int handler : annotated) {
-                String violation = analyze(insns, nodes, handler, new BitSet());
-                if (violation == null) {
-                    int lineNumber = getLineNumber(insns, handler);
-                    if (seen.add(lineNumber) || lineNumber == -1) {
-                        String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
-                        out.println(brokenCatchBlock);
-                        out.println("  Does not swallow any exception");
-                        violationCount.incrementAndGet();
+            for (int line : annotated.keySet()) {
+                boolean found = false;
+                for (int handler : annotated.get(line)) {
+                    String violation = analyze(insns, nodes, handler, new BitSet());
+                    if (violation != null) {
+                        found = true;
+                        break;
                     }
+                }
+                if (!found) {
+                    String brokenCatchBlock = newViolation("Broken catch block", line);
+                    out.println(brokenCatchBlock);
+                    out.println("  Does not swallow any exception");
+                    violationCount.incrementAndGet();
                 }
             }
         } catch (AnalyzerException e) {
@@ -266,10 +280,10 @@ public class CatchAnalyzer extends MethodVisitor {
                         return null;
                     }
                 }
-                return newViolation("Throws a different exception, but loses the original", insns, insn);
+                return newViolation("Throws a different exception, but loses the original", getLineNumber(insns, insn));
             }
             if (node.edges.isEmpty()) {
-                return newViolation("Escapes without throwing anything", insns, insn);
+                return newViolation("Escapes without throwing anything", getLineNumber(insns, insn));
             }
             visited.set(insn);
             if (node.edges.size() == 1) {
@@ -309,7 +323,7 @@ public class CatchAnalyzer extends MethodVisitor {
         return false;
     }
     
-    private int getLineNumber(AbstractInsnNode insns[], int insn) {
+    private static int getLineNumber(AbstractInsnNode insns[], int insn) {
         // walk backwards in the line number table
         int line = -1;
         for (int i = insn; i >= 0; i--) {
@@ -323,9 +337,7 @@ public class CatchAnalyzer extends MethodVisitor {
     }
     
     /** Forms a string message for a new violation */
-    private String newViolation(String message, AbstractInsnNode insns[], int insn) {
-        // walk backwards in the line number table
-        int line = getLineNumber(insns, insn);
+    private String newViolation(String message, int line) {
         String clazzName = owner.replace('/', '.');
         if (line >= 0) {
             return message + " at " + clazzName + "." + methodName + ":" + line;
