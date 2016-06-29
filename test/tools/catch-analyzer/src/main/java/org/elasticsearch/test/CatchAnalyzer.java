@@ -66,6 +66,10 @@ public class CatchAnalyzer extends MethodVisitor {
   private final String methodName;
   private final AtomicLong violationCount;
   private final PrintStream out;
+  // javac will do lots of code duplication when finally is involved.
+  // we will find all the broken catch blocks it generates, yet to the user they are the same.
+  // this also makes results consistent with e.g. eclipse compiler which does not do such things.
+  private final Set<Integer> seen = new HashSet<>();
  
   CatchAnalyzer(String owner, int access, String name, String desc, String signature, 
                 String[] exceptions, AtomicLong violationCount, PrintStream output) {
@@ -174,10 +178,13 @@ public class CatchAnalyzer extends MethodVisitor {
       for (int handler : handlers) {
         String violation = analyze(insns, nodes, handler, new BitSet());
         if (violation != null) {
-          String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
-          out.println(brokenCatchBlock);
-          out.println("  " + violation);
-          violationCount.incrementAndGet();
+          int lineNumber = getLineNumber(insns, handler);
+          if (seen.add(lineNumber) || lineNumber == -1) {
+              String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
+              out.println(brokenCatchBlock);
+              out.println("  " + violation);
+              violationCount.incrementAndGet();
+          }
         }
       }
     } catch (AnalyzerException e) {
@@ -264,18 +271,24 @@ public class CatchAnalyzer extends MethodVisitor {
     }
     return false;
   }
+  
+  private int getLineNumber(AbstractInsnNode insns[], int insn) {
+      // walk backwards in the line number table
+      int line = -1;
+      for (int i = insn; i >= 0; i--) {
+        AbstractInsnNode previous = insns[i];
+        if (previous instanceof LineNumberNode) {
+          line = ((LineNumberNode)previous).line;
+          break;
+        }
+      }
+      return line;
+  }
  
   /** Forms a string message for a new violation */
   private String newViolation(String message, AbstractInsnNode insns[], int insn) {
     // walk backwards in the line number table
-    int line = -1;
-    for (int i = insn; i >= 0; i--) {
-      AbstractInsnNode previous = insns[i];
-      if (previous instanceof LineNumberNode) {
-        line = ((LineNumberNode)previous).line;
-        break;
-      }
-    }
+    int line = getLineNumber(insns, insn);
     String clazzName = owner.replace('/', '.');
     if (line >= 0) {
       return message + " at " + clazzName + "." + methodName + ":" + line;
