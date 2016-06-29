@@ -49,10 +49,10 @@ public class CatchAnalyzerTask extends LoggedExec {
                     classDirectories += [project.sourceSets.main.output.classesDir]
                     dependsOn project.tasks.classes
                 }
-                if (project.sourceSets.findByName("test") && project.sourceSets.test.output.classesDir.exists()) {
+                /*if (project.sourceSets.findByName("test") && project.sourceSets.test.output.classesDir.exists()) {
                     classDirectories += [project.sourceSets.test.output.classesDir]
                     dependsOn project.tasks.testClasses
-                }
+                }*/
             }
             doFirst({
                 args('-cp', "${classpath.asPath}:${classDirectories.join(':')}", 'org.elasticsearch.test.CatchAnalyzer')
