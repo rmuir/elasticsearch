@@ -45,11 +45,11 @@ public class CatchAnalyzerTask extends LoggedExec {
             executable = new File(project.javaHome, 'bin/java')
             if (classDirectories == null) {
                 classDirectories = []
-                if (project.sourceSets.findByName("main") && project.sourceSets.main.output.classesDir.exists()) {
+                if (project.sourceSets.findByName("main")) {
                     classDirectories += [project.sourceSets.main.output.classesDir]
                     dependsOn project.tasks.classes
                 }
-                /*if (project.sourceSets.findByName("test") && project.sourceSets.test.output.classesDir.exists()) {
+                /*if (project.sourceSets.findByName("test")) {
                     classDirectories += [project.sourceSets.test.output.classesDir]
                     dependsOn project.tasks.testClasses
                 }*/
