@@ -1,5 +1,7 @@
 package org.joda.time.format;
 
+import org.elasticsearch.common.Swallows;
+
 /*
  *  Copyright 2001-2009 Stephen Colebourne
  *
@@ -205,7 +207,7 @@ public class StrictISODateTimeFormat {
         // handling unmodifiable collections with no side effect
         try {
             fields.retainAll(workingFields);
-        } catch (UnsupportedOperationException ex) {
+        } catch (@Swallows UnsupportedOperationException ex) {
             // ignore, so we can handle unmodifiable collections
         }
         return bld.toFormatter();

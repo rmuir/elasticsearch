@@ -19,6 +19,7 @@
 
 package org.elasticsearch.monitor.jvm;
 
+import org.elasticsearch.common.Swallows;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.settings.Setting;
@@ -389,7 +390,7 @@ public class JvmGcMonitorService extends AbstractLifecycleComponent<JvmGcMonitor
         public void run() {
             try {
                 monitorGc();
-            } catch (Throwable t) {
+            } catch (@Swallows Throwable t) {
                 onMonitorFailure(t);
             }
         }

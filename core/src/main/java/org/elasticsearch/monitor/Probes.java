@@ -19,6 +19,8 @@
 
 package org.elasticsearch.monitor;
 
+import org.elasticsearch.common.Swallows;
+
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
 
@@ -30,7 +32,7 @@ public class Probes {
                 if (load >= 0) {
                     return (short) (load * 100);
                 }
-            } catch (Throwable t) {
+            } catch (@Swallows Throwable t) {
                 return -1;
             }
         }

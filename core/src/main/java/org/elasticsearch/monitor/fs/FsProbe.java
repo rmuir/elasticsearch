@@ -21,6 +21,7 @@ package org.elasticsearch.monitor.fs;
 
 import org.apache.lucene.util.Constants;
 import org.elasticsearch.common.SuppressForbidden;
+import org.elasticsearch.common.Swallows;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.io.PathUtils;
@@ -109,7 +110,7 @@ public class FsProbe extends AbstractComponent {
             }
 
             return new FsInfo.IoStats(devicesStats.toArray(new FsInfo.DeviceStats[devicesStats.size()]));
-        } catch (Exception e) {
+        } catch (@Swallows Exception e) {
             // do not fail Elasticsearch if something unexpected
             // happens here
             logger.debug("unexpected exception processing /proc/diskstats for devices {}", e, devicesNumbers);

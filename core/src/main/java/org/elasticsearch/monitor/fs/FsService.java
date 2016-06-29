@@ -19,6 +19,7 @@
 
 package org.elasticsearch.monitor.fs;
 
+import org.elasticsearch.common.Swallows;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.settings.Setting;
@@ -58,7 +59,7 @@ public class FsService extends AbstractComponent {
     private static FsInfo stats(FsProbe probe, FsInfo initialValue, ESLogger logger) {
         try {
             return probe.stats(initialValue);
-        } catch (IOException e) {
+        } catch (@Swallows IOException e) {
             logger.debug("unexpected exception reading filesystem info", e);
             return null;
         }
