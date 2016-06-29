@@ -44,6 +44,7 @@ import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
+import org.objectweb.asm.tree.TypeAnnotationNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.BasicInterpreter;
@@ -140,6 +141,7 @@ public class CatchAnalyzer extends MethodVisitor {
         AbstractInsnNode insns[] = node.instructions.toArray(); // all instructions for the method
         
         Set<Integer> handlers = new TreeSet<>(); // entry points of exception handlers found
+        Set<Integer> annotated = new TreeSet<>(); // exception handlers annotated with Swallows
         Analyzer<BasicValue> a = new Analyzer<BasicValue>(new ThrowableInterpreter()) {
             @Override
             protected Frame<BasicValue> newFrame(Frame<? extends BasicValue> src) {
@@ -163,7 +165,28 @@ public class CatchAnalyzer extends MethodVisitor {
                 newControlFlowEdge(insn, nextInsn);
                 // null type: e.g. finally block
                 if (next.type != null) {
-                    handlers.add(nextInsn);
+                    boolean foundAnnotation = false;
+                    if (next.invisibleTypeAnnotations != null) {
+                        for (TypeAnnotationNode annotation : next.invisibleTypeAnnotations) {
+                            if (annotation.desc.contains("Swallows")) {
+                                foundAnnotation = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundAnnotation == false && next.visibleTypeAnnotations != null) {
+                        for (TypeAnnotationNode annotation : next.visibleTypeAnnotations) {
+                            if (annotation.desc.contains("Swallows")) {
+                                foundAnnotation = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundAnnotation) {
+                        annotated.add(nextInsn);
+                    } else {
+                        handlers.add(nextInsn);
+                    }
                 }
                 return true;
             }
@@ -183,6 +206,19 @@ public class CatchAnalyzer extends MethodVisitor {
                         String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
                         out.println(brokenCatchBlock);
                         out.println("  " + violation);
+                        violationCount.incrementAndGet();
+                    }
+                }
+            }
+            // check every annotated element too. if it does not in fact fail, its bogus
+            for (int handler : annotated) {
+                String violation = analyze(insns, nodes, handler, new BitSet());
+                if (violation == null) {
+                    int lineNumber = getLineNumber(insns, handler);
+                    if (seen.add(lineNumber) || lineNumber == -1) {
+                        String brokenCatchBlock = newViolation("Broken catch block", insns, handler);
+                        out.println(brokenCatchBlock);
+                        out.println("  Does not swallow any exception");
                         violationCount.incrementAndGet();
                     }
                 }
