@@ -24,6 +24,7 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.Nullable;
+import org.elasticsearch.common.Swallows;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.unit.ByteSizeUnit;
 import org.elasticsearch.common.unit.ByteSizeValue;
@@ -213,7 +214,7 @@ public class BulkProcessor implements Closeable {
     public void close() {
         try {
             awaitClose(0, TimeUnit.NANOSECONDS);
-        } catch(InterruptedException exc) {
+        } catch(@Swallows InterruptedException exc) {
             Thread.currentThread().interrupt();
         }
     }

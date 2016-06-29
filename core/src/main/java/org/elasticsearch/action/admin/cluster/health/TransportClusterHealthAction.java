@@ -32,6 +32,7 @@ import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.cluster.routing.UnassignedInfo;
 import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.Swallows;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
@@ -213,7 +214,7 @@ public class TransportClusterHealthAction extends TransportMasterNodeReadAction<
             try {
                 indexNameExpressionResolver.concreteIndexNames(clusterState, IndicesOptions.strictExpand(), request.indices());
                 waitForCounter++;
-            } catch (IndexNotFoundException e) {
+            } catch (@Swallows IndexNotFoundException e) {
                 response.setStatus(ClusterHealthStatus.RED); // no indices, make sure its RED
                 // missing indices, wait a bit more...
             }
@@ -279,7 +280,7 @@ public class TransportClusterHealthAction extends TransportMasterNodeReadAction<
         String[] concreteIndices;
         try {
             concreteIndices = indexNameExpressionResolver.concreteIndexNames(clusterState, request);
-        } catch (IndexNotFoundException e) {
+        } catch (@Swallows IndexNotFoundException e) {
             // one of the specified indices is not there - treat it as RED.
             ClusterHealthResponse response = new ClusterHealthResponse(clusterState.getClusterName().value(), Strings.EMPTY_ARRAY, clusterState,
                     numberOfPendingTasks, numberOfInFlightFetch, UnassignedInfo.getNumberOfDelayedUnassigned(clusterState),
