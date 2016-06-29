@@ -365,51 +365,59 @@ public class CatchAnalyzer extends MethodVisitor {
         AtomicLong scannedCount = new AtomicLong();
         AtomicLong violationCount = new AtomicLong();
         long startTime = System.currentTimeMillis();
+        List<Path> files = new ArrayList<>();
+        // step 1: collect files
         for (String arg : args) {
             Path dir = Paths.get(arg);
             Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     if (file.toString().endsWith(".class")) {
-                        byte bytes[] = Files.readAllBytes(file);
-                        ClassReader reader = new ClassReader(bytes);
-                        // entirely synthetic class, e.g. enum switch table, which always masks NoSuchFieldError!!!!!
-                        if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
-                            return FileVisitResult.CONTINUE;
-                        }
-                        reader.accept(new ClassVisitor(Opcodes.ASM5, null) {
-                            @Override
-                            public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                                // don't scan synthetic methods (have not found any issues with them, but it would be unfair)
-                                if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-                                    return super.visitMethod(access, name, desc, signature, exceptions);
-                                }
-                                // TODO: allow scanning ctors (we just have to handle the super call better)
-                                if ("<init>".equals(name)) {
-                                    return super.visitMethod(access, name, desc, signature, exceptions);
-                                }
-                                // TODO: fix bugs in ASM, that cause problems when doing dataflow analysis of the following methods:
-                                // indexwriter.shutdown
-                                if ("shutdown".equals(name) && "org/apache/lucene/index/IndexWriter".equals(reader.getClassName())) {
-                                    return super.visitMethod(access, name, desc, signature, exceptions);
-                                }
-                                // fst.arc readtargetarc
-                                if ("readLastTargetArc".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
-                                    return super.visitMethod(access, name, desc, signature, exceptions);
-                                }
-                                // fst.bytesreader 
-                                if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
-                                    return super.visitMethod(access, name, desc, signature, exceptions);
-                                }
-                                return new CatchAnalyzer(reader.getClassName(), access, name, desc, 
-                                                         signature, exceptions, violationCount, System.out);
-                            }
-                        }, 0);
-                        scannedCount.incrementAndGet();
+                        files.add(file);
                     }
                     return FileVisitResult.CONTINUE;
                 }
             });
+        }
+        // step 2: sort
+        files.sort((x,y) -> x.toAbsolutePath().toString().compareTo(y.toAbsolutePath().toString()));
+        // step 3: process
+        for (Path file : files) {
+            byte bytes[] = Files.readAllBytes(file);
+            ClassReader reader = new ClassReader(bytes);
+            // entirely synthetic class, e.g. enum switch table, which always masks NoSuchFieldError!!!!!
+            if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
+                continue;
+            }
+            reader.accept(new ClassVisitor(Opcodes.ASM5, null) {
+                @Override
+                public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                    // don't scan synthetic methods (have not found any issues with them, but it would be unfair)
+                    if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+                        return super.visitMethod(access, name, desc, signature, exceptions);
+                    }
+                    // TODO: allow scanning ctors (we just have to handle the super call better)
+                    if ("<init>".equals(name)) {
+                        return super.visitMethod(access, name, desc, signature, exceptions);
+                    }
+                    // TODO: fix bugs in ASM, that cause problems when doing dataflow analysis of the following methods:
+                    // indexwriter.shutdown
+                    if ("shutdown".equals(name) && "org/apache/lucene/index/IndexWriter".equals(reader.getClassName())) {
+                        return super.visitMethod(access, name, desc, signature, exceptions);
+                    }
+                    // fst.arc readtargetarc
+                    if ("readLastTargetArc".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
+                        return super.visitMethod(access, name, desc, signature, exceptions);
+                    }
+                    // fst.bytesreader 
+                    if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
+                        return super.visitMethod(access, name, desc, signature, exceptions);
+                    }
+                    return new CatchAnalyzer(reader.getClassName(), access, name, desc, 
+                                             signature, exceptions, violationCount, System.out);
+                }
+            }, 0);
+            scannedCount.incrementAndGet();
         }
         long endTime = System.currentTimeMillis();
         System.out.println("Scanned " + scannedCount.get() + " classes in " + (endTime - startTime) + " ms");
