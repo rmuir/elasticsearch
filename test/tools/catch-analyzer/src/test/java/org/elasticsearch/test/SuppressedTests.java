@@ -23,58 +23,60 @@ import java.io.ByteArrayOutputStream;
 
 public class SuppressedTests extends BaseTestCase {
     /** drops the exception on the floor */
+    @SwallowsExceptions
     public int escapes() {
         try {
             return Integer.parseInt("bogus");
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             return 0;
         }
     }
     
     public void testEscapes() throws Exception {
-        check(getClass().getMethod("escapes"), 0, null);
+        assertOK(getClass().getMethod("escapes"));
     }
     
     /** drops the exception on the floor */
+    @SwallowsExceptions
     public int escapesWithResources() throws Exception {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             assert stream != null;
             return Integer.parseInt("bogus");
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             return 0;
         }
     }
     
-    /** currently will fail if bytecode is compiled by eclipse! need to look, perhaps it loses the annotation? */
     public void testEscapesWithResources() throws Exception {
-        check(getClass().getMethod("escapesWithResources"), 0, null);
+        assertOK(getClass().getMethod("escapesWithResources"));
     }
     
     /** does the right thing, but annotated wrong */
+    @SwallowsExceptions
     public int actuallyThrows() throws Exception {
         try {
             return Integer.parseInt("bogus");
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             throw e;
         }
     }
     
     public void testActuallyThrows() throws Exception {
-        check(getClass().getMethod("actuallyThrows"), 1, "Does not swallow any exception");
+        assertFails(getClass().getMethod("actuallyThrows"), "Does not swallow any exception");
     }
     
     /** does the right thing, but annotated wrong */
+    @SwallowsExceptions
     public int actuallyThrowsWithResources() throws Exception {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             assert stream != null;
             return Integer.parseInt("bogus");
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             throw e;
         }
     }
     
-    /** currently will fail if bytecode is compiled by eclipse! need to look, perhaps it loses the annotation? */
     public void testActuallyThrowsWithResources() throws Exception {
-        check(getClass().getMethod("actuallyThrowsWithResources"), 1, "Does not swallow any exception");
+        assertFails(getClass().getMethod("actuallyThrowsWithResources"), "Does not swallow any exception");
     }
 }

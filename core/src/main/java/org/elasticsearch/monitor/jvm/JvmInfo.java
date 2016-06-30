@@ -20,7 +20,7 @@
 package org.elasticsearch.monitor.jvm;
 
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
@@ -45,6 +45,7 @@ import java.util.Map;
 /**
  *
  */
+@SwallowsExceptions(reason = "?")
 public class JvmInfo implements Streamable, ToXContent {
 
     private static JvmInfo INSTANCE;
@@ -59,7 +60,7 @@ public class JvmInfo implements Streamable, ToXContent {
         try {
             xPid = xPid.split("@")[0];
             pid = Long.parseLong(xPid);
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             pid = -1;
         }
         JvmInfo info = new JvmInfo();
@@ -77,13 +78,13 @@ public class JvmInfo implements Streamable, ToXContent {
         try {
             Class<?> vmClass = Class.forName("sun.misc.VM");
             info.mem.directMemoryMax = (Long) vmClass.getMethod("maxDirectMemory").invoke(null);
-        } catch (@Swallows Throwable t) {
+        } catch (Throwable t) {
             // ignore
         }
         info.inputArguments = runtimeMXBean.getInputArguments().toArray(new String[runtimeMXBean.getInputArguments().size()]);
         try {
             info.bootClassPath = runtimeMXBean.getBootClassPath();
-        } catch (@Swallows UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             // oracle java 9
             info.bootClassPath = System.getProperty("sun.boot.class.path");
             if (info.bootClassPath == null) {
@@ -119,39 +120,39 @@ public class JvmInfo implements Streamable, ToXContent {
             try {
                 Object onError = vmOptionMethod.invoke(hotSpotDiagnosticMXBean, "OnError");
                 info.onError = (String) valueMethod.invoke(onError);
-            } catch (@Swallows Exception ignored) {
+            } catch (Exception ignored) {
             }
 
             try {
                 Object onOutOfMemoryError = vmOptionMethod.invoke(hotSpotDiagnosticMXBean, "OnOutOfMemoryError");
                 info.onOutOfMemoryError = (String) valueMethod.invoke(onOutOfMemoryError);
-            } catch (@Swallows Exception ignored) {
+            } catch (Exception ignored) {
             }
 
             try {
                 Object useCompressedOopsVmOption = vmOptionMethod.invoke(hotSpotDiagnosticMXBean, "UseCompressedOops");
                 info.useCompressedOops = (String) valueMethod.invoke(useCompressedOopsVmOption);
-            } catch (@Swallows Exception ignored) {
+            } catch (Exception ignored) {
             }
 
             try {
                 Object useG1GCVmOption = vmOptionMethod.invoke(hotSpotDiagnosticMXBean, "UseG1GC");
                 info.useG1GC = (String) valueMethod.invoke(useG1GCVmOption);
-            } catch (@Swallows Exception ignored) {
+            } catch (Exception ignored) {
             }
 
             try {
                 Object initialHeapSizeVmOption = vmOptionMethod.invoke(hotSpotDiagnosticMXBean, "InitialHeapSize");
                 info.configuredInitialHeapSize = Long.parseLong((String) valueMethod.invoke(initialHeapSizeVmOption));
-            } catch (@Swallows Exception ignored) {
+            } catch (Exception ignored) {
             }
 
             try {
                 Object maxHeapSizeVmOption = vmOptionMethod.invoke(hotSpotDiagnosticMXBean, "MaxHeapSize");
                 info.configuredMaxHeapSize = Long.parseLong((String) valueMethod.invoke(maxHeapSizeVmOption));
-            } catch (@Swallows Exception ignored) {
+            } catch (Exception ignored) {
             }
-        } catch (@Swallows Exception ignored) {
+        } catch (Exception ignored) {
 
         }
 
@@ -241,7 +242,7 @@ public class JvmInfo implements Streamable, ToXContent {
                 return -1;
             }
             return Integer.parseInt(sVersion);
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             return -1;
         }
     }
@@ -282,7 +283,7 @@ public class JvmInfo implements Streamable, ToXContent {
                 return -1;
             }
             return Integer.parseInt(version.substring(from, i));
-        } catch (@Swallows Exception e) {
+        } catch (Exception e) {
             return -1;
         }
     }

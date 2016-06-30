@@ -24,7 +24,7 @@ import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
 import org.elasticsearch.cluster.health.ClusterIndexHealth;
 import org.elasticsearch.cluster.health.ClusterStateHealth;
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
@@ -205,7 +205,7 @@ public class ClusterHealthResponse extends ActionResponse implements StatusToXCo
     }
 
 
-    @Override
+    @Override @SwallowsExceptions(reason = "?")
     public String toString() {
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
@@ -213,7 +213,7 @@ public class ClusterHealthResponse extends ActionResponse implements StatusToXCo
             toXContent(builder, EMPTY_PARAMS);
             builder.endObject();
             return builder.string();
-        } catch (@Swallows IOException e) {
+        } catch (IOException e) {
             return "{ \"error\" : \"" + e.getMessage() + "\"}";
         }
     }

@@ -19,7 +19,7 @@
 
 package org.elasticsearch.monitor.jvm;
 
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.settings.Setting;
@@ -386,11 +386,11 @@ public class JvmGcMonitorService extends AbstractLifecycleComponent<JvmGcMonitor
             this.gcOverheadThreshold = Objects.requireNonNull(gcOverheadThreshold);
         }
 
-        @Override
+        @Override @SwallowsExceptions(reason = "?")
         public void run() {
             try {
                 monitorGc();
-            } catch (@Swallows Throwable t) {
+            } catch (Throwable t) {
                 onMonitorFailure(t);
             }
         }

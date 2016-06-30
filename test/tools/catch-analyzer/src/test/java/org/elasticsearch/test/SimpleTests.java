@@ -32,7 +32,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testEscapes() throws Exception {
-        check(getClass().getMethod("escapes"), 1, "Escapes without throwing");
+        assertFails(getClass().getMethod("escapes"), "Escapes without throwing");
     }
     
     /** drops the exception on the floor (sometimes) */
@@ -49,7 +49,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testEscapesSometimes() throws Exception {
-        check(getClass().getMethod("escapesSometimes"), 1, "Escapes without throwing");
+        assertFails(getClass().getMethod("escapesSometimes"), "Escapes without throwing");
     }
     
     /** drops the exception on the floor (sometimes, with loop) */
@@ -65,7 +65,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testEscapesSometimesLoop() throws Exception {
-        check(getClass().getMethod("escapesSometimesLoop"), 1, "Escapes without throwing");
+        assertFails(getClass().getMethod("escapesSometimesLoop"), "Escapes without throwing");
     }
     
     /** throws something else (does not pass the exception) */
@@ -78,7 +78,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsSomethingElse() throws Exception {
-        check(getClass().getMethod("throwsSomethingElse"), 1, "Throws a different exception");
+        assertFails(getClass().getMethod("throwsSomethingElse"), "Throws a different exception");
     }
     
     /** throws exception back directly */
@@ -91,7 +91,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsExceptionBack() throws Exception {
-        check(getClass().getMethod("throwsExceptionBack"), 0, null);
+        assertOK(getClass().getMethod("throwsExceptionBack"));
     }
     
     /** throws exception boxed in another */
@@ -104,7 +104,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsBoxedException() throws Exception {
-        check(getClass().getMethod("throwsBoxedException"), 0, null);
+        assertOK(getClass().getMethod("throwsBoxedException"));
     }
     
     /** throws exception boxed in another (via initCause) */
@@ -119,7 +119,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsBoxedExceptionInitCause() throws Exception {
-        check(getClass().getMethod("throwsBoxedExceptionInitCause"), 0, null);
+        assertOK(getClass().getMethod("throwsBoxedExceptionInitCause"));
     }
     
     /** throws exception boxed in another (via addSuppressed) */
@@ -134,6 +134,6 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsBoxedExceptionAddSuppressed() throws Exception {
-        check(getClass().getMethod("throwsBoxedExceptionAddSuppressed"), 0, null);
+        assertOK(getClass().getMethod("throwsBoxedExceptionAddSuppressed"));
     }
 }

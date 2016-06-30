@@ -36,7 +36,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SynonymQuery;
 import org.apache.lucene.util.IOUtils;
 import org.apache.lucene.util.automaton.RegExp;
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.lucene.search.Queries;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.mapper.MappedFieldType;
@@ -177,6 +177,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getFieldQuerySingle(String field, String queryText, boolean quoted) throws ParseException {
         if (!quoted && queryText.length() > 1) {
             if (queryText.charAt(0) == '>') {
@@ -223,7 +224,7 @@ public class MapperQueryParser extends QueryParser {
                         // this might be a structured field like a numeric
                         try {
                             query = currentFieldType.termQuery(queryText, context);
-                        } catch (@Swallows RuntimeException e) {
+                        } catch (RuntimeException e) {
                             if (settings.lenient()) {
                                 return null;
                             } else {
@@ -327,6 +328,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getRangeQuerySingle(String field, String part1, String part2,
                                       boolean startInclusive, boolean endInclusive) {
         currentFieldType = context.fieldMapper(field);
@@ -348,7 +350,7 @@ public class MapperQueryParser extends QueryParser {
                     rangeQuery = currentFieldType.rangeQuery(part1, part2, startInclusive, endInclusive);
                 }
                 return rangeQuery;
-            } catch (@Swallows RuntimeException e) {
+            } catch (RuntimeException e) {
                 if (settings.lenient()) {
                     return null;
                 }
@@ -396,13 +398,14 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getFuzzyQuerySingle(String field, String termStr, String minSimilarity) throws ParseException {
         currentFieldType = context.fieldMapper(field);
         if (currentFieldType != null) {
             try {
                 return currentFieldType.fuzzyQuery(termStr, Fuzziness.build(minSimilarity),
                     fuzzyPrefixLength, settings.fuzzyMaxExpansions(), FuzzyQuery.defaultTranspositions);
-            } catch (@Swallows RuntimeException e) {
+            } catch (RuntimeException e) {
                 if (settings.lenient()) {
                     return null;
                 }
@@ -462,6 +465,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getPrefixQuerySingle(String field, String termStr) throws ParseException {
         currentFieldType = null;
         Analyzer oldAnalyzer = getAnalyzer();
@@ -481,7 +485,7 @@ public class MapperQueryParser extends QueryParser {
                 return query;
             }
             return getPossiblyAnalyzedPrefixQuery(field, termStr);
-        } catch (@Swallows RuntimeException e) {
+        } catch (RuntimeException e) {
             if (settings.lenient()) {
                 return null;
             }
@@ -491,6 +495,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getPossiblyAnalyzedPrefixQuery(String field, String termStr) throws ParseException {
         if (!settings.analyzeWildcard()) {
             return super.getPrefixQuery(field, termStr);
@@ -502,7 +507,7 @@ public class MapperQueryParser extends QueryParser {
             try {
                 source = getAnalyzer().tokenStream(field, termStr);
                 source.reset();
-            } catch (@Swallows IOException e) {
+            } catch (IOException e) {
                 return super.getPrefixQuery(field, termStr);
             }
             tlist = new ArrayList<>();
@@ -513,7 +518,7 @@ public class MapperQueryParser extends QueryParser {
             while (true) {
                 try {
                     if (!source.incrementToken()) break;
-                } catch (@Swallows IOException e) {
+                } catch (IOException e) {
                     break;
                 }
                 if (currentPos.isEmpty() == false && posAtt.getPositionIncrement() > 0) {
@@ -629,6 +634,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getWildcardQuerySingle(String field, String termStr) throws ParseException {
         String indexedNameField = field;
         currentFieldType = null;
@@ -643,7 +649,7 @@ public class MapperQueryParser extends QueryParser {
                 return getPossiblyAnalyzedWildcardQuery(indexedNameField, termStr);
             }
             return getPossiblyAnalyzedWildcardQuery(indexedNameField, termStr);
-        } catch (@Swallows RuntimeException e) {
+        } catch (RuntimeException e) {
             if (settings.lenient()) {
                 return null;
             }
@@ -653,6 +659,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getPossiblyAnalyzedWildcardQuery(String field, String termStr) throws ParseException {
         if (!settings.analyzeWildcard()) {
             return super.getWildcardQuery(field, termStr);
@@ -679,7 +686,7 @@ public class MapperQueryParser extends QueryParser {
                             // no tokens, just use what we have now
                             aggStr.append(tmp);
                         }
-                    } catch (@Swallows IOException e) {
+                    } catch (IOException e) {
                         aggStr.append(tmp);
                     }
                     tmp.setLength(0);
@@ -709,7 +716,7 @@ public class MapperQueryParser extends QueryParser {
                         aggStr.append(tmp);
                     }
                 }
-            } catch (@Swallows IOException e) {
+            } catch (IOException e) {
                 aggStr.append(tmp);
             }
         }
@@ -757,6 +764,7 @@ public class MapperQueryParser extends QueryParser {
         }
     }
 
+    @SwallowsExceptions(reason = "?")
     private Query getRegexpQuerySingle(String field, String termStr) throws ParseException {
         currentFieldType = null;
         Analyzer oldAnalyzer = getAnalyzer();
@@ -777,7 +785,7 @@ public class MapperQueryParser extends QueryParser {
                 return query;
             }
             return super.getRegexpQuery(field, termStr);
-        } catch (@Swallows RuntimeException e) {
+        } catch (RuntimeException e) {
             if (settings.lenient()) {
                 return null;
             }

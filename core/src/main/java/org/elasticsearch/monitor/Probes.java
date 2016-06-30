@@ -19,12 +19,13 @@
 
 package org.elasticsearch.monitor;
 
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Method;
 
 public class Probes {
+    @SwallowsExceptions(reason = "?")
     public static short getLoadAndScaleToPercent(Method method, OperatingSystemMXBean osMxBean) {
         if (method != null) {
             try {
@@ -32,7 +33,7 @@ public class Probes {
                 if (load >= 0) {
                     return (short) (load * 100);
                 }
-            } catch (@Swallows Throwable t) {
+            } catch (Throwable t) {
                 return -1;
             }
         }

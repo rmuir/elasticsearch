@@ -28,15 +28,14 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -47,7 +46,6 @@ import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
-import org.objectweb.asm.tree.TypeAnnotationNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.BasicInterpreter;
@@ -69,7 +67,8 @@ public class CatchAnalyzer extends MethodVisitor {
     private final String owner;
     private final String methodName;
     private final AtomicLong violationCount;
-    private final PrintStream out;
+    private final PrintStream output;
+    private boolean suppressed;
     
     CatchAnalyzer(String owner, int access, String name, String desc, String signature, 
             String[] exceptions, AtomicLong violationCount, PrintStream output) {
@@ -77,7 +76,7 @@ public class CatchAnalyzer extends MethodVisitor {
         this.owner = owner;
         this.methodName = name;
         this.violationCount = violationCount;
-        this.out = output;
+        this.output = output;
     }
     
     /** Node in the flow graph. contains set of outgoing edges for the next instructions possible */
@@ -135,41 +134,18 @@ public class CatchAnalyzer extends MethodVisitor {
     }
     
     @Override
+    public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        if (desc.contains("SwallowsExceptions")) {
+            suppressed = true;
+        }
+        return super.visitAnnotation(desc, visible);
+    }
+
+    @Override
     public void visitEnd() {
         MethodNode node = (MethodNode)mv;
         AbstractInsnNode insns[] = node.instructions.toArray(); // all instructions for the method
-
-        Set<Integer> annotatedLines = new TreeSet<>(); // line numbers of exception handlers annotated with Swallows
-        // inspect try catch block annotations! 
-        for (TryCatchBlockNode tcb : node.tryCatchBlocks) {
-            int insn = node.instructions.indexOf(tcb.handler);
-            boolean foundAnnotation = false;
-            if (tcb.invisibleTypeAnnotations != null) {
-                for (TypeAnnotationNode annotation : tcb.invisibleTypeAnnotations) {
-                    if (annotation.desc.contains("Swallows")) {
-                        foundAnnotation = true;
-                        break;
-                    }
-                }
-            }
-            if (foundAnnotation == false && tcb.visibleTypeAnnotations != null) {
-                for (TypeAnnotationNode annotation : tcb.visibleTypeAnnotations) {
-                    if (annotation.desc.contains("Swallows")) {
-                        foundAnnotation = true;
-                        break;
-                    }
-                }
-            }
-            if (foundAnnotation) {
-                int lineNumber = getLineNumber(insns, insn);
-                annotatedLines.add(lineNumber);
-            }
-        }
-        
-        Map<Integer,Set<Integer>> handlers = new TreeMap<>(); // entry points of exception handlers found, 
-                                                              // keyed by line number
-        Map<Integer,Set<Integer>> annotated = new TreeMap<>(); // entry points of annotated exception handlers found
-                                                               // keyed by line number
+        Set<Integer> handlers = new TreeSet<>(); // entry points of exception handlers found
 
         Analyzer<BasicValue> a = new Analyzer<BasicValue>(new ThrowableInterpreter()) {
             @Override
@@ -194,58 +170,37 @@ public class CatchAnalyzer extends MethodVisitor {
                 newControlFlowEdge(insn, nextInsn);
                 // null type: e.g. finally block
                 if (next.type != null) {
-                    int lineNumber = getLineNumber(insns, nextInsn);
-                    final Map<Integer,Set<Integer>> map;
-                    if (annotatedLines.contains(lineNumber)) {
-                        map = annotated;
-                    } else {
-                        map = handlers;
-                    }
-                    Set<Integer> entryPoints = map.get(lineNumber);
-                    if (entryPoints == null) {
-                        entryPoints = new TreeSet<>();
-                        map.put(lineNumber, entryPoints);
-                    }
-                    entryPoints.add(nextInsn);
+                    handlers.add(nextInsn);
                 }
                 return true;
             }
         };
         try {
+            final AtomicLong counter = suppressed ? new AtomicLong() : violationCount;
+            
             Frame<BasicValue> frames[] = a.analyze(owner, node);
             List<Node<BasicValue>> nodes = new ArrayList<>();
             for (Frame<BasicValue> frame : frames) {
                 nodes.add((Node<BasicValue>)frame);
             }
             // check the destination of every exception edge
-            for (int line : handlers.keySet()) {
-                for (int handler : handlers.get(line)) {
-                    String violation = analyze(insns, nodes, handler, new BitSet());
-                    if (violation != null) {
-                        String brokenCatchBlock = newViolation("Broken catch block", line);
-                        out.println(brokenCatchBlock);
-                        out.println("  " + violation);
-                        violationCount.incrementAndGet();
-                        break;
+            for (int handler : handlers) {
+                String violation = analyze(insns, nodes, handler, new BitSet());
+                if (violation != null) {
+                    String brokenCatchBlock = newViolation("Broken catch block", getLineNumberForwards(insns, handler));
+                    if (!suppressed) {
+                        output.println(brokenCatchBlock);
+                        output.println("  " + violation);
                     }
+                    counter.incrementAndGet();
+                    break;
                 }
             }
-            // check every annotated element too. if it does not in fact fail, its bogus
-            for (int line : annotated.keySet()) {
-                boolean found = false;
-                for (int handler : annotated.get(line)) {
-                    String violation = analyze(insns, nodes, handler, new BitSet());
-                    if (violation != null) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    String brokenCatchBlock = newViolation("Broken catch block", line);
-                    out.println(brokenCatchBlock);
-                    out.println("  Does not swallow any exception");
-                    violationCount.incrementAndGet();
-                }
+            // if they suppressed, make sure the suppression was valid
+            // if we didn't find any problems, that in itself is a violation
+            if (suppressed && counter.get() == 0) {
+                output.println(newViolation("Does not swallow any exception", -1));
+                violationCount.incrementAndGet();
             }
         } catch (AnalyzerException e) {
             throw new RuntimeException(e);
@@ -289,10 +244,10 @@ public class CatchAnalyzer extends MethodVisitor {
                         return null;
                     }
                 }
-                return newViolation("Throws a different exception, but loses the original", getLineNumber(insns, insn));
+                return newViolation("Throws a different exception, but loses the original", getLineNumberBackwards(insns, insn));
             }
             if (node.edges.isEmpty()) {
-                return newViolation("Escapes without throwing anything", getLineNumber(insns, insn));
+                return newViolation("Escapes without throwing anything", getLineNumberBackwards(insns, insn));
             }
             visited.set(insn);
             if (node.edges.size() == 1) {
@@ -332,7 +287,20 @@ public class CatchAnalyzer extends MethodVisitor {
         return false;
     }
     
-    private static int getLineNumber(AbstractInsnNode insns[], int insn) {
+    private static int getLineNumberForwards(AbstractInsnNode insns[], int insn) {
+        // walk forwards in the line number table
+        int line = -1;
+        for (int i = insn; i < insns.length; i++) {
+            AbstractInsnNode next = insns[i];
+            if (next instanceof LineNumberNode) {
+                line = ((LineNumberNode)next).line;
+                break;
+            }
+        }
+        return line;
+    }
+    
+    private static int getLineNumberBackwards(AbstractInsnNode insns[], int insn) {
         // walk backwards in the line number table
         int line = -1;
         for (int i = insn; i >= 0; i--) {
@@ -447,29 +415,45 @@ public class CatchAnalyzer extends MethodVisitor {
             if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
                 continue;
             }
+            final AtomicBoolean suppressed = new AtomicBoolean();
             reader.accept(new ClassVisitor(Opcodes.ASM5, null) {
+
+                @Override
+                public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                    if (desc.contains("SwallowsExceptions")) {
+                        suppressed.set(true);
+                    }
+                    return null;
+                }
+
                 @Override
                 public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                     // don't scan synthetic methods (have not found any issues with them, but it would be unfair)
                     if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-                        return super.visitMethod(access, name, desc, signature, exceptions);
+                        return null;
                     }
                     // TODO: allow scanning ctors (we just have to handle the super call better)
                     if ("<init>".equals(name)) {
-                        return super.visitMethod(access, name, desc, signature, exceptions);
+                        return null;
                     }
                     // TODO: fix bugs in ASM, that cause problems when doing dataflow analysis of the following methods:
                     // indexwriter.shutdown
                     if ("shutdown".equals(name) && "org/apache/lucene/index/IndexWriter".equals(reader.getClassName())) {
-                        return super.visitMethod(access, name, desc, signature, exceptions);
+                        return null;
                     }
                     // fst.arc readtargetarc
                     if ("readLastTargetArc".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
-                        return super.visitMethod(access, name, desc, signature, exceptions);
+                        return null;
                     }
                     // fst.bytesreader 
                     if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(reader.getClassName())) {
-                        return super.visitMethod(access, name, desc, signature, exceptions);
+                        return null;
+                    }
+                    // suppressed whole class by user
+                    // TODO: like methods, we could do trickery to ensure _at least one method_ fails.
+                    // but better is, don't apply to whole classes!
+                    if (suppressed.get()) {
+                        return null;
                     }
                     return new CatchAnalyzer(reader.getClassName(), access, name, desc, 
                                              signature, exceptions, violationCount, System.out);

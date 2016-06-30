@@ -32,7 +32,7 @@ import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.cluster.routing.UnassignedInfo;
 import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
@@ -199,6 +199,7 @@ public class TransportClusterHealthAction extends TransportMasterNodeReadAction<
         return response;
     }
 
+    @SwallowsExceptions(reason = "?")
     private boolean prepareResponse(final ClusterHealthRequest request, final ClusterHealthResponse response, ClusterState clusterState, final int waitFor) {
         int waitForCounter = 0;
         if (request.waitForStatus() != null && response.getStatus().value() <= request.waitForStatus().value()) {
@@ -214,7 +215,7 @@ public class TransportClusterHealthAction extends TransportMasterNodeReadAction<
             try {
                 indexNameExpressionResolver.concreteIndexNames(clusterState, IndicesOptions.strictExpand(), request.indices());
                 waitForCounter++;
-            } catch (@Swallows IndexNotFoundException e) {
+            } catch (IndexNotFoundException e) {
                 response.setStatus(ClusterHealthStatus.RED); // no indices, make sure its RED
                 // missing indices, wait a bit more...
             }
@@ -270,7 +271,7 @@ public class TransportClusterHealthAction extends TransportMasterNodeReadAction<
         return waitForCounter == waitFor;
     }
 
-
+    @SwallowsExceptions(reason = "?")
     private ClusterHealthResponse clusterHealth(ClusterHealthRequest request, ClusterState clusterState, int numberOfPendingTasks, int numberOfInFlightFetch,
                                                 TimeValue pendingTaskTimeInQueue) {
         if (logger.isTraceEnabled()) {
@@ -280,7 +281,7 @@ public class TransportClusterHealthAction extends TransportMasterNodeReadAction<
         String[] concreteIndices;
         try {
             concreteIndices = indexNameExpressionResolver.concreteIndexNames(clusterState, request);
-        } catch (@Swallows IndexNotFoundException e) {
+        } catch (IndexNotFoundException e) {
             // one of the specified indices is not there - treat it as RED.
             ClusterHealthResponse response = new ClusterHealthResponse(clusterState.getClusterName().value(), Strings.EMPTY_ARRAY, clusterState,
                     numberOfPendingTasks, numberOfInFlightFetch, UnassignedInfo.getNumberOfDelayedUnassigned(clusterState),

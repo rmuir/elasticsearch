@@ -19,7 +19,7 @@
 
 package org.elasticsearch.monitor.jvm;
 
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
@@ -61,6 +61,7 @@ public class JvmStats implements Streamable, ToXContent {
         classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
     }
 
+    @SwallowsExceptions(reason = "?")
     public static JvmStats jvmStats() {
         JvmStats stats = new JvmStats(System.currentTimeMillis(), runtimeMXBean.getUptime());
         stats.mem = new Mem();
@@ -91,7 +92,7 @@ public class JvmStats implements Streamable, ToXContent {
                 ));
             } catch (OutOfMemoryError err) {
                 throw err; // rethrow
-            } catch (@Swallows Throwable ex) {
+            } catch (Throwable ex) {
                 /* ignore some JVMs might barf here with:
                  * java.lang.InternalError: Memory Pool not found
                  * we just omit the pool in that case!*/
@@ -120,7 +121,7 @@ public class JvmStats implements Streamable, ToXContent {
             for (BufferPoolMXBean bufferPool : bufferPools) {
                 stats.bufferPools.add(new BufferPool(bufferPool.getName(), bufferPool.getCount(), bufferPool.getTotalCapacity(), bufferPool.getMemoryUsed()));
             }
-        } catch (@Swallows Throwable t) {
+        } catch (Throwable t) {
             // buffer pools are not available
         }
 

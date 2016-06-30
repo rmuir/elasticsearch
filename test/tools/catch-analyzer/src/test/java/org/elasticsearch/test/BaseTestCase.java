@@ -43,7 +43,15 @@ import java.util.concurrent.atomic.AtomicLong;
 @RunWith(RandomizedRunner.class)
 public class BaseTestCase extends Assert {
     
-    public void check(Method method, int failures, String expectedOutput) throws Exception {
+    public void assertFails(Method method, String expectedOutput) throws Exception {
+        check(method, expectedOutput);
+    }
+    
+    public void assertOK(Method method) throws Exception {
+        check(method, null);
+    }
+    
+    private void check(Method method, String expectedOutput) throws Exception {
         String methodDesc = Type.getMethodDescriptor(method);
         Class<?> parentClass = method.getDeclaringClass();
         ClassReader reader = new ClassReader(parentClass.getName());
@@ -64,7 +72,6 @@ public class BaseTestCase extends Assert {
         stream.flush();
         String messages = output.toString("UTF-8");
         assertEquals("unexpected number of matching methods", 1L, analyzedMethods.get());
-        assertEquals("unexpected failure count, output: " + messages, (long)failures, violationCount.get());
         if (expectedOutput == null) {
             assertTrue("output was not empty:\n" + messages, messages.isEmpty());
         } else {

@@ -21,7 +21,7 @@ package org.apache.lucene.search;
 
 import java.io.IOException;
 
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 
 // this is just one possible solution for "early termination" !
 
@@ -65,7 +65,7 @@ public abstract class XFilteredDocIdSetIterator extends DocIdSetIterator {
     return doc;
   }
   
-  @Override
+  @Override @SwallowsExceptions(reason = "early termination support")
   public int nextDoc() throws IOException {
     try {
       while ((doc = _innerIter.nextDoc()) != NO_MORE_DOCS) {
@@ -73,13 +73,13 @@ public abstract class XFilteredDocIdSetIterator extends DocIdSetIterator {
           return doc;
         }
       }
-    } catch (@Swallows CollectionTerminatedException e) {
+    } catch (CollectionTerminatedException e) {
       return doc = NO_MORE_DOCS;
     }
     return doc;
   }
   
-  @Override
+  @Override @SwallowsExceptions(reason = "early termination support")
   public int advance(int target) throws IOException {
     doc = _innerIter.advance(target);
     try {
@@ -95,7 +95,7 @@ public abstract class XFilteredDocIdSetIterator extends DocIdSetIterator {
           return doc;
         }
       }
-    } catch (@Swallows CollectionTerminatedException e) {
+    } catch (CollectionTerminatedException e) {
       return doc = NO_MORE_DOCS;
     }
     return doc;

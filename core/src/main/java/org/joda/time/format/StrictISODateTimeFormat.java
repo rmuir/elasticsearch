@@ -1,6 +1,6 @@
 package org.joda.time.format;
 
-import org.elasticsearch.common.Swallows;
+import org.elasticsearch.common.SwallowsExceptions;
 
 /*
  *  Copyright 2001-2009 Stephen Colebourne
@@ -163,6 +163,7 @@ public class StrictISODateTimeFormat {
      * @throws IllegalArgumentException if there is no format for the fields
      * @since 1.1
      */
+    @SwallowsExceptions(reason = "?")
     public static DateTimeFormatter forFields(
             Collection<DateTimeFieldType> fields,
             boolean extended,
@@ -207,7 +208,7 @@ public class StrictISODateTimeFormat {
         // handling unmodifiable collections with no side effect
         try {
             fields.retainAll(workingFields);
-        } catch (@Swallows UnsupportedOperationException ex) {
+        } catch (UnsupportedOperationException ex) {
             // ignore, so we can handle unmodifiable collections
         }
         return bld.toFormatter();

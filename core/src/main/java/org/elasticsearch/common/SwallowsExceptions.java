@@ -23,17 +23,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to suppress broken catch-block swallowing.
- * <p>
- * Can be used like this:
- * <pre>
- *   ...
- *   catch(@Swallows RuntimeException e) {
- *     // evil behavior
- *     ...
- *   }
- * </pre>
+ * Annotation to suppress broken catch-block swallowing for a method or class
  */
-@Target(ElementType.TYPE_USE)
-public @interface Swallows {
+@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
+public @interface SwallowsExceptions {
+    String reason();
 }

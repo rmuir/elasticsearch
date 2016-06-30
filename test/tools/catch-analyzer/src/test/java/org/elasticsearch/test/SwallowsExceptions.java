@@ -1,8 +1,5 @@
 package org.elasticsearch.test;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
-
 /*
  * Licensed to Elasticsearch under one or more contributor
  * license agreements. See the NOTICE file distributed with
@@ -22,9 +19,12 @@ import java.lang.annotation.Target;
  * under the License.
  */
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+
 /**
  * Annotation to suppress broken catch-block swallowing
  */
-@Target(ElementType.TYPE_USE)
-public @interface Swallows {
+@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})
+public @interface SwallowsExceptions {
 }
