@@ -23,15 +23,17 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.Method;
 
 import java.io.PrintStream;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** class-level analyzer */
 class ClassAnalyzer extends ClassVisitor {
     final String className;
     final PrintStream out;
-    final AtomicLong violationCount = new AtomicLong();
+    final Map<Method,MethodAnalyzer> analyses = new LinkedHashMap<>();
     boolean suppressed;
 
     ClassAnalyzer(String className, PrintStream out) {
@@ -50,10 +52,6 @@ class ClassAnalyzer extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        // don't scan synthetic methods (have not found any issues with them, but it would be unfair)
-        if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-            return null;
-        }
         // TODO: allow scanning ctors (we just have to handle the super call better)
         if ("<init>".equals(name)) {
             return null;
@@ -71,13 +69,13 @@ class ClassAnalyzer extends ClassVisitor {
         if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(className)) {
             return null;
         }
-        // suppressed whole class by user
-        // TODO: like methods, we could do trickery to ensure _at least one method_ fails.
-        // but better is, don't apply to whole classes!
-        if (suppressed) {
-            return null;
-        }
-        return new MethodAnalyzer(className, access, name, desc, 
-                                 signature, exceptions, violationCount, out);
+        MethodAnalyzer analyzer = new MethodAnalyzer(className, access, name, desc, signature, exceptions);
+        analyses.put(new Method(name, desc), analyzer);
+        return analyzer;
+    }
+
+    @Override
+    public void visitEnd() {
+        super.visitEnd();
     }
 }

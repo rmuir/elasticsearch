@@ -53,8 +53,7 @@ public class CatchAnalyzer {
     
     /** Main method, takes directories as parameter. These must also be on classpath!!!! */
     public static void main(String args[]) throws Exception {
-        AtomicLong scannedCount = new AtomicLong();
-        AtomicLong violationCount = new AtomicLong();
+        long scannedCount = 0;
         long startTime = System.currentTimeMillis();
         List<Path> files = new ArrayList<>();
         // step 1: collect files
@@ -82,13 +81,16 @@ public class CatchAnalyzer {
             }
             ClassAnalyzer analyzer = new ClassAnalyzer(reader.getClassName(), System.out);
             reader.accept(analyzer, 0);
-            scannedCount.incrementAndGet();
-            violationCount.addAndGet(analyzer.violationCount.get());
+            scannedCount++;
         }
         long endTime = System.currentTimeMillis();
-        System.out.println("Scanned " + scannedCount.get() + " classes in " + (endTime - startTime) + " ms");
-        if (violationCount.get() > 0) {
-            throw new SwallowedException(violationCount.get() + " violations were found, see log for more details");
+        // step 4: print
+        long violationCount = 0;
+        
+        
+        System.out.println("Scanned " + scannedCount + " classes in " + (endTime - startTime) + " ms");
+        if (violationCount > 0) {
+            throw new SwallowedException(violationCount + " violations were found, see log for more details");
         }
     }
 }

@@ -20,9 +20,11 @@
 package org.elasticsearch.test;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -33,28 +35,26 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.BasicValue;
 import org.objectweb.asm.tree.analysis.Frame;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicLong;
 
 class MethodAnalyzer extends MethodVisitor {
     private final String owner;
     private final String methodName;
-    private final AtomicLong violationCount;
-    private final PrintStream output;
-    private boolean suppressed;
+    /** any violations we found for this method */
+    final List<String> violations = new ArrayList<>();
+    /** any lambda invocations we found for this method (we'll apply suppression to them, if needed) */
+    final List<Method> lambdas = new ArrayList<>();
+    /** true if we found a suppression annotation for this method */
+    boolean suppressed;
     
-    MethodAnalyzer(String owner, int access, String name, String desc, String signature, 
-            String[] exceptions, AtomicLong violationCount, PrintStream output) {
+    MethodAnalyzer(String owner, int access, String name, String desc, String signature, String[] exceptions) {
         super(Opcodes.ASM5, new MethodNode(access, name, desc, signature, exceptions));
         this.owner = owner;
         this.methodName = name;
-        this.violationCount = violationCount;
-        this.output = output;
     }
     
     @Override
@@ -63,6 +63,11 @@ class MethodAnalyzer extends MethodVisitor {
             suppressed = true;
         }
         return super.visitAnnotation(desc, visible);
+    }
+    
+    @Override
+    public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+        super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
 
     @Override
@@ -100,8 +105,6 @@ class MethodAnalyzer extends MethodVisitor {
             }
         };
         try {
-            final AtomicLong counter = suppressed ? new AtomicLong() : violationCount;
-            
             Frame<BasicValue> frames[] = a.analyze(owner, node);
             List<Node<BasicValue>> nodes = new ArrayList<>();
             for (Frame<BasicValue> frame : frames) {
@@ -112,19 +115,8 @@ class MethodAnalyzer extends MethodVisitor {
                 String violation = analyze(insns, nodes, handler, new BitSet());
                 if (violation != null) {
                     String brokenCatchBlock = newViolation("Broken catch block", getLineNumberForwards(insns, handler));
-                    if (!suppressed) {
-                        output.println(brokenCatchBlock);
-                        output.println("  " + violation);
-                    }
-                    counter.incrementAndGet();
-                    break;
+                    violations.add(brokenCatchBlock + System.lineSeparator() + "\t" + violation);
                 }
-            }
-            // if they suppressed, make sure the suppression was valid
-            // if we didn't find any problems, that in itself is a violation
-            if (suppressed && counter.get() == 0) {
-                output.println(newViolation("Does not swallow any exception", -1));
-                violationCount.incrementAndGet();
             }
         } catch (AnalyzerException e) {
             throw new RuntimeException(e);

@@ -34,6 +34,7 @@ import org.objectweb.asm.Type;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 @TestMethodProviders({
@@ -55,25 +56,23 @@ public class BaseTestCase extends Assert {
         String methodDesc = Type.getMethodDescriptor(method);
         Class<?> parentClass = method.getDeclaringClass();
         ClassReader reader = new ClassReader(parentClass.getName());
-        AtomicLong violationCount = new AtomicLong();
         AtomicLong analyzedMethods = new AtomicLong();
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        PrintStream stream = new PrintStream(output, false, "UTF-8");
+        MethodAnalyzer analyzer[] = new MethodAnalyzer[1];
         reader.accept(new ClassVisitor(Opcodes.ASM5, null) {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 if (name.equals(method.getName()) && desc.equals(methodDesc)) {
                     analyzedMethods.incrementAndGet();
-                    return new MethodAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions, violationCount, stream);
+                    return analyzer[0] = new MethodAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions);
                 }
                 return null;
             }
         }, 0);
-        stream.flush();
-        String messages = output.toString("UTF-8");
-        assertEquals("unexpected number of matching methods", 1L, analyzedMethods.get());
+        assertNotNull("method not found", analyzer[0]);
+        List<String> violations = analyzer[0].violations;
+        String messages = String.join(System.lineSeparator(), violations);
         if (expectedOutput == null) {
-            assertTrue("output was not empty:\n" + messages, messages.isEmpty());
+            assertTrue("output was not empty:\n" + messages, violations.isEmpty());
         } else {
             assertTrue("output didn't contain expected:\n" + messages, messages.contains(expectedOutput));
         }
