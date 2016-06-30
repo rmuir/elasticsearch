@@ -22,6 +22,7 @@ package org.elasticsearch.transport.netty;
 import org.elasticsearch.Version;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.Booleans;
+import org.elasticsearch.common.SwallowsExceptions;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.bytes.ReleasablePagedBytesReference;
 import org.elasticsearch.common.inject.Inject;
@@ -557,7 +558,7 @@ public class NettyTransport extends TcpTransport<Channel> {
         }
     }
 
-    @Override
+    @Override @SwallowsExceptions(reason = "?")
     protected void closeChannels(List<Channel> channels) {
         List<ChannelFuture> futures = new ArrayList<>();
 

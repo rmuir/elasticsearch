@@ -64,7 +64,7 @@ public class BaseTestCase extends Assert {
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                 if (name.equals(method.getName()) && desc.equals(methodDesc)) {
                     analyzedMethods.incrementAndGet();
-                    return new CatchAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions, violationCount, stream);
+                    return new MethodAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions, violationCount, stream);
                 }
                 return null;
             }
