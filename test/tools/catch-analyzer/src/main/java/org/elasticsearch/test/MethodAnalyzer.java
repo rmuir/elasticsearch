@@ -35,7 +35,9 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.BasicValue;
 import org.objectweb.asm.tree.analysis.Frame;
 
+import java.lang.invoke.LambdaMetafactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
@@ -65,8 +67,16 @@ class MethodAnalyzer extends MethodVisitor {
         return super.visitAnnotation(desc, visible);
     }
     
+    private static final String LAMBDA_META_FACTORY_INTERNAL_NAME = Type.getInternalName(LambdaMetafactory.class);
+
     @Override
     public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+        if (LAMBDA_META_FACTORY_INTERNAL_NAME.equals(bsm.getOwner())) {
+            Handle implMethod = (Handle) bsmArgs[1];
+            if (implMethod.getOwner().equals(owner) && implMethod.getName().startsWith("lambda$")) {
+                lambdas.add(new Method(implMethod.getName(), implMethod.getDesc()));
+            }
+        }
         super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
 

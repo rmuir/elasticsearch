@@ -19,21 +19,23 @@
 
 package org.elasticsearch.test;
 
-public class SuppressedTests extends BaseTestCase {
+import java.util.Optional;
 
+public class LambdaTests extends BaseTestCase {
+    
     /** drops the exception on the floor */
-    @SwallowsExceptions
     public int escapes() {
-        try {
-            return Integer.parseInt("bogus");
-        } catch (Exception e) {
-            return 0;
-        }
+        return Optional.<Integer>empty().orElseGet(() -> {
+            try {
+                return Integer.parseInt("foo");
+            } catch (Exception e) {
+                return 0;
+            }
+        });
     }
     
     public void testEscapes() throws Exception {
         MethodAnalyzer analyzer = analyze(getClass().getMethod("escapes"));
-        assertEquals(1, analyzer.violations.size());
-        assertEquals(true, analyzer.suppressed);
+        assertEquals(1, analyzer.lambdas.size());
     }
 }

@@ -595,7 +595,7 @@ public class NettyTransport extends TcpTransport<Channel> {
         return channel.isOpen();
     }
 
-    @Override
+    @Override @SwallowsExceptions(reason = "?")
     protected void stopInternal() {
         Releasables.close(serverOpenChannels, () ->{
             for (Map.Entry<String, ServerBootstrap> entry : serverBootstraps.entrySet()) {

@@ -26,7 +26,9 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** class-level analyzer */
@@ -76,6 +78,20 @@ class ClassAnalyzer extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        super.visitEnd();
+        // fold lambdas violations into their parent methods
+        List<Method> lambdas = new ArrayList<>();
+        analyses.forEach((method, analysis) -> {
+            for (Method lambda : analysis.lambdas) {
+                MethodAnalyzer lambdaAnalysis = analyses.get(lambda);
+                if (lambdaAnalysis != null) {
+                    analysis.violations.addAll(lambdaAnalysis.violations);
+                    lambdas.add(lambda);
+                } else {
+                    // could be we can't analyze a certain lambda for some reason :)
+                }
+            }
+        });
+        // now nuke them
+        analyses.keySet().removeAll(lambdas);
     }
 }
