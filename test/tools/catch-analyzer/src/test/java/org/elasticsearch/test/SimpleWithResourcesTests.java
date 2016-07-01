@@ -37,8 +37,8 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     public void testEscapes() throws Exception {
         MethodAnalyzer analyzer = analyze(getClass().getMethod("escapes"));
         assertFalse(analyzer.violations.isEmpty());
-        for (String violation : analyzer.violations) {
-            assertTrue(violation.contains("Escapes without throwing"));
+        for (Violation violation : analyzer.violations) {
+            assertEquals(Violation.Kind.ESCAPES_WITHOUT_THROWING_ANYTHING, violation.kind);
         }
     }
     
@@ -59,8 +59,8 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     public void testEscapesSometimes() throws Exception {
         MethodAnalyzer analyzer = analyze(getClass().getMethod("escapesSometimes"));
         assertFalse(analyzer.violations.isEmpty());
-        for (String violation : analyzer.violations) {
-            assertTrue(violation.contains("Escapes without throwing"));
+        for (Violation violation : analyzer.violations) {
+            assertEquals(Violation.Kind.ESCAPES_WITHOUT_THROWING_ANYTHING, violation.kind);
         }
     }
     
@@ -80,8 +80,8 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     public void testEscapesSometimesLoop() throws Exception {
         MethodAnalyzer analyzer = analyze(getClass().getMethod("escapesSometimesLoop"));
         assertFalse(analyzer.violations.isEmpty());
-        for (String violation : analyzer.violations) {
-            assertTrue(violation.contains("Escapes without throwing"));
+        for (Violation violation : analyzer.violations) {
+            assertEquals(Violation.Kind.ESCAPES_WITHOUT_THROWING_ANYTHING, violation.kind);
         }
     }
     
@@ -98,8 +98,8 @@ public class SimpleWithResourcesTests extends BaseTestCase {
     public void testThrowsSomethingElse() throws Exception {
         MethodAnalyzer analyzer = analyze(getClass().getMethod("throwsSomethingElse"));
         assertFalse(analyzer.violations.isEmpty());
-        for (String violation : analyzer.violations) {
-            assertTrue(violation.contains("Throws a different exception"));
+        for (Violation violation : analyzer.violations) {
+            assertEquals(Violation.Kind.THROWS_SOMETHING_ELSE_BUT_LOSES_ORIGINAL, violation.kind);
         }
     }
     

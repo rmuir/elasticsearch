@@ -27,12 +27,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.Method;
 
 /**
  * Analyzes methods for broken catch blocks. These are catch blocks that somehow
@@ -55,7 +52,7 @@ public class CatchAnalyzer {
     
     /** Main method, takes directories as parameter. These must also be on classpath!!!! */
     public static void main(String args[]) throws Exception {
-        AtomicLong violationCount = new AtomicLong();
+        long violationCount = 0;
         long scannedCount = 0;
         long startTime = System.currentTimeMillis();
         List<Path> files = new ArrayList<>();
@@ -82,42 +79,17 @@ public class CatchAnalyzer {
             if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
                 continue;
             }
-            ClassAnalyzer analyzer = new ClassAnalyzer(reader.getClassName(), System.out);
+            ClassAnalyzer analyzer = new ClassAnalyzer(reader.getClassName());
             reader.accept(analyzer, 0);
             scannedCount++;
-            if (analyzer.suppressed) {
-                long violations = 0;
-                for (MethodAnalyzer analysis : analyzer.analyses.values()) {
-                    violations += analysis.violations.size();
-                }
-                if (violations == 0) {
-                    System.out.println(reader.getClassName() + " is suppressed, but has no actual problems!");
-                    violationCount.incrementAndGet();
-                }
-            } else {
-                for (Map.Entry<Method,MethodAnalyzer> entry : analyzer.analyses.entrySet()) {
-                    Method method = entry.getKey();
-                    MethodAnalyzer analysis = entry.getValue();
-                    if (analysis.suppressed) {
-                        if (analysis.violations.isEmpty()) {
-                            System.out.println(reader.getClassName() + "." + method.getName() + 
-                                               " is suppressed, but has no actual problems!");
-                            violationCount.incrementAndGet();
-                        }
-                    } else {
-                        for (String violation : analysis.violations) {
-                            System.out.println(violation);
-                            violationCount.incrementAndGet();
-                        }
-                    }
-                }
-            }
+            
+            violationCount += analyzer.logViolations(System.out);
         }
         long endTime = System.currentTimeMillis();
         // step 4: print        
         
         System.out.println("Scanned " + scannedCount + " classes in " + (endTime - startTime) + " ms");
-        if (violationCount.get() > 0) {
+        if (violationCount > 0) {
             throw new SwallowedException(violationCount + " violations were found, see log for more details");
         }
     }

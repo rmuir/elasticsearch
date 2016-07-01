@@ -37,7 +37,6 @@ import org.objectweb.asm.tree.analysis.Frame;
 
 import java.lang.invoke.LambdaMetafactory;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
@@ -45,9 +44,8 @@ import java.util.TreeSet;
 
 class MethodAnalyzer extends MethodVisitor {
     private final String owner;
-    private final String methodName;
     /** any violations we found for this method */
-    final List<String> violations = new ArrayList<>();
+    final Set<Violation> violations = new TreeSet<>();
     /** any lambda invocations we found for this method (we'll apply suppression to them, if needed) */
     final List<Method> lambdas = new ArrayList<>();
     /** true if we found a suppression annotation for this method */
@@ -56,7 +54,6 @@ class MethodAnalyzer extends MethodVisitor {
     MethodAnalyzer(String owner, int access, String name, String desc, String signature, String[] exceptions) {
         super(Opcodes.ASM5, new MethodNode(access, name, desc, signature, exceptions));
         this.owner = owner;
-        this.methodName = name;
     }
     
     @Override
@@ -122,11 +119,8 @@ class MethodAnalyzer extends MethodVisitor {
             }
             // check the destination of every exception edge
             for (int handler : handlers) {
-                String violation = analyze(insns, nodes, handler, new BitSet());
-                if (violation != null) {
-                    String brokenCatchBlock = newViolation("Broken catch block", getLineNumberForwards(insns, handler));
-                    violations.add(brokenCatchBlock + System.lineSeparator() + "\t" + violation);
-                }
+                int line = getLineNumberForwards(insns, handler);
+                analyze(line, insns, nodes, handler, new BitSet());
             }
         } catch (AnalyzerException e) {
             throw new RuntimeException(e);
@@ -135,14 +129,15 @@ class MethodAnalyzer extends MethodVisitor {
     
     /**
      * Analyzes a basic block starting at insn, recursing for all paths in the CFG, until it finds an exit or
-     * throw. Returns null if there were no problems, or a string error.
+     * throw. records all violations found.
      */
-    private String analyze(AbstractInsnNode insns[], List<Node<BasicValue>> nodes, int insn, BitSet visited) {
+    private void analyze(int line, AbstractInsnNode insns[], List<Node<BasicValue>> nodes, int insn, BitSet visited) {
         Node<BasicValue> node = nodes.get(insn);
         while (true) {
             if (visited.get(insn)) {
-                return null;
+                return;
             }
+            visited.set(insn);
             if (insns[insn] instanceof MethodInsnNode) {
                 MethodInsnNode methodNode = (MethodInsnNode) insns[insn];
                 if ((methodNode.name.equals("addSuppressed") || methodNode.name.equals("initCause")) &&
@@ -150,7 +145,7 @@ class MethodAnalyzer extends MethodVisitor {
                     // its a suppressor, check our original is live on stack
                     for (int i = 0; i < node.getStackSize(); i++) {
                         if (node.getStack(i) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
-                            return null;
+                            return;
                         }
                     }
                 }
@@ -158,7 +153,7 @@ class MethodAnalyzer extends MethodVisitor {
                     // its a suppressor, check our original is live on stack
                     for (int i = 0; i < node.getStackSize(); i++) {
                         if (node.getStack(i) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
-                            return null;
+                            return;
                         }
                     }
                 }
@@ -167,15 +162,20 @@ class MethodAnalyzer extends MethodVisitor {
                 // its a throw, or equivalent. check that our original is live on stack
                 for (int i = 0; i < node.getStackSize(); i++) {
                     if (node.getStack(i) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
-                        return null;
+                        return;
                     }
                 }
-                return newViolation("Throws a different exception, but loses the original", getLineNumberBackwards(insns, insn));
+                Violation violation = new Violation(Violation.Kind.THROWS_SOMETHING_ELSE_BUT_LOSES_ORIGINAL, line,
+                                                     getLineNumberBackwards(insns, insn));
+                violations.add(violation);
+                return;
             }
             if (node.edges.isEmpty()) {
-                return newViolation("Escapes without throwing anything", getLineNumberBackwards(insns, insn));
+                Violation violation = new Violation(Violation.Kind.ESCAPES_WITHOUT_THROWING_ANYTHING, line,
+                                                    getLineNumberBackwards(insns, insn));
+                violations.add(violation);
+                return;
             }
-            visited.set(insn);
             if (node.edges.size() == 1) {
                 insn = node.edges.iterator().next();
                 node = nodes.get(insn);
@@ -186,14 +186,8 @@ class MethodAnalyzer extends MethodVisitor {
         
         // recurse: multiple edges
         for (int edge : node.edges) {
-            String violation = analyze(insns, nodes, edge, visited);
-            if (violation != null) {
-                return violation;
-            }
+            analyze(line, insns, nodes, edge, visited);
         }
-        
-        // we checked all paths, no problems.
-        return null;
     }
     
     /** true if this is a throw, or an equivalent (e.g. rethrow) */
@@ -237,15 +231,5 @@ class MethodAnalyzer extends MethodVisitor {
             }
         }
         return line;
-    }
-    
-    /** Forms a string message for a new violation */
-    private String newViolation(String message, int line) {
-        String clazzName = owner.replace('/', '.');
-        if (line >= 0) {
-            return message + " at " + clazzName + "." + methodName + ":" + line;
-        } else {
-            return message + " at " + clazzName + "." + methodName + ":(Unknown Source)";
-        }
     }
 }

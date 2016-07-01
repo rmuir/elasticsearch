@@ -19,6 +19,7 @@
 
 package org.elasticsearch.test;
 
+import org.elasticsearch.test.Violation.Kind;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -30,18 +31,18 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /** class-level analyzer */
 class ClassAnalyzer extends ClassVisitor {
     final String className;
-    final PrintStream out;
     final Map<Method,MethodAnalyzer> analyses = new LinkedHashMap<>();
     boolean suppressed;
+    String source;
 
-    ClassAnalyzer(String className, PrintStream out) {
+    ClassAnalyzer(String className) {
         super(Opcodes.ASM5);
         this.className = className;
-        this.out = out;
     }
     
     @Override
@@ -50,6 +51,11 @@ class ClassAnalyzer extends ClassVisitor {
             suppressed = true;
         }
         return null;
+    }
+    
+    @Override
+    public void visitSource(String source, String debug) {
+        this.source = source;
     }
 
     @Override
@@ -93,5 +99,78 @@ class ClassAnalyzer extends ClassVisitor {
         });
         // now nuke them
         analyses.keySet().removeAll(lambdas);
+    }
+    
+    long logViolations(PrintStream stream) {
+        long violationCount = 0;
+        if (suppressed) {
+            long violations = 0;
+            for (MethodAnalyzer analysis : analyses.values()) {
+                violations += analysis.violations.size();
+            }
+            if (violations == 0) {
+                StringBuilder sb = createMessage("Wrong class annotation", null, -1);
+                addDetails(sb, new Violation(Kind.ANNOTATED_AS_SWALLOWER_BUT_HAS_NO_PROBLEMS, -1, -1));
+                stream.println(sb.toString());
+                violationCount++;
+            }
+        } else {
+            for (Map.Entry<Method,MethodAnalyzer> entry : analyses.entrySet()) {
+                Method method = entry.getKey();
+                MethodAnalyzer analysis = entry.getValue();
+                if (analysis.suppressed) {
+                    if (analysis.violations.isEmpty()) {
+                        StringBuilder sb = createMessage("Wrong method annotation", method, -1);
+                        addDetails(sb, new Violation(Kind.ANNOTATED_AS_SWALLOWER_BUT_HAS_NO_PROBLEMS, -1, -1));
+                        stream.println(sb.toString());
+                        violationCount++;
+                    }
+                } else {
+                    Map<Integer,List<Violation>> report = analysis.violations.stream()
+                                                          .collect(Collectors.groupingBy(Violation::getLineNumber));
+                    for (Map.Entry<Integer,List<Violation>> group : report.entrySet()) {
+                        StringBuilder sb = createMessage("Broken catch block", method, group.getKey());
+                        for (Violation violation : group.getValue()) {
+                            addDetails(sb, violation);
+                        }
+                        stream.println(sb.toString());
+                        violationCount++;
+                    }
+                }
+            }
+        }
+        return violationCount;
+    }
+    
+    private StringBuilder createMessage(String problem, Method method, int lineNumber) {
+        StringBuilder message = new StringBuilder();
+        message.append(problem);
+        message.append(" at ");
+        message.append(className.replace('/', '.'));
+        if (method != null) {
+            message.append(".");
+            message.append(method.getName());
+            message.append("(");
+            if (source == null) {
+                message.append("Unknown Source");
+            } else {
+                message.append(source);
+            }
+            if (lineNumber > 0) {
+                message.append(":" + lineNumber);
+            }
+            message.append(")");
+        }
+        return message;
+    }
+    
+    private void addDetails(StringBuilder message, Violation violation) {
+        message.append(System.lineSeparator());
+        message.append("\t* ");
+        message.append(violation.kind.description);
+        if (violation.secondaryLineNumber != -1) {
+            message.append(" at line ");
+            message.append(violation.secondaryLineNumber);
+        }
     }
 }
