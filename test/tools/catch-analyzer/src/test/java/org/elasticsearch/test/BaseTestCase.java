@@ -31,6 +31,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,17 +44,26 @@ public class BaseTestCase extends Assert {
     
     /** analyzes the method, and returns its analysis */
     public MethodAnalyzer analyze(Method method) throws Exception {
-        String methodDesc = Type.getMethodDescriptor(method);
-        Class<?> parentClass = method.getDeclaringClass();
+        return analyze(method.getDeclaringClass(), method.getName(), Type.getMethodDescriptor(method));
+    }
+    
+    /** analyzes the ctor, and returns its analysis */
+    public MethodAnalyzer analyze(Constructor<?> method) throws Exception {
+        return analyze(method.getDeclaringClass(), "<init>", Type.getConstructorDescriptor(method));
+    }
+    
+    /** analyzes the method, and returns its analysis */
+    private MethodAnalyzer analyze(Class<?> parentClass, String methodName, String methodDesc) throws Exception {
         ClassReader reader = new ClassReader(parentClass.getName());
         AtomicLong analyzedMethods = new AtomicLong();
         MethodAnalyzer analyzer[] = new MethodAnalyzer[1];
         reader.accept(new ClassVisitor(Opcodes.ASM5, null) {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                if (name.equals(method.getName()) && desc.equals(methodDesc)) {
+                if (name.equals(methodName) && desc.equals(methodDesc)) {
                     analyzedMethods.incrementAndGet();
-                    return analyzer[0] = new MethodAnalyzer(reader.getClassName(), access, name, desc, signature, exceptions);
+                    return analyzer[0] = new MethodAnalyzer(reader.getClassName(), reader.getSuperName(), access, 
+                                                            name, desc, signature, exceptions);
                 }
                 return null;
             }

@@ -39,12 +39,18 @@ class ClassAnalyzer extends ClassVisitor {
     final Map<Method,MethodAnalyzer> analyses = new LinkedHashMap<>();
     boolean suppressed;
     String source;
+    String superName;
 
     ClassAnalyzer(String className) {
         super(Opcodes.ASM5);
         this.className = className;
     }
     
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        this.superName = superName;
+    }
+
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if (desc.contains("SwallowsExceptions")) {
@@ -60,10 +66,6 @@ class ClassAnalyzer extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        // TODO: allow scanning ctors (we just have to handle the super call better)
-        if ("<init>".equals(name)) {
-            return null;
-        }
         // don't apply our rules to bridge methods: they will have annotations, but we won't find problems!
         if ((access & Opcodes.ACC_BRIDGE) != 0) {
             return null;
@@ -81,7 +83,7 @@ class ClassAnalyzer extends ClassVisitor {
         if ("seekToNextNode".equals(name) && "org/apache/lucene/util/fst/FST".equals(className)) {
             return null;
         }
-        MethodAnalyzer analyzer = new MethodAnalyzer(className, access, name, desc, signature, exceptions);
+        MethodAnalyzer analyzer = new MethodAnalyzer(className, superName, access, name, desc, signature, exceptions);
         analyses.put(new Method(name, desc), analyzer);
         return analyzer;
     }

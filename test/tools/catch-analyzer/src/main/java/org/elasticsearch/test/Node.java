@@ -36,13 +36,16 @@ import java.util.Set;
 /** Node in the flow graph. contains set of outgoing edges for the next instructions possible */
 class Node<V extends BasicValue> extends Frame<V> {
     Set<Integer> edges = new HashSet<>();
+    MethodAnalyzer parent;
     
-    public Node(int nLocals, int nStack) {
+    public Node(int nLocals, int nStack, MethodAnalyzer parent) {
         super(nLocals, nStack);
+        this.parent = parent;
     }
     
-    public Node(Frame<? extends V> src) {
+    public Node(Frame<? extends V> src, MethodAnalyzer parent) {
         super(src);
+        this.parent = parent;
     }
     
     @Override
@@ -52,7 +55,16 @@ class Node<V extends BasicValue> extends Frame<V> {
         if (insn.getOpcode() == Opcodes.INVOKESPECIAL) {
             MethodInsnNode node = (MethodInsnNode) insn;
             Type ownerType = Type.getObjectType(node.owner);
+            // actually calling a throwable ctor
             if ("<init>".equals(node.name) && ThrowableInterpreter.isThrowable(ownerType, getClass().getClassLoader())) {
+                // but, not if we are ourselves a throwable ctor invoking another ctor!
+                if ("<init>".equals(parent.name) && 
+                      (ownerType.getInternalName().equals(parent.owner) || 
+                       ownerType.getInternalName().equals(parent.superName))) {
+                    super.execute(insn, interpreter);
+                    return;
+                }
+                // actually creating a throwable
                 List<V> values = new ArrayList<V>();
                 String desc = ((MethodInsnNode) insn).desc;
                 for (int i = Type.getArgumentTypes(desc).length; i > 0; --i) {

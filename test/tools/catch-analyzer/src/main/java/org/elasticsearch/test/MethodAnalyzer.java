@@ -43,7 +43,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 class MethodAnalyzer extends MethodVisitor {
-    private final String owner;
+    /** method name */
+    final String name;
+    /** parent class name */
+    final String owner;
+    /** parent class's superclass */
+    final String superName;
     /** any violations we found for this method */
     final Set<Violation> violations = new TreeSet<>();
     /** any lambda invocations we found for this method (we'll apply suppression to them, if needed) */
@@ -51,9 +56,11 @@ class MethodAnalyzer extends MethodVisitor {
     /** true if we found a suppression annotation for this method */
     boolean suppressed;
     
-    MethodAnalyzer(String owner, int access, String name, String desc, String signature, String[] exceptions) {
+    MethodAnalyzer(String owner, String superName, int access, String name, String desc, String signature, String[] exceptions) {
         super(Opcodes.ASM5, new MethodNode(access, name, desc, signature, exceptions));
+        this.name = name;
         this.owner = owner;
+        this.superName = superName;
     }
     
     @Override
@@ -86,12 +93,12 @@ class MethodAnalyzer extends MethodVisitor {
         Analyzer<BasicValue> a = new Analyzer<BasicValue>(new ThrowableInterpreter()) {
             @Override
             protected Frame<BasicValue> newFrame(Frame<? extends BasicValue> src) {
-                return new Node<BasicValue>(src);
+                return new Node<BasicValue>(src, MethodAnalyzer.this);
             }
             
             @Override
             protected Frame<BasicValue> newFrame(int nLocals, int nStack) {
-                return new Node<BasicValue>(nLocals, nStack);
+                return new Node<BasicValue>(nLocals, nStack, MethodAnalyzer.this);
             }
             
             @Override
