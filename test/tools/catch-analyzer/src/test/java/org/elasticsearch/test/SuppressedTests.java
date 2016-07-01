@@ -19,8 +19,6 @@
 
 package org.elasticsearch.test;
 
-import java.io.ByteArrayOutputStream;
-
 public class SuppressedTests extends BaseTestCase {
     /** drops the exception on the floor */
     @SwallowsExceptions
@@ -33,50 +31,8 @@ public class SuppressedTests extends BaseTestCase {
     }
     
     public void testEscapes() throws Exception {
-        assertOK(getClass().getMethod("escapes"));
-    }
-    
-    /** drops the exception on the floor */
-    @SwallowsExceptions
-    public int escapesWithResources() throws Exception {
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-            assert stream != null;
-            return Integer.parseInt("bogus");
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-    
-    public void testEscapesWithResources() throws Exception {
-        assertOK(getClass().getMethod("escapesWithResources"));
-    }
-    
-    /** does the right thing, but annotated wrong */
-    @SwallowsExceptions
-    public int actuallyThrows() throws Exception {
-        try {
-            return Integer.parseInt("bogus");
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-    
-    public void testActuallyThrows() throws Exception {
-        assertFails(getClass().getMethod("actuallyThrows"), "Does not swallow any exception");
-    }
-    
-    /** does the right thing, but annotated wrong */
-    @SwallowsExceptions
-    public int actuallyThrowsWithResources() throws Exception {
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-            assert stream != null;
-            return Integer.parseInt("bogus");
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-    
-    public void testActuallyThrowsWithResources() throws Exception {
-        assertFails(getClass().getMethod("actuallyThrowsWithResources"), "Does not swallow any exception");
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("escapes"));
+        assertEquals(1, analyzer.violations.size());
+        assertEquals(true, analyzer.suppressed);
     }
 }

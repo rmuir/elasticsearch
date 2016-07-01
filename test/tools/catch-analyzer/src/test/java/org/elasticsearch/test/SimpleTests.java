@@ -32,7 +32,9 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testEscapes() throws Exception {
-        assertFails(getClass().getMethod("escapes"), "Escapes without throwing");
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("escapes"));
+        assertEquals(1, analyzer.violations.size());
+        assertTrue(analyzer.violations.get(0).contains("Escapes without throwing"));
     }
     
     /** drops the exception on the floor (sometimes) */
@@ -49,7 +51,9 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testEscapesSometimes() throws Exception {
-        assertFails(getClass().getMethod("escapesSometimes"), "Escapes without throwing");
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("escapesSometimes"));
+        assertEquals(1, analyzer.violations.size());
+        assertTrue(analyzer.violations.get(0).contains("Escapes without throwing"));
     }
     
     /** drops the exception on the floor (sometimes, with loop) */
@@ -65,7 +69,9 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testEscapesSometimesLoop() throws Exception {
-        assertFails(getClass().getMethod("escapesSometimesLoop"), "Escapes without throwing");
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("escapesSometimesLoop"));
+        assertEquals(1, analyzer.violations.size());
+        assertTrue(analyzer.violations.get(0).contains("Escapes without throwing"));
     }
     
     /** throws something else (does not pass the exception) */
@@ -78,7 +84,9 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsSomethingElse() throws Exception {
-        assertFails(getClass().getMethod("throwsSomethingElse"), "Throws a different exception");
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("throwsSomethingElse"));
+        assertEquals(1, analyzer.violations.size());
+        assertTrue(analyzer.violations.get(0).contains("Throws a different exception"));
     }
     
     /** throws exception back directly */
@@ -91,7 +99,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsExceptionBack() throws Exception {
-        assertOK(getClass().getMethod("throwsExceptionBack"));
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("throwsExceptionBack"));
+        assertTrue(analyzer.violations.isEmpty());
     }
     
     /** throws exception boxed in another */
@@ -104,7 +113,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsBoxedException() throws Exception {
-        assertOK(getClass().getMethod("throwsBoxedException"));
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("throwsBoxedException"));
+        assertTrue(analyzer.violations.isEmpty());
     }
     
     /** throws exception boxed in another (via initCause) */
@@ -119,7 +129,8 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsBoxedExceptionInitCause() throws Exception {
-        assertOK(getClass().getMethod("throwsBoxedExceptionInitCause"));
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("throwsBoxedExceptionInitCause"));
+        assertTrue(analyzer.violations.isEmpty());
     }
     
     /** throws exception boxed in another (via addSuppressed) */
@@ -134,6 +145,7 @@ public class SimpleTests extends BaseTestCase {
     }
     
     public void testThrowsBoxedExceptionAddSuppressed() throws Exception {
-        assertOK(getClass().getMethod("throwsBoxedExceptionAddSuppressed"));
+        MethodAnalyzer analyzer = analyze(getClass().getMethod("throwsBoxedExceptionAddSuppressed"));
+        assertTrue(analyzer.violations.isEmpty());
     }
 }

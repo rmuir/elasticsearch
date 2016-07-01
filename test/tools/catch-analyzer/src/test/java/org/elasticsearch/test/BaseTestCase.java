@@ -31,10 +31,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 @TestMethodProviders({
@@ -44,15 +41,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @RunWith(RandomizedRunner.class)
 public class BaseTestCase extends Assert {
     
-    public void assertFails(Method method, String expectedOutput) throws Exception {
-        check(method, expectedOutput);
-    }
-    
-    public void assertOK(Method method) throws Exception {
-        check(method, null);
-    }
-    
-    private void check(Method method, String expectedOutput) throws Exception {
+    /** analyzes the method, and returns its analysis */
+    public MethodAnalyzer analyze(Method method) throws Exception {
         String methodDesc = Type.getMethodDescriptor(method);
         Class<?> parentClass = method.getDeclaringClass();
         ClassReader reader = new ClassReader(parentClass.getName());
@@ -69,12 +59,6 @@ public class BaseTestCase extends Assert {
             }
         }, 0);
         assertNotNull("method not found", analyzer[0]);
-        List<String> violations = analyzer[0].violations;
-        String messages = String.join(System.lineSeparator(), violations);
-        if (expectedOutput == null) {
-            assertTrue("output was not empty:\n" + messages, violations.isEmpty());
-        } else {
-            assertTrue("output didn't contain expected:\n" + messages, messages.contains(expectedOutput));
-        }
+        return analyzer[0];
     }
 }
