@@ -64,6 +64,10 @@ class ClassAnalyzer extends ClassVisitor {
         if ("<init>".equals(name)) {
             return null;
         }
+        // don't apply our rules to bridge methods: they will have annotations, but we won't find problems!
+        if ((access & Opcodes.ACC_BRIDGE) != 0) {
+            return null;
+        }
         // TODO: fix bugs in ASM, that cause problems when doing dataflow analysis of the following methods:
         // indexwriter.shutdown
         if ("shutdown".equals(name) && "org/apache/lucene/index/IndexWriter".equals(className)) {

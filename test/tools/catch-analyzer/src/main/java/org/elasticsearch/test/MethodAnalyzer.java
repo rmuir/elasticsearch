@@ -61,7 +61,7 @@ class MethodAnalyzer extends MethodVisitor {
         if (desc.contains("SwallowsExceptions")) {
             suppressed = true;
         }
-        return super.visitAnnotation(desc, visible);
+        return null;
     }
     
     private static final String LAMBDA_META_FACTORY_INTERNAL_NAME = Type.getInternalName(LambdaMetafactory.class);

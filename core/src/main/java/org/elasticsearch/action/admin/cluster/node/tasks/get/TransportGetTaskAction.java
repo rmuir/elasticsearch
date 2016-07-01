@@ -199,13 +199,12 @@ public class TransportGetTaskAction extends HandledTransportAction<GetTaskReques
      * task's result was persisted. Called on the node that once had the task if that node is still part of the cluster or on the
      * coordinating node if the node is no longer part of the cluster.
      */
-    @SwallowsExceptions(reason = "?")
     void getFinishedTaskFromIndex(Task thisTask, GetTaskRequest request, ActionListener<GetTaskResponse> listener) {
         GetRequest get = new GetRequest(TaskPersistenceService.TASK_INDEX, TaskPersistenceService.TASK_TYPE,
                 request.getTaskId().toString());
         get.setParentTask(clusterService.localNode().getId(), thisTask.getId());
         client.get(get, new ActionListener<GetResponse>() {
-            @Override
+            @Override @SwallowsExceptions(reason = "?")
             public void onResponse(GetResponse getResponse) {
                 try {
                     onGetFinishedTaskFromIndex(getResponse, listener);
