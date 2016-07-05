@@ -71,6 +71,7 @@ class ThrowableInterpreter extends BasicInterpreter {
         return v;
     }
     
+    /** check if the type is a throwable */
     static boolean isThrowable(Type type, ClassLoader loader) {
         if (type != null && type.getSort() == Type.OBJECT && "null".equals(type.getClassName()) == false) {
             try {
