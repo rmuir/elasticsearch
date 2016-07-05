@@ -145,44 +145,28 @@ class MethodAnalyzer extends MethodVisitor {
                 return;
             }
             visited.set(insn);
-            if (insns[insn] instanceof MethodInsnNode) {
-                MethodInsnNode methodNode = (MethodInsnNode) insns[insn];
-                if ((methodNode.name.equals("addSuppressed") || methodNode.name.equals("initCause")) &&
-                        ThrowableInterpreter.isThrowable(Type.getObjectType(methodNode.owner), getClass().getClassLoader())) {
-                    // its a suppressor, check our original is live on stack
-                    for (int i = 0; i < node.getStackSize(); i++) {
-                        if (node.getStack(i) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
-                            return;
-                        }
-                    }
-                }
-                if ((methodNode.name.equals("addSuppressed") && methodNode.owner.equals("org/apache/lucene/util/IOUtils"))) {
-                    // its a suppressor, check our original is live on stack
-                    for (int i = 0; i < node.getStackSize(); i++) {
-                        if (node.getStack(i) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
-                            return;
-                        }
-                    }
-                }
-            }
-            if (isThrowInsn(insns[insn])) {
-                // its a throw, or equivalent. check that our original is live on stack
-                for (int i = 0; i < node.getStackSize(); i++) {
-                    if (node.getStack(i) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
-                        return;
-                    }
-                }
-                Violation violation = new Violation(Violation.Kind.THROWS_SOMETHING_ELSE_BUT_LOSES_ORIGINAL, line,
-                                                     getLineNumberBackwards(insns, insn));
-                violations.add(violation);
+            // original exception being added as suppressed exception to another.
+            if (isValidSuppression(insns[insn], node)) {
                 return;
             }
+            // true if its a throw equivalent, and the original is being passed.
+            Boolean v = isThrowInsn(insns[insn], node);
+            if (v == null) {
+                Violation violation = new Violation(Violation.Kind.THROWS_SOMETHING_ELSE_BUT_LOSES_ORIGINAL, line,
+                                                    getLineNumberBackwards(insns, insn));
+                violations.add(violation);
+                return;
+            } else if (v) {
+                return;
+            }
+            // end of path, you lose
             if (node.edges.isEmpty()) {
                 Violation violation = new Violation(Violation.Kind.ESCAPES_WITHOUT_THROWING_ANYTHING, line,
                                                     getLineNumberBackwards(insns, insn));
                 violations.add(violation);
                 return;
             }
+            // stay within loop instead of recursing for the rest of this block
             if (node.edges.size() == 1) {
                 insn = node.edges.iterator().next();
                 node = nodes.get(insn);
@@ -198,17 +182,52 @@ class MethodAnalyzer extends MethodVisitor {
     }
     
     /** true if this is a throw, or an equivalent (e.g. rethrow) */
-    private static boolean isThrowInsn(AbstractInsnNode insn) {
+    private static Boolean isThrowInsn(AbstractInsnNode insn, Node<BasicValue> node) {
         if (insn.getOpcode() == Opcodes.ATHROW) {
+            if (node.getStack(0) != ThrowableInterpreter.ORIGINAL_THROWABLE) {
+                return null;
+            }
             return true;
         }
         if (insn instanceof MethodInsnNode) {
             MethodInsnNode methodNode = (MethodInsnNode) insn;
             if (methodNode.owner.equals("org/apache/lucene/codecs/CodecUtil") && methodNode.name.equals("checkFooter")) {
+                if (node.getStack(1) != ThrowableInterpreter.ORIGINAL_THROWABLE) {
+                    return null;
+                }
                 return true;
             }
             if (methodNode.owner.equals("org/apache/lucene/util/IOUtils") && methodNode.name.equals("reThrow")) {
+                if (node.getStack(0) != ThrowableInterpreter.ORIGINAL_THROWABLE) {
+                    return null;
+                }
                 return true;
+            }
+            if (methodNode.owner.equals("org/apache/lucene/util/IOUtils") && methodNode.name.equals("reThrowUnchecked")) {
+                if (node.getStack(0) != ThrowableInterpreter.ORIGINAL_THROWABLE) {
+                    return null;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private static boolean isValidSuppression(AbstractInsnNode insn, Node<BasicValue> node) {
+        if (insn instanceof MethodInsnNode) {
+            MethodInsnNode methodNode = (MethodInsnNode)insn;
+            if ((methodNode.name.equals("addSuppressed") || methodNode.name.equals("initCause")) &&
+                    ThrowableInterpreter.isThrowable(Type.getObjectType(methodNode.owner), MethodAnalyzer.class.getClassLoader())) {
+                // its a suppressor, check our original is passed
+                if (node.getStack(1) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
+                    return true;
+                }
+            }
+            if ((methodNode.name.equals("addSuppressed") && methodNode.owner.equals("org/apache/lucene/util/IOUtils"))) {
+                // its a suppressor, check our original is passed
+                if (node.getStack(2) == ThrowableInterpreter.ORIGINAL_THROWABLE) {
+                    return true;
+                }
             }
         }
         return false;
